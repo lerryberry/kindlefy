@@ -11,7 +11,6 @@ const path = require('path');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const decisionRouter = require('./routes/decisionRoutes');
-const criteriaRouter = require('./routes/criteriaRoutes');
 
 //middleware to start express
 const app = express();
