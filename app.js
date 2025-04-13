@@ -13,7 +13,7 @@ const globalErrorHandler = require('./controllers/errorController');
 const decisionRouter = require('./routes/decisionRoutes');
 const criteriaRouter = require('./routes/criteriaRoutes');
 
-//middleware
+//middleware to start express
 const app = express();
 
 //if dev env, make logging verbose
