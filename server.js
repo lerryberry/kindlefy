@@ -11,7 +11,8 @@ const DB = process.env.DATABASE;
 
 mongoose.connect(DB).then(con => console.log(`connected to db!`));
 
-const server = app.listen(process.env.PORT, () => {
+const port = process.env.PORT || 3000;
+const server = app.listen(port, () => {
     console.log(`server running on port ${process.env.PORT} with "${process.env.NODE_ENV}" environment`);
 });
 
