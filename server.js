@@ -29,6 +29,22 @@ function handleCrash(err, eventName) {
       process.exit(1);
     }
 }
+
+// Handle SIGTERM signal (e.g., from Docker stop command)
+process.on('SIGTERM', () => {
+    console.log('SIGTERM received, shutting down gracefully...');
+    if (server) {
+        server.close(() => {
+            console.log('Server closed');
+            mongoose.connection.close(() => {
+                console.log('MongoDB connection closed');
+                process.exit(0);
+            });
+        });
+    } else {
+        process.exit(0);
+    }
+});
   
 
   
