@@ -1,6 +1,7 @@
 const express = require('express');
-const criteriaController = require('../controllers/criteriaController')
 const decisionsController = require('../controllers/decisionsController')
+const criteriaController = require('../controllers/criteriaController')
+const rankingRouter = require('./rankingRoutes')
 
 const router = express.Router( {mergeParams: true} );
 
@@ -11,8 +12,22 @@ router
 
 router
     .route('/:id')
-    .get(decisionsController.validateDecisionOwner, criteriaController.getCriterion)
-    .put(decisionsController.validateDecisionOwner,criteriaController.updateCriterion)
-    .delete(decisionsController.validateDecisionOwner, criteriaController.deleteCriterion)
+    .get(
+        decisionsController.validateDecision,
+        criteriaController.validateChildCriterion,
+        criteriaController.getCriterion
+    )
+    .put(
+        decisionsController.validateDecision, 
+        criteriaController.validateChildCriterion,
+        criteriaController.updateCriterion
+    )
+    .delete(
+        decisionsController.validateDecision, 
+        criteriaController.validateChildCriterion,
+        criteriaController.deleteCriterion
+    )
+
+router.use('/:id/ranking', rankingRouter)
 
 module.exports = router;

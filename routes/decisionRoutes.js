@@ -14,9 +14,12 @@ router
     .post(decisionsController.addDecision);
 router
     .route('/:id')
-    .get(decisionsController.validateDecisionOwner, decisionsController.getDecision)
-    .put(decisionsController.validateDecisionOwner, decisionsController.updateDecision)
-    .delete(decisionsController.validateDecisionOwner, decisionsController.deleteDecision);
+    .get(decisionsController.validateDecision, decisionsController.getDecision)
+    .put(decisionsController.validateDecision, decisionsController.updateDecision)
+    .delete(decisionsController.validateDecision, decisionsController.deleteDecision);
+router
+    .route('/:id/report')
+    .get(decisionsController.validateDecision, decisionsController.getReport)
 
 router.use('/:decisionId/criteria', criteriaRouter)
 router.use('/:decisionId/options', optionsRouter)

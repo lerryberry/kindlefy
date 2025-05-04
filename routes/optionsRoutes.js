@@ -1,6 +1,6 @@
 const express = require('express');
-const optionsController = require('../controllers/optionsController')
 const decisionsController = require('../controllers/decisionsController')
+const optionsController = require('../controllers/optionsController')
 
 const router = express.Router( {mergeParams: true} );
 
@@ -11,8 +11,20 @@ router
 
 router
     .route('/:id')
-    .get(decisionsController.validateDecisionOwner, optionsController.getOption)
-    .put(decisionsController.validateDecisionOwner,optionsController.updateOption)
-    .delete(decisionsController.validateDecisionOwner, optionsController.deleteOption)
+    .get(
+        decisionsController.validateDecision, 
+        optionsController.validateChildOption,
+        optionsController.getOption
+    )
+    .put(
+        decisionsController.validateDecision,
+        optionsController.validateChildOption,
+        optionsController.updateOption
+    )
+    .delete(
+        decisionsController.validateDecision, 
+        optionsController.validateChildOption,
+        optionsController.deleteOption
+    )
 
 module.exports = router;
