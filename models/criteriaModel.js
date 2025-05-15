@@ -49,11 +49,11 @@ criteriaSchema.pre('save', async function (next) {
         return next();
     }
 
-    // 1. Generate the initial slug
+    // Generate the initial slug
     this.slug = slugify(this.title);
 
-    // 2. Check if this slug already exists and find a unique version
-    const Model = this.constructor; // Get the Mongoose model
+    // Check if this slug already exists and find a unique version
+    const Model = this.constructor; 
     let counter = 1;
     let uniqueSlug = this.slug;
 

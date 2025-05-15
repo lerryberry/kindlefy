@@ -11,7 +11,14 @@ exports.addOne = Model => catchAsync(async (req, res, next) => {
         return next(new AppError(`Document with that name already exists`, 404))
     }
     
-    const query = { ...req.body, userId: req.userId };
+    //TODO
+    const query = { 
+        ...req.body, 
+        accessControl: [{
+            userId:req.userId,
+            permissions: ['READ', 'UPDATE', 'DELETE', 'RANK']
+        }]
+    };
     const data = await Model.create(query);
 
     res.status(201).json({
@@ -28,6 +35,10 @@ exports.getOne = Model => catchAsync(async (req, res, next) => {
     const query = decisionId? { _id: id, parentDecision: decisionId } : { _id: id};
 
     const data = await Model.findOne(query);
+
+    if(data.isArchived){
+        return next(new AppError(`that document is archived`, 404))
+    }
 
     if(!data){
         return next(new AppError(`no document found with that id from the provided decision`, 404))
@@ -85,7 +96,7 @@ exports.updateOne = Model => catchAsync(async (req, res, next) => {
     const id = req.params.id;
 
     //validate that the child is of the parents decision, and only do that for child documents
-    const query = decisionId? { _id: id, parentDecision: decisionId } : { _id: id};
+    const query = decisionId? { _id: id, parentDecision: decisionId, isArchived : false } : { _id: id, isArchived : false};
 
     const data = await Model.findOneAndUpdate(query, req.body, {
         new: true,
@@ -103,16 +114,17 @@ exports.updateOne = Model => catchAsync(async (req, res, next) => {
 })
 
 exports.getAll = Model => catchAsync(async (req, res) => {
+    //set pagination filters
     const count = await Model.countDocuments();
     const page = req.query.page * 1 || 1;
     const limit = req.query.limit * 1 || count;
     const skip = (page - 1) * limit;
-
     const lastPage = (count <= (skip + limit)) ? true : false ;
 
     //validate that the child is of the parents decision, and only do that for child documents
-    const query = req.params.decisionId? {parentDecision: { $in: req.params.decisionId }} : {userId: req.userId};
+    const query = req.params.decisionId? {parentDecision: { $in: req.params.decisionId }, isArchived : false} : { 'accessControl.userId': req.userId, isArchived : false};
 
+    //use pagination filters
     const data = await Model.find(query)
         .sort({ createdAt: 1 })
         .skip(skip)

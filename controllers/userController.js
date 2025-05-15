@@ -3,6 +3,7 @@ const User = require('../models/userModel');
 const catchAsync = require('./../utils/catchAsync');
 
 exports.getCurrentUser = catchAsync(async (req, res, next) => {
+    //find user id and attach to request
     const curUser = await User.findOne({ externalId: req.oidc.user.sub });
     if (!curUser) {
         const newUser = await createUser({
@@ -18,7 +19,7 @@ exports.getCurrentUser = catchAsync(async (req, res, next) => {
     next();
 });
 
-const createUser = catchAsync(async (userObj) => {
+const createUser = async (userObj) => {
     const newUser = await User.create(userObj);
 
     if(!newUser){
@@ -26,4 +27,4 @@ const createUser = catchAsync(async (userObj) => {
     }
 
     return newUser;
-})
+}

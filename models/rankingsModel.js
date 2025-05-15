@@ -7,17 +7,17 @@ const rankingSchema = new mongoose.Schema({
         ref: 'User', 
         required: true 
     },
-    criterion: {
+    criterionId: {
         type: Schema.Types.ObjectId, 
         ref: 'Criteria', 
         required: true 
     },
-    option: {
+    optionId: {
         type: Schema.Types.ObjectId,
         ref: 'Options', 
         required: true 
     },
-    category: {
+    matchLevel: {
         type: String,
         enum: {
             values: ['BEST', 'IMPARTIAL', 'WORST']
@@ -26,19 +26,14 @@ const rankingSchema = new mongoose.Schema({
     rank : {
         type: Number,
         required: true,
+    },
+    isArchived: {
+        type: Boolean,
+        default: false,
+        required: true,
     }
  }, { timestamps: true })
 
 const Ranking = mongoose.model('Ranking', rankingSchema)
-
-Ranking.countRankings = async function (criterionId) {
-    const criterionObjectId = new mongoose.Types.ObjectId(criterionId); 
-
-    const rankingsCount = await Ranking.countDocuments({
-        criterion: criterionObjectId
-    });
-
-    return rankingsCount;
-}
 
 module.exports = Ranking;

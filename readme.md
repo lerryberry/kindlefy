@@ -11,25 +11,28 @@
 - [Contact](#contact)
 
 ## Introduction
-Provide a brief overview of the project.
+API for decision making tool. Supports decisions, criteria and options to be aligned around for groups of people.
 
 ## Features
-List the key features of the project.
+Storm around options and rank each per criteria, then have a report generated outlining the best option for any given decision, as decided by a group of people.
 
 ## Installation
-Step-by-step instructions to install the project.
+1. Git clone repo
+2. ...
+3. profit?
 
 ## Usage
-Explain how to use the project with examples.
+See help guide
 
 ## Configuration
-Detail any configuration options or settings.
+Setup a `config.env` file, then enter the following: NODE_ENV, PORT, DATABASE, AUTHREQUIRED, AUTH0LOGOUT, SECRET
+BASEURL, CLIENTID, ISSUERBASEURL
 
 ## Contributing
-Guidelines for contributing to the project.
+staff only
 
 ## License
-State the license under which the project is distributed.
+Private
 
 ## Contact
-Provide contact information for questions or feedback.
+TBC

@@ -1,6 +1,4 @@
 const mongoose = require('mongoose');
-//TODO remove validator from dependencies?
-//const validator = require('validator');
 
 const userSchema = new mongoose.Schema({
     externalId: {

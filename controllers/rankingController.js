@@ -10,40 +10,46 @@ exports.updateRanking = catchAsync(async (req, res, next) => {
     const userId = req.userId;
     const rankingsArray = req.body;
 
-    //validate the criterion and options are all from the same decision
-    const isChildCriterion = await Criteria.countDocuments({ _id: criterionId, parentDecision: decisionId });
+    //validate the criterion and options are all from the same decision and the criterion is not archived
+    const isChildCriterion = await Criteria.countDocuments({ _id: criterionId, parentDecision: decisionId, isArchived: false});
     if (isChildCriterion === 0) {
-        return next(new AppError(`Criterion does not belong to the decision`, 404));
+        return next(new AppError(`Criterion does not belong to the decision or its archived`, 404));
     }
 
     //validate the options are all from the same decision
     const validateOptions = rankingsArray.map(async (rank) => {
-        const isChild = await Option.countDocuments({ _id: rank.option, parentDecision: decisionId });
+        const isChild = await Option.countDocuments({ _id: rank.optionId, parentDecision: decisionId });
         return isChild 
     });
-
     const results = await Promise.all(validateOptions);
-
     if (results.includes(0)){
         return next(new AppError(`One or more options do not belong to the decision`, 404));
     }
 
+    //validate none of the options are archived
+    const validateArchivedOptions = rankingsArray.map(async (rank) => {
+        const isArchived = await Option.countDocuments({ _id: rank.optionId, isArchived: true });
+        return isArchived 
+    });
+    const archivedResults = await Promise.all(validateArchivedOptions);
+    if (archivedResults.includes(1)){
+        return next(new AppError(`One or more options are archived`, 404));
+    }
+
     const rankingsToInsert = rankingsArray.map((rank) => ({
-        ...rank, // Spread the data from the request body
-        criterion: criterionId,
-        userId: userId, 
+        ...rank, 
+        criterionId: criterionId,
+        userId: userId
     }));
 
     const insertedRankings = await Ranking.insertMany(rankingsToInsert, {
-        ordered: true, // Optional: Set to true if you want all-or-nothing insertion
+        ordered: true, // Set to true for all-or-nothing insertion
         runValidators: true,
     });
 
-    // 5. Send Response
     res.status(201).json({
-        // 201 Created
         status: 'success',
-        results: insertedRankings.length, // Number actually inserted
+        results: insertedRankings.length, 
         data: insertedRankings
     });
 })

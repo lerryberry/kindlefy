@@ -6,7 +6,7 @@ const optionsSchema = new mongoose.Schema({
     title: {
         type: String,
         required: [true, 'An option must have a title'],
-        minlength: [10, 'An option title must have more than 9 characters'],
+        minlength: [3, 'An option title must have more than 2 characters'],
         maxlength: [201, 'An option title must be 200 character or less']
     },
     parentDecision: {
@@ -40,10 +40,10 @@ optionsSchema.pre('save', async function (next) {
         return next();
     }
 
-    // 1. Generate the initial slug
+    // Generate the initial slug
     this.slug = slugify(this.title);
 
-    // 2. Check if this slug already exists and find a unique version
+    // Check if this slug already exists and find a unique version
     const Model = this.constructor; // Get the Mongoose model
     let counter = 1;
     let uniqueSlug = this.slug;
@@ -56,7 +56,7 @@ optionsSchema.pre('save', async function (next) {
         counter++;
     }
 
-    // 3. Assign the final unique slug
+    // Assign the final unique slug
     this.slug = uniqueSlug;
     next();
 });
