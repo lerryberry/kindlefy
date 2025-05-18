@@ -10,7 +10,7 @@
     "build:dev": "npm run build:BEdev && npm run build:BEdev",
     "build:prod": "npm run build:BEprod && npm run build:FEprod",
     "start": "cd backend && npm start",
-    "heroku-postbuild": "cd backend && npm install && cd ../frontend && npm install && npm run build"
+    "heroku-postbuild": "cd backend && npm install && cd ../frontend && NPM_CONFIG_PRODUCTION=false npm install && npm run build"
   },
   "engines": {
     "node": ">=18.0.0"
