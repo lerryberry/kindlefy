@@ -9,7 +9,7 @@
     "build:FEprod": "cd frontend && npm run build",
     "build:dev": "npm run build:BEdev && npm run build:BEdev",
     "build:prod": "npm run build:BEprod && npm run build:FEprod",
-    "npm start": "npm run build:BEprod && npm run build:FEprod"
+    "start": "cd backend && npm start"
   },
   "engines": {
     "node": ">=18.0.0"
