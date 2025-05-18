@@ -1,7 +1,7 @@
-const factory = require('./handlerFactory');
-const Option = require('./../models/optionsModel.js')
-const Ranking = require('./../models/rankingsModel.js');
-const catchAsync = require('./../utils/catchAsync');
+const factory = require('./handlerFactory.js');
+const Option = require('../models/optionsModel.js')
+const Ranking = require('../models/rankingsModel.js');
+const catchAsync = require('../utils/catchAsync.js');
 const mongoose = require('mongoose');
 
 exports.updateOption = factory.updateOne(Option);

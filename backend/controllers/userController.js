@@ -1,6 +1,6 @@
 //const { query } = require('express');
 const User = require('../models/userModel');
-const catchAsync = require('./../utils/catchAsync');
+const catchAsync = require('../utils/catchAsync');
 
 exports.getCurrentUser = catchAsync(async (req, res, next) => {
     //find user id and attach to request

@@ -1,10 +1,10 @@
-const Decision = require('./../models/decisionModel');
-const Option = require('./../models/optionsModel');
-const Ranking = require('./../models/rankingsModel');
-const Criteria = require('./../models/criteriaModel');
-const catchAsync = require('./../utils/catchAsync');
+const Decision = require('../models/decisionModel');
+const Option = require('../models/optionsModel');
+const Ranking = require('../models/rankingsModel');
+const Criteria = require('../models/criteriaModel');
+const catchAsync = require('../utils/catchAsync');
 const factory = require('./handlerFactory');
-const AppError = require('./../utils/appError');
+const AppError = require('../utils/appError');
 
 exports.updateDecision = factory.updateOne(Decision);
 exports.deleteDecision = factory.archiveOne(Decision);

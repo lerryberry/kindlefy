@@ -1,8 +1,8 @@
 const factory = require('./handlerFactory');
-const catchAsync = require('./../utils/catchAsync');
-const Criteria = require('./../models/criteriaModel')
-const Ranking = require('./../models/rankingsModel')
-const Options = require('./../models/optionsModel');
+const catchAsync = require('../utils/catchAsync');
+const Criteria = require('../models/criteriaModel')
+const Ranking = require('../models/rankingsModel')
+const Options = require('../models/optionsModel');
 
 exports.updateCriterion = factory.updateOne(Criteria);
 exports.deleteCriterion = factory.archiveOne(Criteria);

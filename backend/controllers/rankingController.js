@@ -1,8 +1,8 @@
-const catchAsync = require('./../utils/catchAsync')
-const AppError = require('./../utils/appError');
-const Ranking = require('./../models/rankingsModel.js');
-const Criteria = require('./../models/criteriaModel')
-const Option = require('./../models/optionsModel.js')
+const catchAsync = require('../utils/catchAsync.js')
+const AppError = require('../utils/appError.js');
+const Ranking = require('../models/rankingsModel.js');
+const Criteria = require('../models/criteriaModel.js')
+const Option = require('../models/optionsModel.js')
 
 exports.updateRanking = catchAsync(async (req, res, next) => {
     const decisionId = req.params.decisionId;

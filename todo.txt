@@ -1,0 +1,13 @@
+Front end 
+- 
+
+One day *sigh*
+- posthog server-side events?
+- AI?
+
+How to push to github
+git status //handy
+1. git add -A
+2. git commit -m "message goes here"
+3. git push origin main
+4. git push heroku main
