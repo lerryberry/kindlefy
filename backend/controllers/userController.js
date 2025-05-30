@@ -1,17 +1,13 @@
-//const { query } = require('express');
 const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
+const auth0 = require('../middleware/auth0');
 
 exports.getCurrentUser = catchAsync(async (req, res, next) => {
+    const externalId = req.auth.payload.sub;
     //find user id and attach to request
-    const curUser = await User.findOne({ externalId: req.oidc.user.sub });
+    const curUser = await User.findOne({ externalId: externalId });
     if (!curUser) {
-        const newUser = await createUser({
-            externalId: req.oidc.user.sub,
-            displayName: req.oidc.user.nickname,
-            email: req.oidc.user.email,
-            profilePic: req.oidc.user.picture
-        });
+        const newUser = await createUser(externalId);
         req.userId = newUser._id;
         return next();
     }
@@ -19,10 +15,13 @@ exports.getCurrentUser = catchAsync(async (req, res, next) => {
     next();
 });
 
-const createUser = async (userObj) => {
-    const newUser = await User.create(userObj);
+const createUser = async (externalId) => {
+    //build user object from Auth0
+    userObject = await auth0.buildUserFromAuth0(externalId);
 
-    if(!newUser){
+    const newUser = await User.create(userObject);
+    
+    if (!newUser) {
         return next(new AppError(`couldn't create user`, 404))
     }
 

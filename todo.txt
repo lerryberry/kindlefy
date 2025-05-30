@@ -1,7 +1,12 @@
 Front end 
 - 
 
+Backend
+- move all config to env vars (axios for example)
+- critical alerts for things like tokens running out
+
 One day *sigh*
+- reCAPTCHA
 - posthog server-side events?
 - AI?
 

@@ -10,13 +10,13 @@ const decisionSchema = new mongoose.Schema({
         maxlength: [201, 'A decision title must be 200 character or less']
     },
     accessControl: [{
-        userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+        userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
         permissions: [{ type: String, enum: ['READ', 'UPDATE', 'DELETE', 'RANK'] }]
     }],
     slug: {
         type: String,
-        unique: true, 
-        lowercase: true, 
+        unique: true,
+        lowercase: true,
         trim: true,
         index: true
     },
@@ -25,10 +25,10 @@ const decisionSchema = new mongoose.Schema({
         default: false,
         required: true,
     }
-}, {timestamps: true});
+}, { timestamps: true });
 
 decisionSchema.pre('save', async function (next) {
-    
+
     // run this function if name was actually modified (or is new)
     if (!this.isModified('title') && !this.isNew) {
         return next();
@@ -44,7 +44,7 @@ decisionSchema.pre('save', async function (next) {
 
     // Loop while a document with the current candidate slug exists
     // Make sure to exclude the current document if it's an update (`this._id`)
-    while (await Model.findOne({ slug: uniqueSlug})) {
+    while (await Model.findOne({ slug: uniqueSlug })) {
         // If it exists, append a counter
         uniqueSlug = `${this.slug}-${counter}`;
         counter++;

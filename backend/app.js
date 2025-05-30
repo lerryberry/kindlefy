@@ -1,6 +1,6 @@
 const express = require('express');
 const morgan = require('morgan');
-const { auth, requiresAuth } = require('express-openid-connect');
+const { auth, RequiredAuthProp } = require('express-oauth2-jwt-bearer');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongosanitize = require('express-mongo-sanitize');
@@ -8,6 +8,7 @@ const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
+const cors = require('cors');
 
 //import controllers
 const AppError = require('./utils/appError');
@@ -16,6 +17,24 @@ const decisionRouter = require('./routes/decisionRoutes');
 
 //middleware to start express
 const app = express();
+
+// Enable CORS for frontend - must be before auth middleware
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+}));
+
+// Auth0 configuration
+const jwtCheck = auth({
+    audience: 'http://localhost:3000',
+    issuerBaseURL: 'https://dev-d85syd7wejqy2nrm.us.auth0.com/',
+    tokenSigningAlg: 'RS256',
+});
+
+// Apply Auth0 middleware to all routes
+app.use(jwtCheck);
 
 //security HTTP headers
 app.use(helmet());
@@ -44,43 +63,13 @@ app.use(hpp({ //prevent parameter pollution
 app.use(cookieParser()); //parse cookies
 app.use(compression()); //compress response bodies for all requests
 
-//serving static files
-app.use(express.static(`${__dirname}/public`)); // static files in public folder
 //parse urlencoded data
 app.use(express.urlencoded({ extended: true, limit: '10kb' })); // limit to 10kb
 
 app.use(express.json());
 
-//auth0 config
-const oidcConfig = {
-    authRequired: process.env.AUTHREQUIRED,
-    auth0Logout: process.env.AUTH0LOGOUT,
-    secret: process.env.SECRET,
-    baseURL: process.env.BASEURL,
-    clientID: process.env.CLIENTID,
-    issuerBaseURL: process.env.ISSUERBASEURL,
-};
-
-//auth router attaches /login, /logout, and /callback routes to the baseURL.
-app.use(auth(oidcConfig));
-
-//TODO might not need long term, using only in auth setup
-const path = require('path');
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'build', 'index.html')); // Serve about.html
-});
-app.get('/loginstatus', (req, res) => {
-    res.send(req.oidc.isAuthenticated());
-});
-
-//applies to all subsequent routes
-app.use(requiresAuth());
+// Apply routes
 app.use('/api/v1/decisions', decisionRouter);
-
-//TODO might not need long term, using only in auth setup
-app.get('/details', (req, res) => {
-    res.send(req.oidc.user);
-});
 
 //catch unhandles routes
 app.all('*', (req, res, next) => {

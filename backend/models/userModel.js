@@ -1,24 +1,24 @@
 const mongoose = require('mongoose');
+const axios = require('axios');
 
 const userSchema = new mongoose.Schema({
     externalId: {
         type: String,
-        unique: true,
-        lowercase: true
-    },
-    displayName: {
-        type: String,
-        required: [true, 'Name field is required'],
-        minlength: [2, 'A name must be at least 2 characters'],
-        maxlength: [100, 'A name must be less than 100 characters']
+        required: [true, 'A user must have an external ID'],
+        unique: true
     },
     email: {
         type: String,
+        required: [true, 'A user must have an email'],
         unique: true,
         lowercase: true
     },
+    name: {
+        type: String,
+        required: [true, 'A user must have a name']
+    },
     profilePic: String
-}, {timestamps: true});
+}, { timestamps: true });
 
 const User = mongoose.model('User', userSchema)
 
