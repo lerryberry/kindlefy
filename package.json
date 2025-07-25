@@ -1,16 +1,9 @@
 {
-  "name": "gochooze-fullstack-app",
+  "name": "krystallise-fullstack-app",
   "version": "1.0.0",
   "scripts": {
-    "build:BEdev": "cd backend nodemon server.js",
-    "build:BEprod": "cd backend NODE_ENV=production nodemon server.js",
-    "build:BEdebug": "cd backend ndb server.js",
-    "build:FEdev": "cd frontend && npm run build",
-    "build:FEprod": "cd frontend && npm run build",
-    "build:dev": "npm run build:BEdev && npm run build:BEdev",
-    "build:prod": "npm run build:BEprod && npm run build:FEprod",
-    "start": "cd backend && npm start",
-    "heroku-postbuild": "cd backend && npm install && cd ../frontend && NPM_CONFIG_PRODUCTION=false npm install && npm run build"
+    "heroku-postbuild": "cd backend && npm install && cd ../frontend && NPM_CONFIG_PRODUCTION=false npm install && npm run build",
+    "pm2:dev": "pm2 start ecosystem.config.js --only krystallise-backend-dev,krystallise-frontend-dev"
   },
   "engines": {
     "node": ">=18.0.0"

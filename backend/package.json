@@ -1,7 +1,7 @@
 {
-  "name": "gochooze-backend",
+  "name": "krystallise-backend",
   "version": "1.0.0",
-  "description": "API for simple collaborative decision-making tool",
+  "description": "API for collaborative decision-making tool",
   "main": "app.js",
   "scripts": {
     "start": "node server.js"
@@ -13,7 +13,6 @@
     "compression": "^1.8.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
     "express": "^4.21.2",
     "express-mongo-sanitize": "^2.2.0",
     "express-oauth2-jwt-bearer": "^1.6.1",

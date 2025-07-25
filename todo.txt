@@ -1,14 +1,35 @@
 Front end 
-- 
+- proper strong typing
+- Scaffolding of all components 
+    - basic; profile menu, navbar, loaders, button save/next/add, button delete, errors, modal, empty states, 
+    list item decision, list item criterion, list item option
+    - modules; banner/head, tabs, forms, decision, lists criteria, set rank, report
+
+Handy stuff
+- reducer for advanced state management between familes of components
+- add key to maintain state and change it to reload the component automatically
+- can pass entire components as props with children prop thingy. 
+- try, catch and finally stage of comp lifecycle
+- custom hooks are good for non-visual reused logic - like api calls
+- standard <navLink to='url'> component auto-adds an active css class when visiting that link
+
 
 Backend
+- strip special characters or caps from slugs
 - move all config to env vars (axios for example)
 - critical alerts for things like tokens running out
+
+Mid-term
+- decision ceiling / freemium point
+- add posthog
 
 One day *sigh*
 - reCAPTCHA
 - posthog server-side events?
 - AI?
+
+Start the app
+npm run pm2:dev
 
 How to push to github
 git status //handy
@@ -16,3 +37,7 @@ git status //handy
 2. git commit -m "message goes here"
 3. git push origin main
 4. git push heroku main
+
+postman
+- entered most credentials for the application (new SPA), but with audience 
+header value of the BE API from auth0

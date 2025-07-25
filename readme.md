@@ -24,6 +24,36 @@ Storm around options and rank each per criteria, then have a report generated ou
 ## Usage
 See help guide
 
+## Server-side architecture
+src/
+├── providers/
+│   ├── AuthProvider.tsx
+│   ├── QueryProvider.tsx
+│   └── RouterProvider.tsx
+├── hooks/
+│   ├── queries/
+│   │   ├── useDecisions.ts
+│   │   └── useCriteria.ts
+│   └── mutations/
+│       ├── useCreateDecision.ts
+│       └── useUpdateDecision.ts
+├── components/
+│   ├── layout/
+│   │   ├── AppLayout.tsx
+│   │   └── TopBar.tsx
+│   ├── decision/
+│   │   ├── DecisionList.tsx
+│   │   ├── DecisionDetail.tsx
+│   │   └── CreateDecisionForm.tsx
+│   └── auth/
+│       ├── Login.tsx
+│       └── ProtectedRoute.tsx
+├── lib/
+│   ├── api.ts
+│   └── utils.ts
+└── types/
+    └── index.ts
+
 ## Configuration
 Setup a `config.env` file, then enter the following: NODE_ENV, PORT, DATABASE, AUTHREQUIRED, AUTH0LOGOUT, SECRET
 BASEURL, CLIENTID, ISSUERBASEURL

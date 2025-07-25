@@ -1,22 +1,29 @@
-import LoginButton from './components/login'
-import LogoutButton from './components/logout'
-import Profile from './components/profile'
-import Decisions from './components/decision/decisionsList'
-import Decision from './components/decision/decisionHead'
-import Tab from './components/util/tabs'
+import { QueryProvider } from './providers/QueryProvider';
+import { RouteProtectProvider, AuthProvider } from './providers/AuthProvider';
+import { RouterProvider } from './providers/RouterProvider';
+import { Toaster } from 'react-hot-toast';
+import { GlobalStyle } from './styles/global';
 
 function App() {
   return (
-    <>
-      <p>Hello Worlds</p>
-      <LoginButton />
-      <LogoutButton />
-      <Profile />
-      <Decision />
-      <Decisions />
-      <Tab />
-    </>
-  )
+    <AuthProvider>
+      <QueryProvider>
+        <RouteProtectProvider>
+          <GlobalStyle />
+          <RouterProvider />
+          <Toaster
+            position="top-center"
+            gutter={12}
+            containerStyle={{ margin: "8px" }}
+            toastOptions={{
+              success: { duration: 3000 },
+              error: { duration: 3000 }
+            }}
+          />
+        </RouteProtectProvider>
+      </QueryProvider>
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;

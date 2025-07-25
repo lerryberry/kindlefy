@@ -1,12 +1,9 @@
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
 
 process.on('uncaughtException', (err) => handleCrash(err, 'Uncaught Exception:'));
 process.on('unhandledRejection', (err) => handleCrash(err, 'Unhandled Rejection:'));
 
-dotenv.config({path: './config.env'});
 const app = require('./app');
-
 const DB = process.env.DATABASE;
 
 mongoose.connect(DB).then(con => console.log(`connected to db!`));
@@ -23,7 +20,6 @@ function handleCrash(err, eventName) {
     if (server) {
       server.close(() => {
         process.exit(1);
-        // TODO: Add tool to restart app here
       });
     } else {
       process.exit(1);
