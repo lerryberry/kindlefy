@@ -9,6 +9,7 @@ const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
 const cors = require('cors');
+const path = require('path');
 
 //import controllers
 const AppError = require('./utils/appError');
@@ -65,11 +66,18 @@ app.use(compression()); //compress response bodies for all requests
 
 //parse urlencoded data
 app.use(express.urlencoded({ extended: true, limit: '10kb' })); // limit to 10kb
-
 app.use(express.json());
 
 // Apply routes
 app.use('/api/v1/decisions', decisionRouter);
+
+// Serve static files from the frontend build
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+// For SPA: serve index.html for any unknown route (after your API routes)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+});
 
 //catch unhandles routes
 app.all('*', (req, res, next) => {
