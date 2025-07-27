@@ -1,3 +1,12 @@
+    "build:BEdev": "cd backend nodemon server.js",
+    "build:BEprod": "cd backend NODE_ENV=production nodemon server.js",
+    "build:BEdebug": "cd backend ndb server.js",
+    "build:FEdev": "cd frontend && npm run build",
+    "build:FEprod": "cd frontend && npm run build",
+    "build:dev": "npm run build:BEdev && npm run build:BEdev",
+    "build:prod": "npm run build:BEprod && npm run build:FEprod",
+    "start": "cd b
+
 Front end 
 - proper strong typing
 - Scaffolding of all components 
