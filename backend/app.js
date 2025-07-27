@@ -21,7 +21,7 @@ const app = express();
 
 // Enable CORS for frontend - must be before auth middleware
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: process.env.CORS_ORIGIN,
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
@@ -29,8 +29,8 @@ app.use(cors({
 
 // Auth0 configuration
 const jwtCheck = auth({
-    audience: 'http://localhost:3000',
-    issuerBaseURL: 'https://dev-d85syd7wejqy2nrm.us.auth0.com/',
+    audience: process.env.AUTH0_AUDIENCE,
+    issuerBaseURL: process.env.AUTH0_DOMAIN,
     tokenSigningAlg: 'RS256',
 });
 

@@ -19,7 +19,8 @@ module.exports = {
             cwd: "./frontend",
             watch: false,
             env: {
-                NODE_ENV: "development"
+                NODE_ENV: "development",
+                CORS_ORIGIN: "http://localhost:5173"
             }
         },
         {
@@ -29,6 +30,7 @@ module.exports = {
             env: {
                 NODE_ENV: "production",
                 PORT: 3000,
+                CORS_ORIGIN: "https://krystallise-469a37509070.herokuapp.com/",
                 ...secrets.backendProd
             }
         }
