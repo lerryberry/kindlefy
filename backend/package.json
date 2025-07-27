@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "API for collaborative decision-making tool",
   "main": "app.js",
-  "scripts": {
-    "start": "node server.js"
-  },
   "author": "Elliot Chapple",
   "license": "ISC",
   "dependencies": {
