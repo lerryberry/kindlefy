@@ -9,6 +9,9 @@ module.exports = {
             env: {
                 NODE_ENV: "development",
                 PORT: 3000,
+                CORS_ORIGIN: "http://localhost:5173",
+                AUTH0_AUDIENCE: "http://localhost:3000",
+                AUTH0_DOMAIN: "https://dev-d85syd7wejqy2nrm.us.auth0.com",
                 ...secrets.backendDev
             }
         },
@@ -19,8 +22,7 @@ module.exports = {
             cwd: "./frontend",
             watch: false,
             env: {
-                NODE_ENV: "development",
-                CORS_ORIGIN: "http://localhost:5173"
+                NODE_ENV: "development"
             }
         },
         {

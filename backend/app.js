@@ -19,6 +19,10 @@ const decisionRouter = require('./routes/decisionRoutes');
 //middleware to start express
 const app = express();
 
+console.log('CORS_ORIGIN:', process.env.CORS_ORIGIN);
+console.log('AUTH0_AUDIENCE:', process.env.AUTH0_AUDIENCE);
+console.log('AUTH0_DOMAIN:', process.env.AUTH0_DOMAIN);
+
 // Enable CORS for frontend - must be before auth middleware
 app.use(cors({
     origin: process.env.CORS_ORIGIN,
@@ -33,6 +37,7 @@ const jwtCheck = auth({
     issuerBaseURL: process.env.AUTH0_DOMAIN,
     tokenSigningAlg: 'RS256',
 });
+
 
 // Apply Auth0 middleware to all routes
 app.use(jwtCheck);
@@ -76,7 +81,7 @@ app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 // For SPA: serve index.html for any unknown route (after your API routes)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
 });
 
 //catch unhandles routes
