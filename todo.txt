@@ -39,6 +39,7 @@ One day *sigh*
 
 Start the app
 npm run pm2:dev
+"moduleResolution": "bundler" for development
 
 How to push to github
 git status //handy
