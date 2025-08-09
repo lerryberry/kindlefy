@@ -38,9 +38,8 @@ const jwtCheck = auth({
     tokenSigningAlg: 'RS256',
 });
 
-
-// Apply Auth0 middleware to all routes
-app.use(jwtCheck);
+// Apply Auth0 middleware to API routes only (not static files)
+app.use('/api', jwtCheck);
 
 //security HTTP headers
 app.use(helmet());
@@ -77,12 +76,17 @@ app.use(express.json());
 app.use('/api/v1/decisions', decisionRouter);
 
 // Serve static files from the frontend build
-// app.use(express.static(path.join(__dirname, '../frontend/dist')));
+const staticPath = path.join(__dirname, '../frontend/dist');
+console.log('Static files path:', staticPath);
+console.log('Path exists:', require('fs').existsSync(staticPath));
+app.use(express.static(staticPath));
 
 // For SPA: serve index.html for any unknown route (after your API routes)
 app.get('*', (req, res) => {
-    //res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-    res.send('Hello World');
+    const indexPath = path.join(__dirname, '../frontend/dist/index.html');
+    console.log('Serving index.html from:', indexPath);
+    console.log('Index file exists:', require('fs').existsSync(indexPath));
+    res.sendFile(indexPath);
 });
 
 //catch unhandles routes
