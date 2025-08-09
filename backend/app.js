@@ -77,11 +77,12 @@ app.use(express.json());
 app.use('/api/v1/decisions', decisionRouter);
 
 // Serve static files from the frontend build
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
+// app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 // For SPA: serve index.html for any unknown route (after your API routes)
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+    //res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+    res.send('Hello World');
 });
 
 //catch unhandles routes
