@@ -2,7 +2,7 @@ import { useCreateDecision } from "../../hooks/useApi";
 import type { CreateDecisionRequest } from "../../types";
 
 export function useAddDecisions() {
-    const { mutate: addDecision, isLoading: isAdding, isSuccess, error } = useCreateDecision();
+    const { mutate: addDecision, isPending: isAdding, isSuccess, error } = useCreateDecision();
 
     const handleAddDecision = (formData: CreateDecisionRequest) => {
         addDecision(formData);
