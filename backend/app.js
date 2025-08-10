@@ -32,6 +32,12 @@ app.use(cors({
 }));
 
 // Auth0 configuration
+console.log('Auth0 Config Debug:');
+console.log('AUTH0_AUDIENCE:', process.env.AUTH0_AUDIENCE);
+console.log('AUTH0_DOMAIN:', process.env.AUTH0_DOMAIN);
+console.log('AUTH0_AUDIENCE type:', typeof process.env.AUTH0_AUDIENCE);
+console.log('AUTH0_AUDIENCE length:', process.env.AUTH0_AUDIENCE?.length);
+
 const jwtCheck = auth({
     audience: process.env.AUTH0_AUDIENCE,
     issuerBaseURL: process.env.AUTH0_DOMAIN,
@@ -39,7 +45,16 @@ const jwtCheck = auth({
 });
 
 // Apply Auth0 middleware to API routes only (not static files)
-app.use('/api', jwtCheck);
+app.use('/api', (req, res, next) => {
+    console.log('API Request Debug:');
+    console.log('URL:', req.url);
+    console.log('Method:', req.method);
+    console.log('Authorization header exists:', !!req.headers.authorization);
+    console.log('Authorization header length:', req.headers.authorization?.length);
+
+    // Call the Auth0 middleware
+    jwtCheck(req, res, next);
+});
 
 //security HTTP headers with CSP configured for Auth0
 app.use(helmet({
