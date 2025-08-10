@@ -1,6 +1,7 @@
 import { useGetAllDecisions } from "./useGetDecisions";
 import DecisionListItem from "./decisionListItem";
 import toast from "react-hot-toast";
+import type { Decision } from '../../types';
 
 export default function DecisionList() {
     const { data, isLoading, error, isSuccess } = useGetAllDecisions();
@@ -11,7 +12,7 @@ export default function DecisionList() {
 
     return (
         <ul>
-            {data.data.map((decision: any) => (
+            {data?.data?.map((decision: Decision) => (
                 <li key={decision._id}>
                     <DecisionListItem decisionObject={decision} />
                 </li>

@@ -1,16 +1,11 @@
 import * as React from 'react';
-
-interface FormProps {
-    title?: string;
-    children: any;
-    onSubmit?: React.FormEventHandler<HTMLFormElement>;
-}
+import type { FormProps } from '../../types';
 
 const Form: React.FC<FormProps> = ({ title, children, onSubmit }) => {
   return (
     <form onSubmit={onSubmit}>
-        {title && <h2>{title}</h2>}
-        {children}
+      {title && <h2>{title}</h2>}
+      {children}
     </form>
   );
 };

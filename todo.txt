@@ -1,12 +1,3 @@
-    "build:BEdev": "cd backend nodemon server.js",
-    "build:BEprod": "cd backend NODE_ENV=production nodemon server.js",
-    "build:BEdebug": "cd backend ndb server.js",
-    "build:FEdev": "cd frontend && npm run build",
-    "build:FEprod": "cd frontend && npm run build",
-    "build:dev": "npm run build:BEdev && npm run build:BEdev",
-    "build:prod": "npm run build:BEprod && npm run build:FEprod",
-    "start": "cd b
-
 Front end 
 - proper strong typing
 - Scaffolding of all components 
@@ -22,7 +13,6 @@ Handy stuff
 - custom hooks are good for non-visual reused logic - like api calls
 - standard <navLink to='url'> component auto-adds an active css class when visiting that link
 
-
 Backend
 - strip special characters or caps from slugs
 - move all config to env vars (axios for example)
@@ -30,6 +20,7 @@ Backend
 
 Mid-term
 - decision ceiling / freemium point
+- social logins with account linking action
 - add posthog
 
 One day *sigh*
@@ -39,7 +30,6 @@ One day *sigh*
 
 Start the app
 npm run pm2:dev
-"moduleResolution": "bundler" for development
 
 How to push to github
 git status //handy
