@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth0 } from '@auth0/auth0-react';
-import { createTypedApiClient } from '../api/services/apiClient';
+import { createApiClient } from '../api/services/apiClient';
 import type {
     ApiResponse,
     Decision,
@@ -18,7 +18,7 @@ import type {
 // Create a typed API client
 const useApiClient = () => {
     const { getAccessTokenSilently } = useAuth0();
-    return createTypedApiClient<Decision>(getAccessTokenSilently);
+    return createApiClient(getAccessTokenSilently);
 };
 
 // Decisions API hooks
@@ -27,7 +27,10 @@ export const useDecisions = (): QueryResult<ApiResponse<Decision[]>> => {
 
     return useQuery({
         queryKey: ['decisions'],
-        queryFn: () => apiClient.get('/decisions').then(res => res.data),
+        queryFn: async () => {
+            const response = await apiClient.get('/decisions');
+            return response.data as unknown as ApiResponse<Decision[]>;
+        },
     });
 };
 
@@ -36,7 +39,10 @@ export const useDecision = (id: string): QueryResult<ApiResponse<Decision>> => {
 
     return useQuery({
         queryKey: ['decisions', id],
-        queryFn: () => apiClient.get(`/decisions/${id}`).then(res => res.data),
+        queryFn: async () => {
+            const response = await apiClient.get(`/decisions/${id}`);
+            return response.data as unknown as ApiResponse<Decision>;
+        },
         enabled: !!id,
     });
 };
@@ -46,8 +52,10 @@ export const useCreateDecision = (): MutationResult<ApiResponse<Decision>, Creat
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (data: CreateDecisionRequest) =>
-            apiClient.post('/decisions', data).then(res => res.data),
+        mutationFn: async (data: CreateDecisionRequest) => {
+            const response = await apiClient.post('/decisions', data);
+            return response.data as unknown as ApiResponse<Decision>;
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['decisions'] });
         },
@@ -59,8 +67,10 @@ export const useUpdateDecision = (id: string): MutationResult<ApiResponse<Decisi
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (data: Partial<CreateDecisionRequest>) =>
-            apiClient.put(`/decisions/${id}`, data).then(res => res.data),
+        mutationFn: async (data: Partial<CreateDecisionRequest>) => {
+            const response = await apiClient.put(`/decisions/${id}`, data);
+            return response.data as unknown as ApiResponse<Decision>;
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['decisions'] });
             queryClient.invalidateQueries({ queryKey: ['decisions', id] });
@@ -73,8 +83,10 @@ export const useDeleteDecision = (): MutationResult<void, string> => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (id: string) =>
-            apiClient.delete(`/decisions/${id}`).then(() => undefined),
+        mutationFn: async (id: string) => {
+            await apiClient.delete(`/decisions/${id}`);
+            return undefined;
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['decisions'] });
         },
@@ -87,7 +99,10 @@ export const useCriteria = (decisionId: string): QueryResult<ApiResponse<Criteri
 
     return useQuery({
         queryKey: ['decisions', decisionId, 'criteria'],
-        queryFn: () => apiClient.get(`/decisions/${decisionId}/criteria`).then(res => res.data),
+        queryFn: async () => {
+            const response = await apiClient.get(`/decisions/${decisionId}/criteria`);
+            return response.data as unknown as ApiResponse<Criteria[]>;
+        },
         enabled: !!decisionId,
     });
 };
@@ -97,8 +112,10 @@ export const useCreateCriteria = (decisionId: string): MutationResult<ApiRespons
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (data: CreateCriteriaRequest) =>
-            apiClient.post(`/decisions/${decisionId}/criteria`, data).then(res => res.data),
+        mutationFn: async (data: CreateCriteriaRequest) => {
+            const response = await apiClient.post(`/decisions/${decisionId}/criteria`, data);
+            return response.data as unknown as ApiResponse<Criteria>;
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['decisions', decisionId, 'criteria'] });
         },
@@ -111,7 +128,10 @@ export const useOptions = (decisionId: string): QueryResult<ApiResponse<Option[]
 
     return useQuery({
         queryKey: ['decisions', decisionId, 'options'],
-        queryFn: () => apiClient.get(`/decisions/${decisionId}/options`).then(res => res.data),
+        queryFn: async () => {
+            const response = await apiClient.get(`/decisions/${decisionId}/options`);
+            return response.data as unknown as ApiResponse<Option[]>;
+        },
         enabled: !!decisionId,
     });
 };
@@ -121,8 +141,10 @@ export const useCreateOption = (decisionId: string): MutationResult<ApiResponse<
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (data: CreateOptionRequest) =>
-            apiClient.post(`/decisions/${decisionId}/options`, data).then(res => res.data),
+        mutationFn: async (data: CreateOptionRequest) => {
+            const response = await apiClient.post(`/decisions/${decisionId}/options`, data);
+            return response.data as unknown as ApiResponse<Option>;
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['decisions', decisionId, 'options'] });
         },
@@ -135,7 +157,10 @@ export const useRankings = (decisionId: string): QueryResult<ApiResponse<Ranking
 
     return useQuery({
         queryKey: ['decisions', decisionId, 'rankings'],
-        queryFn: () => apiClient.get(`/decisions/${decisionId}/rankings`).then(res => res.data),
+        queryFn: async () => {
+            const response = await apiClient.get(`/decisions/${decisionId}/rankings`);
+            return response.data as unknown as ApiResponse<Ranking[]>;
+        },
         enabled: !!decisionId,
     });
 };
@@ -145,8 +170,10 @@ export const useCreateRanking = (decisionId: string): MutationResult<ApiResponse
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (data: CreateRankingRequest) =>
-            apiClient.post(`/decisions/${decisionId}/rankings`, data).then(res => res.data),
+        mutationFn: async (data: CreateRankingRequest) => {
+            const response = await apiClient.post(`/decisions/${decisionId}/rankings`, data);
+            return response.data as unknown as ApiResponse<Ranking>;
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['decisions', decisionId, 'rankings'] });
         },

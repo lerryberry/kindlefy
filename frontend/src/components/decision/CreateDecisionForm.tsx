@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useAddDecisions } from './useAddDecision';
 import toast from 'react-hot-toast';
 import type { FieldErrors } from "react-hook-form";
-import type { FormData, CreateDecisionRequest } from '../../types';
+import type { FormData } from '../../types';
 
 function CreateDecisionForm() {
     const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
@@ -30,7 +30,6 @@ function CreateDecisionForm() {
     return (
         <Form onSubmit={handleSubmit(onSubmit, onError)} title="New Decision">
             <FormInput
-                name="title"
                 label="Decision title"
                 placeholder="Enter decision title"
                 required
@@ -45,7 +44,6 @@ function CreateDecisionForm() {
             {errors.title && <p className="error">{errors.title.message}</p>}
 
             <FormInput
-                name="description"
                 label="Description"
                 placeholder="Enter decision description (optional)"
                 {...register("description")}

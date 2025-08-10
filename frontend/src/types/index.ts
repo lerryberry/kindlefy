@@ -151,24 +151,10 @@ export interface ApiError {
     statusCode?: number;
 }
 
-// Query Hook Return Types
-export interface QueryResult<T> {
-    data: T | undefined;
-    isLoading: boolean;
-    error: Error | null;
-    isSuccess: boolean;
-    isError: boolean;
-}
+// Query Hook Return Types - these match React Query's actual return types
+export type QueryResult<T> = import('@tanstack/react-query').UseQueryResult<T, Error>;
 
-export interface MutationResult<T, V> {
-    data: T | undefined;
-    isLoading: boolean;
-    error: Error | null;
-    isSuccess: boolean;
-    isError: boolean;
-    mutate: (variables: V) => void;
-    mutateAsync: (variables: V) => Promise<T>;
-}
+export type MutationResult<T, V> = import('@tanstack/react-query').UseMutationResult<T, Error, V, unknown>;
 
 // Route Types
 export interface RouteParams {
