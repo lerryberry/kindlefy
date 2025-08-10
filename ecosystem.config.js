@@ -32,7 +32,7 @@ module.exports = {
             env: {
                 NODE_ENV: "production",
                 PORT: 3000,
-                CORS_ORIGIN: "https://krystallise-469a37509070.herokuapp.com/",
+                CORS_ORIGIN: "https://krystallise-469a37509070.herokuapp.com",
                 ...secrets.backendProd
             }
         }

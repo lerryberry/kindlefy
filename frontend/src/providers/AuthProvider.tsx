@@ -25,12 +25,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             clientId="sZ2ckim3v3suG8XLZCPoF24ueQCIl3co"
             authorizationParams={{
                 redirect_uri: window.location.origin,
-                audience: 'http://localhost:3000',
                 scope: 'openid profile email'
             }}
             cacheLocation="localstorage"
         >
-            { children }
+            {children}
         </Auth0Provider >
     )
 }
