@@ -41,8 +41,26 @@ const jwtCheck = auth({
 // Apply Auth0 middleware to API routes only (not static files)
 app.use('/api', jwtCheck);
 
-//security HTTP headers
-app.use(helmet());
+//security HTTP headers with CSP configured for Auth0
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            connectSrc: [
+                "'self'",
+                "https://dev-d85syd7wejqy2nrm.us.auth0.com",
+                "https://krystallise-469a37509070.herokuapp.com"
+            ],
+            scriptSrc: ["'self'", "'unsafe-inline'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", "data:", "https:"],
+            fontSrc: ["'self'", "https:"],
+            objectSrc: ["'none'"],
+            mediaSrc: ["'self'"],
+            frameSrc: ["'none'"]
+        }
+    }
+}));
 
 //global middlewares.. if dev env, make logging verbose
 if (process.env.NODE_ENV === 'development') {
