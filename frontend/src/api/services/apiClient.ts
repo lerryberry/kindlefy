@@ -2,7 +2,7 @@ import axios, { type AxiosInstance } from "axios";
 
 export function createApiClient(getToken: () => Promise<string>): AxiosInstance {
     const instance = axios.create({
-        baseURL: "http://localhost:3000/api/v1",
+        baseURL: "/api/v1",
     });
 
     instance.interceptors.request.use(
