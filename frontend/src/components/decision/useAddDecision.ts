@@ -1,17 +1,22 @@
-import { useCreateDecision } from "../../hooks/useApi";
-import type { CreateDecisionRequest } from "../../types";
+import { useAuthenticatedAxios } from "../../api/services/useAuthenticatedAxios";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function useAddDecisions() {
-    const { mutate: addDecision, isPending: isAdding, isSuccess, error } = useCreateDecision();
+    const api = useAuthenticatedAxios();
+    const queryClient = useQueryClient();
 
-    const handleAddDecision = (formData: CreateDecisionRequest) => {
-        addDecision(formData);
+    const createDecision = async (formData: { title: string }) => {
+        const res = await api.post("/decisions", formData);
+        return res.data;
     };
 
-    return {
-        isAdding,
-        isSuccess,
-        addDecision: handleAddDecision,
-        error
-    };
+    const { mutate: addDecision, isPending: isAdding, isSuccess } = useMutation({
+        mutationFn: createDecision,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["allDecisions"] })
+        },
+        onError: (err) => console.log(err.message)
+    });
+
+    return { isAdding, isSuccess, addDecision };
 }

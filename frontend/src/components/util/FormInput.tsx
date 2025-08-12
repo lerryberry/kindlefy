@@ -1,34 +1,16 @@
 import * as React from 'react';
-import type { FormInputProps } from '../../types';
 
-const FormInput: React.FC<FormInputProps> = ({
-    type = 'text',
-    label,
-    name,
-    placeholder,
-    required = false,
-    disabled = false,
-    error,
-    value,
-    onChange,
-    ...rest
-}) => {
+interface FormInputProps {
+    type?: string;
+    label?: string;
+}
+
+const FormInput: React.FC<FormInputProps> = ({ type, label, ...rest }) => {
     return (
-        <div>
-            {label && <label htmlFor={name}>{label}</label>}
-            <input
-                id={name}
-                type={type}
-                name={name}
-                placeholder={placeholder}
-                required={required}
-                disabled={disabled}
-                value={value}
-                onChange={onChange}
-                {...rest}
-            />
-            {error && <span className="error">{error}</span>}
-        </div>
+        <>
+            <label>{label}</label>
+            <input type={type} {...rest}></input>
+        </>
     );
 };
 

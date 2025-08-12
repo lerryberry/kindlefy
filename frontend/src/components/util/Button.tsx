@@ -1,6 +1,12 @@
 import * as React from 'react';
 import styled, { css } from 'styled-components';
-import type { ButtonProps } from '../../types';
+
+interface ButtonProps {
+  type?: "button" | "submit" | "reset";
+  text?: string;
+  disabled?: boolean;
+  size?: "small" | "medium" | "large";
+}
 
 const sizeStyles = {
   small: css`

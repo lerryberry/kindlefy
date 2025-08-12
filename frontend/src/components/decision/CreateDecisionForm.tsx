@@ -5,53 +5,45 @@ import { useForm } from 'react-hook-form';
 import { useAddDecisions } from './useAddDecision';
 import toast from 'react-hot-toast';
 import type { FieldErrors } from "react-hook-form";
-import type { FormData } from '../../types';
+
+type FormData = {
+    title: string;
+    data: string;
+};
 
 function CreateDecisionForm() {
-    const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
-    const { addDecision, isAdding, isSuccess, error } = useAddDecisions();
 
-    if (isAdding) toast.success("Adding decision now");
-    if (isSuccess) toast.success("Decision added successfully");
-    if (error) toast.error(`Error: ${error.message}`);
+    const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
+    const { addDecision, isAdding, isSuccess } = useAddDecisions();
+
+    if (isAdding) toast.success("addin decision now")
+    if (isSuccess) toast.success("decision added successfully")
 
     function onSubmit(data: FormData) {
-        addDecision({
-            title: data.title,
-            description: data.description
-        });
+        addDecision({ title: data.title });
     }
 
     function onError(errors: FieldErrors<FormData>) {
-        const msg = errors.title?.message || "Failed to submit form";
-        toast.error(msg);
+        const msg = errors.title?.message || "failed";
+        toast.error(msg)
     }
 
     return (
-        <Form onSubmit={handleSubmit(onSubmit, onError)} title="New Decision">
+        <Form onSubmit={handleSubmit(onSubmit, onError)} title="new decision">
             <FormInput
                 label="Decision title"
-                placeholder="Enter decision title"
-                required
                 {...register("title", {
-                    required: "This field is required",
+                    required: "this field is required",
                     minLength: {
-                        value: 3,
-                        message: "Minimum of 3 characters"
+                        value: 9,
+                        message: "minimum of 9 characters"
                     }
                 })}
             />
-            {errors.title && <p className="error">{errors.title.message}</p>}
-
-            <FormInput
-                label="Description"
-                placeholder="Enter decision description (optional)"
-                {...register("description")}
-            />
-
-            <Button type="submit" text="Create Decision" size="medium" disabled={isAdding} />
+            {errors.title && <p style={{ color: "red" }}>{errors.title.message}</p>}
+            <Button type="submit" text="submit" size="small" />
         </Form>
-    );
+    )
 }
 
 export default CreateDecisionForm
