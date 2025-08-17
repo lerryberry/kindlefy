@@ -11,7 +11,7 @@ module.exports = {
                 PORT: 3000,
                 CORS_ORIGIN: "http://localhost:5173",
                 AUTH0_AUDIENCE: "http://localhost:3000",
-                AUTH0_DOMAIN: "https://dev-d85syd7wejqy2nrm.us.auth0.com",
+                AUTH0_DOMAIN: "dev-d85syd7wejqy2nrm.us.auth0.com",
                 ...secrets.backendDev
             }
         },

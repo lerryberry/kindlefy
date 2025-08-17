@@ -17,10 +17,10 @@ exports.getCurrentUser = catchAsync(async (req, res, next) => {
 
 const createUser = async (externalId) => {
     //build user object from Auth0
-    userObject = await auth0.buildUserFromAuth0(externalId);
+    const userObject = await auth0.buildUserFromAuth0(externalId);
 
     const newUser = await User.create(userObject);
-    
+
     if (!newUser) {
         return next(new AppError(`couldn't create user`, 404))
     }
