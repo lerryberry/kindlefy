@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 // Form props interface extending HTML form attributes
 interface FormProps extends React.FormHTMLAttributes<HTMLFormElement> {
