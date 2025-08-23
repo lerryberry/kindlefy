@@ -53,7 +53,10 @@ app.use(helmet({
             fontSrc: ["'self'", "https:"],
             objectSrc: ["'none'"],
             mediaSrc: ["'self'"],
-            frameSrc: ["'none'"]
+            frameSrc: [
+                "'self'",
+                "https://dev-d85syd7wejqy2nrm.us.auth0.com"
+            ]
         }
     }
 }));
@@ -88,6 +91,7 @@ app.use(express.json());
 
 // Apply routes
 app.use('/api/v1/decisions', decisionRouter);
+
 
 // Serve static files from the frontend build
 const staticPath = path.join(__dirname, '../frontend/dist');

@@ -5,8 +5,9 @@ const getManagementToken = async () => {
     const response = await axios.post('https://dev-d85syd7wejqy2nrm.us.auth0.com/oauth/token', {
         client_id: process.env.AUTH0_CLIENT_ID,
         client_secret: process.env.AUTH0_CLIENT_SECRET,
-        audience: 'http://localhost:3000',
-        grant_type: 'client_credentials'
+        audience: 'https://dev-d85syd7wejqy2nrm.us.auth0.com/api/v2/',
+        grant_type: 'client_credentials',
+        scope: 'read:users'
     });
     return response.data.access_token;
 };

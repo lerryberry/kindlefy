@@ -9,20 +9,9 @@ module.exports = {
             env: {
                 NODE_ENV: "development",
                 PORT: 3000,
-                CORS_ORIGIN: "http://localhost:5173",
-                AUTH0_AUDIENCE: "http://localhost:3000",
-                AUTH0_DOMAIN: "dev-d85syd7wejqy2nrm.us.auth0.com",
+                AUTH0_AUDIENCE: "auth0-m2m-endpoint",
+                AUTH0_DOMAIN: "https://dev-d85syd7wejqy2nrm.us.auth0.com",
                 ...secrets.backendDev
-            }
-        },
-        {
-            name: "krystallise-frontend-dev",
-            script: "npm",
-            args: "run dev",
-            cwd: "./frontend",
-            watch: false,
-            env: {
-                NODE_ENV: "development"
             }
         },
         {
