@@ -17,5 +17,8 @@ declare module 'react' {
 }
 
 declare module 'react-dom/client' {
-    export * from 'react-dom/client';
+    export function createRoot(container: Element | null): {
+        render(element: React.ReactElement): void;
+        unmount(): void;
+    };
 }
