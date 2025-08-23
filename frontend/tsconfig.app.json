@@ -19,6 +19,10 @@
     "jsx": "react-jsx",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
+    "types": [
+      "react",
+      "react-dom"
+    ],
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
