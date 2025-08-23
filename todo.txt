@@ -38,6 +38,9 @@ git status //handy
 3. git push origin main
 4. git push heroku main
 
+# lazy version 
+git add -A && git commit -m "fixed auth" && git push origin main && git push heroku main
+
 postman
 - entered most credentials for the application (new SPA), but with audience 
 header value of the BE API from auth0

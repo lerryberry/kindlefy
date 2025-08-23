@@ -5,42 +5,62 @@ import { useForm } from 'react-hook-form';
 import { useAddDecisions } from './useAddDecision';
 import toast from 'react-hot-toast';
 import type { FieldErrors } from "react-hook-form";
+import type { CreateDecisionData } from '../../types/decision';
 
-type FormData = {
+// Form data interface - only title is needed for creating decisions
+interface CreateDecisionFormData {
     title: string;
-    data: string;
-};
+}
+
+// Validation rules type
+interface ValidationRules {
+    required: string;
+    minLength: {
+        value: number;
+        message: string;
+    };
+}
 
 function CreateDecisionForm() {
-
-    const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
+    const { register, handleSubmit, formState: { errors } } = useForm<CreateDecisionFormData>();
     const { addDecision, isAdding, isSuccess } = useAddDecisions();
 
     if (isAdding) toast.success("addin decision now")
     if (isSuccess) toast.success("decision added successfully")
 
-    function onSubmit(data: FormData) {
-        addDecision({ title: data.title });
+    function onSubmit(data: CreateDecisionFormData): void {
+        const decisionData: CreateDecisionData = { title: data.title };
+        addDecision(decisionData);
     }
 
-    function onError(errors: FieldErrors<FormData>) {
-        const msg = errors.title?.message || "failed";
-        toast.error(msg)
+    function onError(errors: FieldErrors<CreateDecisionFormData>): void {
+        const errorMessage = errors.title?.message || "Form validation failed";
+        toast.error(errorMessage);
     }
 
     return (
         <Form onSubmit={handleSubmit(onSubmit, onError)} title="new decision">
             <FormInput
                 label="Decision title"
+                type="text"
+                required
                 {...register("title", {
-                    required: "this field is required",
+                    required: "This field is required",
                     minLength: {
                         value: 9,
-                        message: "minimum of 9 characters"
+                        message: "Minimum of 9 characters required"
+                    },
+                    maxLength: {
+                        value: 200,
+                        message: "Maximum of 200 characters allowed"
                     }
-                })}
+                } as ValidationRules)}
             />
-            {errors.title && <p style={{ color: "red" }}>{errors.title.message}</p>}
+            {errors.title && (
+                <p style={{ color: "red", fontSize: "0.875rem", marginTop: "0.25rem" }}>
+                    {errors.title.message}
+                </p>
+            )}
             <Button type="submit" text="submit" size="small" />
         </Form>
     )

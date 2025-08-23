@@ -5,6 +5,6 @@ export const GlobalStyle = createGlobalStyle`
     --color-brand-50: blue;
   }
   body {
-    background-color: red;
+    background-color: cream;
   }
 `;

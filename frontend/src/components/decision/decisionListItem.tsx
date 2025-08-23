@@ -1,10 +1,8 @@
 import { Link } from "react-router-dom";
+import type { Decision } from "../../types/decision";
 
 interface DecisionListItemProps {
-    decisionObject: {
-        title: string;
-        _id: string
-    };
+    decisionObject: Decision;
 }
 
 const DecisionListItem = ({ decisionObject }: DecisionListItemProps) => {
