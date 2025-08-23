@@ -2,7 +2,7 @@
   "name": "krystallise-fullstack-app",
   "version": "1.0.0",
   "scripts": {
-    "heroku-postbuild": "cd backend && npm install && cd ../frontend && npm install && npm run build",
+    "heroku-postbuild": "cd backend && npm install && cd ../frontend && NPM_CONFIG_PRODUCTION=false npm install && npm run build",
     "build": "cd frontend && npm install && npm run build",
     "pm2:dev": "pm2 start ecosystem.config.js --only krystallise-backend-dev && cd frontend && VITE_ENABLE_LOGS=debug VITE_LOG_LEVEL=info npm run build && pm2 logs",
     "pm2:dev:watch": "nodemon --watch . --ignore frontend/node_modules --ignore backend/node_modules --ignore frontend/dist --ext js,ts,tsx,jsx,json --exec \"npm run pm2:dev\"",

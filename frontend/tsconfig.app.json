@@ -29,6 +29,7 @@
     "src",
     "App.tsx",
     "main.tsx",
-    "vite-env.d.ts"
+    "vite-env.d.ts",
+    "src/types/**/*.d.ts"
   ]
 }
