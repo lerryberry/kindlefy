@@ -50,7 +50,7 @@ function CreateDecisionForm() {
 
     return (
         <>
-            <Form onSubmit={handleSubmit(onSubmit, onError)} title="new decision">
+            <Form onSubmit={handleSubmit(onSubmit, onError)}>
                 <FormInput
                     label="Decision title"
                     type="text"

@@ -6,7 +6,7 @@ import type { Decision, UseGetDecisionReturn } from "../../types/decision";
 
 const DecisionContainer = styled.div`
   width: 100%;
-  padding: 1rem;
+  padding: 0.5rem;
   text-align: left;
 `;
 

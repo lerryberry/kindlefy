@@ -22,12 +22,12 @@ const EmptyStateText = styled.p`
 
 const CreateLink = styled.a`
   text-decoration: none;
-`;
-
-const CreateButton = styled.button`
-  background: none;
-  border: none;
+  color: #3b82f6;
   cursor: pointer;
+  
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 const EmptyState: React.FC<EmptyStateProps> = ({
@@ -50,9 +50,9 @@ const EmptyState: React.FC<EmptyStateProps> = ({
         }
 
         return (
-            <CreateButton onClick={onCreateClick}>
+            <CreateLink onClick={onCreateClick}>
                 {createLinkText}
-            </CreateButton>
+            </CreateLink>
         );
     };
 

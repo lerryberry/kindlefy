@@ -43,7 +43,6 @@ const StyledButton = styled.button<{ size?: ButtonSize }>`
   transition: all 0.2s ease-in-out;
   
   &:hover:not(:disabled) {
-    background: var(--color-brand-60);
     transform: translateY(-1px);
   }
   

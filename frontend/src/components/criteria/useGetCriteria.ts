@@ -8,9 +8,7 @@ export function useGetCriteriaList(decisionId: string): UseGetCriteriaListReturn
     const { data, isLoading, error, isSuccess, isError, isFetching } = useQuery({
         queryKey: ["criteria", decisionId],
         queryFn: async () => {
-            console.log("Fetching criteria for decisionId:", decisionId);
             const res = await api.get(`/decisions/${decisionId}/criteria`);
-            console.log("Criteria API response:", res.data);
             return res.data;
         },
         enabled: !!decisionId

@@ -17,6 +17,8 @@ const DecisionGrid = styled.div`
   }
 `;
 
+
+
 export default function DecisionList() {
     const navigate = useNavigate();
     const { data, isLoading, error, isSuccess }: UseGetAllDecisionsReturn = useGetAllDecisions();

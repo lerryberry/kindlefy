@@ -126,7 +126,7 @@ exports.getAll = Model => catchAsync(async (req, res) => {
 
     //use pagination filters
     const data = await Model.find(query)
-        .sort({ createdAt: 1 })
+        .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit);
 

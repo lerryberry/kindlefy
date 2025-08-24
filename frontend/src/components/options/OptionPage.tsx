@@ -1,24 +1,24 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Outlet } from 'react-router-dom';
-import Decision from './Decision';
+import Option from './Option';
 
-const DecisionContainer = styled.div`
+const OptionContainer = styled.div`
   margin-bottom: 2rem;
   border-bottom: 1px solid #e5e7eb;
   background-color: #f9fafb;
   padding: 1rem;
 `;
 
-const DecisionPage: React.FC = () => {
+const OptionPage: React.FC = () => {
     return (
         <>
-            <DecisionContainer>
-                <Decision />
-            </DecisionContainer>
+            <OptionContainer>
+                <Option />
+            </OptionContainer>
             <Outlet />
         </>
     );
 };
 
-export default DecisionPage;
+export default OptionPage;

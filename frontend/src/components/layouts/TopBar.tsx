@@ -18,11 +18,6 @@ const Logo = styled.div`
   font-weight: bold;
   padding-left: 1.5rem;
   cursor: pointer;
-  transition: opacity 0.2s ease;
-  
-  &:hover {
-    opacity: 0.8;
-  }
 `;
 
 const BurgerMenu = styled.div`
@@ -81,7 +76,7 @@ export default function TopBar() {
     };
 
     const handleLogoClick = () => {
-        navigate('/decisions/new');
+        navigate('/decisions');
     };
 
     return (

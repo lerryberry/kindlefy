@@ -56,7 +56,7 @@ function CreateCriteriaForm() {
 
     return (
         <PageLayout title="New Criteria">
-            <Form onSubmit={handleSubmit(onSubmit, onError)} title="New Criteria">
+            <Form onSubmit={handleSubmit(onSubmit, onError)}>
                 <FormInput
                     label="Criteria title"
                     type="text"
