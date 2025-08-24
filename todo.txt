@@ -1,5 +1,4 @@
 Front end 
-- proper strong typing
 - Scaffolding of all components 
     - basic; profile menu, navbar, loaders, button save/next/add, button delete, errors, modal, empty states, 
     list item decision, list item criterion, list item option

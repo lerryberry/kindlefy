@@ -1,22 +1,50 @@
 import { useGetAllDecisions } from "./useGetDecisions";
 import DecisionListItem from "./decisionListItem";
+import EmptyState from "../util/EmptyState";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import styled from "styled-components";
 import type { UseGetAllDecisionsReturn } from "../../types/decision";
 
+const DecisionGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  padding: 1rem;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
 export default function DecisionList() {
+    const navigate = useNavigate();
     const { data, isLoading, error, isSuccess }: UseGetAllDecisionsReturn = useGetAllDecisions();
 
     if (isLoading) return <div>Loading...</div>;
     if (isSuccess) toast.success("loaded decision list successfully")
     if (error) return <div>Error: {error.message}</div>;
 
+    // Show empty state if no decisions
+    if (!data?.data || data.data.length === 0) {
+        return (
+            <EmptyState
+                text="No decisions found"
+                createLinkText="Create Decision"
+                onCreateClick={() => {
+                    navigate("/decisions/new");
+                }}
+            />
+        );
+    }
+
     return (
-        <ul>
+        <DecisionGrid>
             {data?.data?.map((decision) => (
-                <li key={decision._id}>
+                <div key={decision._id}>
                     <DecisionListItem decisionObject={decision} />
-                </li>
+                </div>
             ))}
-        </ul>
+        </DecisionGrid>
     )
 }

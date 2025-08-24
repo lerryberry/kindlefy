@@ -1,7 +1,14 @@
 import { useEffect } from "react";
+import styled from "styled-components";
 import { useGetDecision } from "./useGetDecisions";
 import toast from "react-hot-toast";
 import type { Decision, UseGetDecisionReturn } from "../../types/decision";
+
+const DecisionContainer = styled.div`
+  width: 100%;
+  padding: 1rem;
+  text-align: left;
+`;
 
 export default function Decision() {
     const { data, isLoading, error, isSuccess }: UseGetDecisionReturn = useGetDecision();
@@ -28,14 +35,9 @@ export default function Decision() {
         const decision: Decision = data.data;
 
         return (
-            <div className="decision-container">
+            <DecisionContainer>
                 <h1>{decision.title}</h1>
-                <div className="decision-details">
-                    <p>Slug: {decision.slug}</p>
-                    <p>Created: {new Date(decision.createdAt).toLocaleDateString()}</p>
-                    <p>Status: {decision.isArchived ? 'Archived' : 'Active'}</p>
-                </div>
-            </div>
+            </DecisionContainer>
         );
     }
 

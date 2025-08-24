@@ -10,7 +10,7 @@ export function useAddDecisions() {
         return res.data;
     };
 
-    const { mutate: addDecision, isPending: isAdding, isSuccess } = useMutation({
+    const { mutate: addDecision, isPending: isAdding, isSuccess, data: createdDecision } = useMutation({
         mutationFn: createDecision,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["allDecisions"] })
@@ -18,5 +18,5 @@ export function useAddDecisions() {
         onError: (err) => console.log(err.message)
     });
 
-    return { isAdding, isSuccess, addDecision };
+    return { isAdding, isSuccess, addDecision, createdDecision };
 }
