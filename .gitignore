@@ -5,3 +5,5 @@ backend/node_modules/
 .prettierrc
 eslint.config.mjs
 ecosystem.secrets.js
+
+frontend/dist
