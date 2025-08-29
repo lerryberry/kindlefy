@@ -1,6 +1,5 @@
 import React from 'react';
 import styled from 'styled-components';
-import BackButton from '../util/BackButton';
 import Button from '../util/Button';
 
 interface PageLayoutProps {
@@ -39,7 +38,6 @@ const PageLayout: React.FC<PageLayoutProps> = ({ title, children, addButtonText,
     return (
         <LayoutContainer>
             <Header>
-                <BackButton />
                 <TitleRow>
                     <Title>{title}</Title>
                     {addButtonText && onAddClick && (

@@ -11,6 +11,9 @@ const TopBarContainer = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 `;
 
 const Logo = styled.div`
@@ -64,40 +67,40 @@ const Overlay = styled.div<{ isOpen: boolean }>`
 
 // Create a layout component
 export default function TopBar() {
-    const navigate = useNavigate();
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    const toggleMenu = () => {
-        setIsMenuOpen(!isMenuOpen);
-    };
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
 
-    const closeMenu = () => {
-        setIsMenuOpen(false);
-    };
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
 
-    const handleLogoClick = () => {
-        navigate('/decisions');
-    };
+  const handleLogoClick = () => {
+    navigate('/decisions');
+  };
 
-    return (
-        <>
-            <TopBarContainer>
-                <Logo onClick={handleLogoClick}>💎</Logo>
-                <BurgerMenu onClick={toggleMenu}>
-                    <BurgerLine />
-                    <BurgerLine />
-                    <BurgerLine />
-                </BurgerMenu>
-            </TopBarContainer>
+  return (
+    <>
+      <TopBarContainer>
+        <Logo onClick={handleLogoClick}>💎</Logo>
+        <BurgerMenu onClick={toggleMenu}>
+          <BurgerLine />
+          <BurgerLine />
+          <BurgerLine />
+        </BurgerMenu>
+      </TopBarContainer>
 
 
 
-            <Overlay isOpen={isMenuOpen} onClick={closeMenu} />
-            <MenuOverlay isOpen={isMenuOpen}>
-                <MainMenu onClose={closeMenu} />
-            </MenuOverlay>
+      <Overlay isOpen={isMenuOpen} onClick={closeMenu} />
+      <MenuOverlay isOpen={isMenuOpen}>
+        <MainMenu onClose={closeMenu} />
+      </MenuOverlay>
 
-            <Outlet />
-        </>
-    );
+      <Outlet />
+    </>
+  );
 }

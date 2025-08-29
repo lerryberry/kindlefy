@@ -24,6 +24,24 @@ export interface DecisionsResponse {
     data: Decision[];
 }
 
+export interface ReportOption {
+    _id: string;
+    title: string;
+    description?: string;
+    parentDecision: string;
+    slug: string;
+    isArchived: boolean;
+    createdAt: string;
+    updatedAt: string;
+    score: number;
+    tags?: string[];
+}
+
+export interface DecisionReportResponse {
+    status: 'success' | 'error';
+    data: ReportOption[];
+}
+
 // Form data for creating decisions
 export interface CreateDecisionData {
     title: string;
@@ -41,6 +59,15 @@ export interface UseGetDecisionReturn {
 
 export interface UseGetAllDecisionsReturn {
     data: DecisionsResponse | undefined;
+    isLoading: boolean;
+    error: Error | null;
+    isSuccess: boolean;
+    isError: boolean;
+    isFetching: boolean;
+}
+
+export interface UseGetDecisionReportReturn {
+    data: DecisionReportResponse | undefined;
     isLoading: boolean;
     error: Error | null;
     isSuccess: boolean;

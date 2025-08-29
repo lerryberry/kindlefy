@@ -5,7 +5,6 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useAddDecisions } from './useAddDecision';
 import toast from 'react-hot-toast';
-import type { FieldErrors } from "react-hook-form";
 import type { CreateDecisionData } from '../../types/decision';
 
 // Form data interface - only title is needed for creating decisions
@@ -27,15 +26,10 @@ function CreateDecisionForm() {
     const { register, handleSubmit, formState: { errors } } = useForm<CreateDecisionFormData>();
     const { addDecision, isAdding, isSuccess, createdDecision } = useAddDecisions();
 
-    // Show loading state and redirect on success
-    if (isAdding) {
-        return <div>Adding decision...</div>;
-    }
-
     if (isSuccess && createdDecision) {
         toast.success("Decision added successfully!");
         navigate(`/decisions/${createdDecision.data._id}`);
-        return <div>Redirecting to your decision...</div>;
+        // return <div>Redirecting to your decision...</div>;
     }
 
     function onSubmit(data: CreateDecisionFormData): void {
@@ -43,13 +37,14 @@ function CreateDecisionForm() {
         addDecision(decisionData);
     }
 
-    function onError(errors: FieldErrors<CreateDecisionFormData>): void {
+    function onError(): void {
         const errorMessage = errors.title?.message || "Form validation failed";
         toast.error(errorMessage);
     }
 
     return (
         <>
+            {/* <BackButton /> // Removed BackButton usage */}
             <Form onSubmit={handleSubmit(onSubmit, onError)}>
                 <FormInput
                     label="Decision title"
@@ -74,7 +69,7 @@ function CreateDecisionForm() {
                 )}
                 <Button
                     type="submit"
-                    text={isAdding ? "Adding..." : "Create Decision"}
+                    text={isAdding ? "Adding decisions..." : "Create Decision"}
                     size="small"
                     disabled={isAdding}
                 />

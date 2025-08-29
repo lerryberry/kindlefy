@@ -30,7 +30,7 @@ const OptionDetail: React.FC = () => {
     if (!option?.data) return <div>Option not found</div>;
 
     return (
-        <PageLayout title="">
+        <PageLayout title={option.data.title}>
             <div style={{ marginBottom: '1rem' }}>
                 <strong>Description:</strong> {option.data.description || 'No description provided'}
             </div>

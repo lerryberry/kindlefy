@@ -2,7 +2,7 @@ import { createBrowserRouter, RouterProvider as RRProvider } from 'react-router-
 import TopBar from '../components/layouts/TopBar';
 import PageLayout from '../components/layouts/PageLayout';
 import DecisionList from '../components/decision/decisionList';
-import DecisionPage from '../components/decision/DecisionPage';
+import DecisionHeader from '../components/decision/DecisionHeader';
 import CriteriaList from '../components/criteria/CriteriaList';
 import Profile from '../components/auth/profile';
 import CreateDecisionForm from '../components/decision/CreateDecisionForm';
@@ -10,8 +10,7 @@ import CreateCriteriaForm from '../components/criteria/CreateCriteriaForm';
 import CriterionDetail from '../components/criteria/CriterionDetail';
 import CreateOptionForm from '../components/options/CreateOptionForm';
 import OptionDetail from '../components/options/OptionDetail';
-import OptionPage from '../components/options/OptionPage';
-
+import DecisionReportPage from '../components/decision/DecisionReportPage';
 
 
 const router = createBrowserRouter([
@@ -23,15 +22,15 @@ const router = createBrowserRouter([
             { path: "decisions/new", element: <PageLayout title="New Decision"><CreateDecisionForm /></PageLayout> },
             {
                 path: "decisions/:decisionId",
-                element: <DecisionPage />,
+                element: <DecisionHeader />,
                 children: [
                     { index: true, element: <CriteriaList /> },
+                    { path: "report", element: <DecisionReportPage /> },
                     { path: "criteria/new", element: <CreateCriteriaForm /> },
                     { path: "criteria/:criterionId", element: <CriterionDetail /> },
                     { path: "criteria/:criterionId/options/new", element: <CreateOptionForm /> },
                     {
                         path: "options/:optionId",
-                        element: <OptionPage />,
                         children: [
                             { index: true, element: <OptionDetail /> }
                         ]

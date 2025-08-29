@@ -2,7 +2,6 @@ import { useGetAllDecisions } from "./useGetDecisions";
 import DecisionListItem from "./decisionListItem";
 import EmptyState from "../util/EmptyState";
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
 import styled from "styled-components";
 import type { UseGetAllDecisionsReturn } from "../../types/decision";
 
@@ -21,10 +20,9 @@ const DecisionGrid = styled.div`
 
 export default function DecisionList() {
     const navigate = useNavigate();
-    const { data, isLoading, error, isSuccess }: UseGetAllDecisionsReturn = useGetAllDecisions();
+    const { data, isLoading, error }: UseGetAllDecisionsReturn = useGetAllDecisions();
 
     if (isLoading) return <div>Loading...</div>;
-    if (isSuccess) toast.success("loaded decision list successfully")
     if (error) return <div>Error: {error.message}</div>;
 
     // Show empty state if no decisions

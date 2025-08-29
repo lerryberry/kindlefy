@@ -6,6 +6,7 @@ import { useGetCriterion } from './useGetCriterion';
 import { useDeleteCriterion } from './useDeleteCriterion';
 import Tabs, { Tab } from '../util/Tabs';
 import OptionsList from '../options/OptionsList';
+// import GroupedOptionsRankingForm from '../options/GroupedOptionsRankingForm';
 import Button from '../util/Button';
 import Dialog from '../util/Dialog';
 import toast from 'react-hot-toast';
@@ -89,6 +90,9 @@ const CriterionDetail: React.FC = () => {
                     <Tab name="Options">
                         <OptionsList />
                     </Tab>
+                    {/* <Tab name="Rankings">
+                        <GroupedOptionsRankingForm />
+                    </Tab> */}
                     <Tab name="Details">
                         <div style={{ marginBottom: '1rem' }}>
                             <strong>Description:</strong> {criterion.data.description || 'No description provided'}

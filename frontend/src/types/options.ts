@@ -21,6 +21,19 @@ export interface OptionListResponse {
     lastPage: boolean;
 }
 
+export type MatchLevel = "UNSORTED" | "BEST" | "IMPARTIAL" | "WORST";
+
+export interface GroupedOption extends Option {
+    matchLevel: MatchLevel;
+}
+
+export interface RankingFormData {
+    optionId: string;
+    criterionId: string;
+    matchLevel: Exclude<MatchLevel, "UNSORTED">; // Exclude "UNSORTED" for backend submission
+    rank: number;
+}
+
 export interface CreateOptionData {
     title: string;
     description?: string;
@@ -43,4 +56,20 @@ export interface UseGetOptionListReturn {
     isSuccess: boolean;
     isError: boolean;
     isFetching: boolean;
+}
+
+export interface RankedOptionListResponse {
+    status: 'success' | 'error';
+    results: number;
+    data: GroupedOption[];
+}
+
+export interface UseGetRankedOptionListReturn {
+    data: RankedOptionListResponse | undefined;
+    isLoading: boolean;
+    error: Error | null;
+    isSuccess: boolean;
+    isError: boolean;
+    isFetching: boolean;
+    refetch: () => void;
 }

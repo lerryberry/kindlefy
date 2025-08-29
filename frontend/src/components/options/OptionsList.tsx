@@ -1,23 +1,131 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import type { DropResult, DroppableProvided, DroppableStateSnapshot, DraggableProvided, DraggableStateSnapshot } from 'react-beautiful-dnd';
 import { useGetRankedOptions } from './useGetRankedOptions';
+import type { MatchLevel, GroupedOption, RankingFormData, UseGetRankedOptionListReturn } from '../../types/options';
 import EmptyState from '../util/EmptyState';
-import OptionListItem from './OptionListItem';
+import Button from '../util/Button';
+import toast from 'react-hot-toast';
+import { useUpdateRankings } from './useUpdateRankings';
+
+const getListStyle = (isDraggingOver: boolean) => ({
+    background: isDraggingOver ? 'lightblue' : 'lightgrey',
+    padding: 8,
+    width: 250,
+});
+
+const getItemStyle = (isDragging: boolean, draggableStyle: any) => ({
+    background: isDragging ? 'lightgreen' : 'grey',
+    padding: 8,
+    marginBottom: 8,
+    ...draggableStyle,
+});
 
 const OptionsList: React.FC = () => {
     const navigate = useNavigate();
-    const { decisionId, criterionId } = useParams();
+    const { decisionId, criterionId } = useParams<{ decisionId: string; criterionId: string }>();
 
-    const { data, isLoading, error } = useGetRankedOptions(criterionId!);
+    const { data: rankedOptionsData, isLoading, error, refetch }: UseGetRankedOptionListReturn = useGetRankedOptions(criterionId!); // Assuming this hook fetches all options for the decision, with ranking info for the current criterion
+    const [groupedOptions, setGroupedOptions] = useState<Record<MatchLevel, GroupedOption[]>>({
+        "UNSORTED": [],
+        "BEST": [],
+        "IMPARTIAL": [],
+        "WORST": [],
+    });
+    const { mutate: updateRankings, isPending: isUpdatingRankings } = useUpdateRankings({
+        decisionId: decisionId!,
+        criterionId: criterionId!,
+    });
+
+    useEffect(() => {
+        if (rankedOptionsData?.data) {
+            const newGroupedOptions: Record<MatchLevel, GroupedOption[]> = {
+                "UNSORTED": [],
+                "BEST": [],
+                "IMPARTIAL": [],
+                "WORST": [],
+            };
+
+            rankedOptionsData.data.forEach(option => {
+                // Ensure matchLevel is one of the valid MatchLevel types
+                const matchLevel: MatchLevel = (option.matchLevel as MatchLevel) || "UNSORTED";
+                newGroupedOptions[matchLevel].push({ ...option, matchLevel });
+            });
+            setGroupedOptions(newGroupedOptions);
+        }
+    }, [rankedOptionsData]);
 
     const handleAddOption = () => {
         navigate(`/decisions/${decisionId}/criteria/${criterionId}/options/new`);
     };
 
+    const onDragEnd = (result: DropResult) => {
+        const { source, destination } = result;
+
+        if (!destination) {
+            return;
+        }
+
+        const sourceDroppableId = source.droppableId as MatchLevel;
+        const destinationDroppableId = destination.droppableId as MatchLevel;
+
+        const sourceOptions = Array.from(groupedOptions[sourceDroppableId]);
+        const destOptions = Array.from(groupedOptions[destinationDroppableId]);
+        const [movedOption] = sourceOptions.splice(source.index, 1);
+
+        if (sourceDroppableId === destinationDroppableId) {
+            // Reordering within the same list
+            sourceOptions.splice(destination.index, 0, movedOption);
+            setGroupedOptions(prev => ({
+                ...prev,
+                [sourceDroppableId]: sourceOptions
+            }));
+        } else {
+            // Moving to a different list
+            movedOption.matchLevel = destinationDroppableId;
+            destOptions.splice(destination.index, 0, movedOption);
+            setGroupedOptions(prev => ({
+                ...prev,
+                [sourceDroppableId]: sourceOptions,
+                [destinationDroppableId]: destOptions
+            }));
+        }
+    };
+
+    const handleSaveRankings = () => {
+        const rankingsToSubmit: RankingFormData[] = [];
+
+        // Process "BEST", "IMPARTIAL", "WORST" categories for submission
+        ["BEST", "IMPARTIAL", "WORST"].forEach(level => {
+            groupedOptions[level as Exclude<MatchLevel, "UNSORTED">].forEach((option, index) => {
+                rankingsToSubmit.push({
+                    optionId: option._id,
+                    criterionId: criterionId!,
+                    matchLevel: level as Exclude<MatchLevel, "UNSORTED">,
+                    rank: index + 1, // Add rank based on the order in the array
+                });
+            });
+        });
+
+        updateRankings(rankingsToSubmit, {
+            onSuccess: () => {
+                toast.success("Rankings saved successfully!");
+                refetch(); // Refetch to ensure UI is consistent with backend
+                navigate(`/decisions/${decisionId}`); // Navigate back to the decision detail page
+            },
+            onError: (err: Error) => {
+                toast.error(`Failed to save rankings: ${err.message}`);
+            },
+        });
+    };
+
     if (isLoading) return <div>Loading options...</div>;
     if (error) return <div>Error: {error.message}</div>;
 
-    if (!data?.data || data.data.length === 0) {
+    const allOptionsEmpty = Object.values(groupedOptions).every(group => group.length === 0);
+
+    if (allOptionsEmpty && !isLoading) {
         return (
             <EmptyState
                 text="No options found for this criterion"
@@ -27,34 +135,70 @@ const OptionsList: React.FC = () => {
         );
     }
 
-    return (
-        <div>
-            {data.data.map((option) => (
-                <div key={option._id}>
-                    <OptionListItem
-                        _id={option._id}
-                        title={option.title}
-                        rank={option.rank}
-                        matchLevel={option.matchLevel}
-                    />
-                </div>
-            ))}
-
-            <button
-                onClick={handleAddOption}
-                style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#3b82f6',
-                    cursor: 'pointer',
-                    padding: 0,
-                    font: 'inherit',
-                    textDecoration: 'underline'
-                }}
-            >
-                + add option
-            </button>
+    const renderOptionGroup = (title: string, options: GroupedOption[], droppableId: MatchLevel) => (
+        <div style={{ marginBottom: '1rem', border: '1px solid #ccc', padding: '1rem' }}>
+            <h3>{title}</h3>
+            <Droppable droppableId={droppableId}>
+                {(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
+                    <div
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        style={getListStyle(snapshot.isDraggingOver)}
+                    >
+                        {options.map((option, index) => (
+                            <Draggable draggableId={option._id} index={index}>
+                                {/* @ts-ignore */}
+                                {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
+                                    <div
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        style={getItemStyle(
+                                            snapshot.isDragging,
+                                            provided.draggableProps.style
+                                        )}
+                                    >
+                                        {option.title}
+                                    </div>
+                                )}
+                            </Draggable>
+                        ))}
+                        {provided.placeholder}
+                        {droppableId === "UNSORTED" && (
+                            <button
+                                onClick={handleAddOption}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#3b82f6',
+                                    cursor: 'pointer',
+                                    padding: 0,
+                                    font: 'inherit',
+                                    textDecoration: 'underline',
+                                    marginTop: '1rem'
+                                }}
+                            >
+                                + add option
+                            </button>
+                        )}
+                    </div>
+                )}
+            </Droppable>
         </div>
+    );
+
+    return (
+        <DragDropContext onDragEnd={onDragEnd}>
+            {renderOptionGroup("Unsorted", groupedOptions.UNSORTED, "UNSORTED")}
+            {renderOptionGroup("Best Choice", groupedOptions.BEST, "BEST")}
+            {renderOptionGroup("Impartial", groupedOptions.IMPARTIAL, "IMPARTIAL")}
+            {renderOptionGroup("Worst Choice", groupedOptions.WORST, "WORST")}
+            <Button
+                text={isUpdatingRankings ? "Saving..." : "Save Rankings"}
+                onClick={handleSaveRankings}
+                disabled={isUpdatingRankings}
+            />
+        </DragDropContext>
     );
 };
 

@@ -1,10 +1,8 @@
-import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useGetCriteriaList } from "./useGetCriteria";
 import CriteriaListItem from "./CriteriaListItem";
 import EmptyState from "../util/EmptyState";
 import PageLayout from "../layouts/PageLayout";
-import toast from "react-hot-toast";
 import styled from "styled-components";
 import type { UseGetCriteriaListReturn } from "../../types/criteria";
 
@@ -17,14 +15,7 @@ const ListContainer = styled.div`
 export default function CriteriaList() {
     const navigate = useNavigate();
     const { decisionId } = useParams();
-    const { data, isLoading, error, isSuccess }: UseGetCriteriaListReturn = useGetCriteriaList(decisionId!);
-
-    // Show toast only once when data loads
-    useEffect(() => {
-        if (isSuccess && data?.output) {
-            toast.success("Loaded criteria successfully");
-        }
-    }, [isSuccess, data]);
+    const { data, isLoading, error }: UseGetCriteriaListReturn = useGetCriteriaList(decisionId!);
 
     if (isLoading) return <div>Loading criteria...</div>;
     if (error) return <div>Error: {error.message}</div>;

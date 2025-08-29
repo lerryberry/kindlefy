@@ -15,6 +15,10 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "react-beautiful-dnd": "^13.1.1"
+  },
+  "devDependencies": {
+    "@types/react-beautiful-dnd": "^13.1.8"
   }
 }

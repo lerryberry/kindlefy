@@ -21,9 +21,9 @@ function CreateOptionForm() {
     const { addOption, isAdding, isSuccess, createdOption } = useAddOption();
 
     // Show loading state and redirect on success
-    if (isAdding) {
-        return <div>Adding option...</div>;
-    }
+    // if (isAdding) {
+    //     return <div>Adding option...</div>;
+    // }
 
     if (isSuccess && createdOption) {
         toast.success("Option added successfully!");
@@ -31,7 +31,6 @@ function CreateOptionForm() {
         setTimeout(() => {
             window.history.back();
         }, 500);
-        return <div>Redirecting...</div>;
     }
 
     function onSubmit(data: CreateOptionFormData): void {
@@ -55,58 +54,60 @@ function CreateOptionForm() {
     }
 
     return (
-        <PageLayout title="New Option">
-            <Form onSubmit={handleSubmit(onSubmit, onError)}>
-                <FormInput
-                    label="Option title"
-                    type="text"
-                    required
-                    {...register("title", {
-                        required: "Title is required",
-                        minLength: {
-                            value: 3,
-                            message: "Minimum of 3 characters required"
-                        },
-                        maxLength: {
-                            value: 200,
-                            message: "Maximum of 200 characters allowed"
-                        }
-                    })}
-                />
-                {errors.title && (
-                    <p style={{ color: "red", fontSize: "0.875rem", marginTop: "0.25rem" }}>
-                        {errors.title.message}
-                    </p>
-                )}
+        <>
+            <PageLayout title="New Option">
+                <Form onSubmit={handleSubmit(onSubmit, onError)}>
+                    <FormInput
+                        label="Option title"
+                        type="text"
+                        required
+                        {...register("title", {
+                            required: "Title is required",
+                            minLength: {
+                                value: 3,
+                                message: "Minimum of 3 characters required"
+                            },
+                            maxLength: {
+                                value: 200,
+                                message: "Maximum of 200 characters allowed"
+                            }
+                        })}
+                    />
+                    {errors.title && (
+                        <p style={{ color: "red", fontSize: "0.875rem", marginTop: "0.25rem" }}>
+                            {errors.title.message}
+                        </p>
+                    )}
 
-                <FormInput
-                    label="Description (optional)"
-                    type="text"
-                    {...register("description", {
-                        minLength: {
-                            value: 10,
-                            message: "Minimum of 10 characters required"
-                        },
-                        maxLength: {
-                            value: 1000,
-                            message: "Maximum of 1000 characters allowed"
-                        }
-                    })}
-                />
-                {errors.description && (
-                    <p style={{ color: "red", fontSize: "0.875rem", marginTop: "0.25rem" }}>
-                        {errors.description.message}
-                    </p>
-                )}
+                    <FormInput
+                        label="Description (optional)"
+                        type="text"
+                        {...register("description", {
+                            minLength: {
+                                value: 10,
+                                message: "Minimum of 10 characters required"
+                            },
+                            maxLength: {
+                                value: 1000,
+                                message: "Maximum of 1000 characters allowed"
+                            }
+                        })}
+                    />
+                    {errors.description && (
+                        <p style={{ color: "red", fontSize: "0.875rem", marginTop: "0.25rem" }}>
+                            {errors.description.message}
+                        </p>
+                    )}
 
-                <Button
-                    type="submit"
-                    text={isAdding ? "Adding..." : "Create Option"}
-                    size="small"
-                    disabled={isAdding}
-                />
-            </Form>
-        </PageLayout>
+                    <Button
+                        type="submit"
+                        text={isAdding ? "Adding option..." : "Create Option"}
+                        size="small"
+                        disabled={isAdding}
+                    />
+                </Form>
+            </PageLayout>
+        </>
     );
 }
 
