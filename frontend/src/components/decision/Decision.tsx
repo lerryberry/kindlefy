@@ -1,14 +1,38 @@
 import { useEffect } from "react";
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from "styled-components";
-import { useGetDecision } from "./useGetDecisions";
+import { useGetDecision } from "./useGetDecision";
 // import toast from "react-hot-toast";
 import type { Decision, UseGetDecisionReturn } from "../../types/decision";
+import Button from "../util/Button";
 
 const DecisionContainer = styled.div`
   width: 100%;
   padding: 0.5rem;
   text-align: left;
+`;
+
+const TitleWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px; // Spacing between title and edit button
+  cursor: pointer;
+
+  h1 {
+    margin: 0;
+    font-size: 1.875rem; // Equivalent to text-3xl
+    line-height: 2.25rem; // Equivalent to leading-9
+  }
+
+  .edit-icon {
+    font-size: 1.5rem;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  &:hover .edit-icon {
+    opacity: 1;
+  }
 `;
 
 const TitleRow = styled.div`
@@ -17,58 +41,49 @@ const TitleRow = styled.div`
   align-items: center;
 `;
 
-const ReportButton = styled.button`
-  background-color: #4f46e5;
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  &:hover {
-    background-color: #4338ca;
-  }
-`;
-
 export default function Decision() {
-    const { decisionId } = useParams();
-    const navigate = useNavigate();
+  const { decisionId } = useParams();
+  const navigate = useNavigate();
 
-    const { data, isLoading, error, isSuccess }: UseGetDecisionReturn = useGetDecision();
+  const { decision, isLoading }: UseGetDecisionReturn = useGetDecision(decisionId);
 
-    // Show toast only once when data loads
-    useEffect(() => {
-        if (isSuccess && data?.data) {
-            // toast.success("Loaded decision successfully");
-        }
-    }, [isSuccess, data]);
-
-    // Loading state
-    if (isLoading) {
-        return <div>Loading...</div>;
+  // Show toast only once when data loads
+  useEffect(() => {
+    if (decision?.data) {
+      // toast.success("Loaded decision successfully");
     }
+  }, [decision]);
 
-    // Error state
-    if (error) {
-        return <div>Error: {error.message}</div>;
-    }
+  // Loading state
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
-    // Success state
-    if (isSuccess && data?.data) {
-        const decision: Decision = data.data;
+  // Error state - Assuming decision.data exists if not loading and no error
+  if (!isLoading && !decision?.data) {
+    return <div>Error: Decision not found or an error occurred.</div>;
+  }
 
-        return (
-            <DecisionContainer>
-                <TitleRow>
-                    <h1>{decision.title}</h1>
-                    <ReportButton
-                        onClick={() => navigate(`/decisions/${decisionId}/report`)}
-                    >
-                        View Report
-                    </ReportButton>
-                </TitleRow>
-            </DecisionContainer>
-        );
-    }
+  // Success state
+  if (decision?.data) {
+    const currentDecision: Decision = decision.data;
 
-    // Fallback state (shouldn't reach here, but TypeScript requires it)
-    return null;
+    return (
+      <DecisionContainer>
+        <TitleRow>
+          <TitleWrapper onClick={() => navigate(`/decisions/${decisionId}/edit`)}>
+            <h1>{currentDecision.title}</h1>
+            <span className="edit-icon">&#x270E;</span>
+          </TitleWrapper>
+          <Button
+            onClick={() => navigate(`/decisions/${decisionId}/report`)}
+            text="View Report"
+          />
+        </TitleRow>
+      </DecisionContainer>
+    );
+  }
+
+  // Fallback state (shouldn't reach here, but TypeScript requires it)
+  return null;
 }

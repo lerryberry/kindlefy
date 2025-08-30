@@ -2,10 +2,13 @@ import Button from './../util/Button'
 import Form from './../util/Form'
 import FormInput from './../util/FormInput'
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAddDecisions } from './useAddDecision';
 import toast from 'react-hot-toast';
 import type { CreateDecisionData } from '../../types/decision';
+import { useGetDecision } from './useGetDecision';
+import { useEffect } from 'react';
+import { useUpdateDecision } from './useUpdateDecision';
 
 // Form data interface - only title is needed for creating decisions
 interface CreateDecisionFormData {
@@ -23,8 +26,24 @@ interface ValidationRules {
 
 function CreateDecisionForm() {
     const navigate = useNavigate();
-    const { register, handleSubmit, formState: { errors } } = useForm<CreateDecisionFormData>();
+    const { decisionId } = useParams<{ decisionId: string }>();
+    const { register, handleSubmit, formState: { errors }, reset } = useForm<CreateDecisionFormData>();
     const { addDecision, isAdding, isSuccess, createdDecision } = useAddDecisions();
+    const { decision, isLoading: isLoadingDecision } = useGetDecision(decisionId);
+    const { updateDecisionMutation, isUpdating, isUpdateSuccess } = useUpdateDecision();
+
+    useEffect(() => {
+        if (decisionId && decision) {
+            reset({ title: decision.data.title });
+        }
+    }, [decisionId, decision, reset]);
+
+    useEffect(() => {
+        if (isUpdateSuccess && decisionId) {
+            toast.success("Decision updated successfully!");
+            navigate(`/decisions/${decisionId}`);
+        }
+    }, [isUpdateSuccess, decisionId, navigate]);
 
     if (isSuccess && createdDecision) {
         toast.success("Decision added successfully!");
@@ -34,13 +53,22 @@ function CreateDecisionForm() {
 
     function onSubmit(data: CreateDecisionFormData): void {
         const decisionData: CreateDecisionData = { title: data.title };
-        addDecision(decisionData);
+        if (decisionId) {
+            updateDecisionMutation({ id: decisionId, formData: decisionData });
+        } else {
+            addDecision(decisionData);
+        }
     }
 
     function onError(): void {
         const errorMessage = errors.title?.message || "Form validation failed";
         toast.error(errorMessage);
     }
+
+    const isWorking = isAdding || isUpdating || isLoadingDecision;
+    const buttonText = decisionId
+        ? (isUpdating ? "Updating decision..." : "Update Decision")
+        : (isAdding ? "Adding decision..." : "Create Decision");
 
     return (
         <>
@@ -69,9 +97,9 @@ function CreateDecisionForm() {
                 )}
                 <Button
                     type="submit"
-                    text={isAdding ? "Adding decisions..." : "Create Decision"}
+                    text={buttonText}
                     size="small"
-                    disabled={isAdding}
+                    disabled={isWorking}
                 />
             </Form>
         </>

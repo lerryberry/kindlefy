@@ -8,19 +8,42 @@ import { useAddCriteria } from './useAddCriteria';
 import toast from 'react-hot-toast';
 import type { FieldErrors } from "react-hook-form";
 import type { CreateCriteriaData } from '../../types/criteria';
+import { useGetCriterion } from './useGetCriterion';
+import { useEffect } from 'react';
+import { useUpdateCriterion } from './useUpdateCriterion';
 
 // Form data interface
 interface CreateCriteriaFormData {
     title: string;
-    description: string;
-    priority: 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE';
+    description?: string;
+    priority?: 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE';
 }
 
 function CreateCriteriaForm() {
     const navigate = useNavigate();
-    const { decisionId } = useParams<{ decisionId: string }>();
-    const { register, handleSubmit, formState: { errors } } = useForm<CreateCriteriaFormData>();
+    const { decisionId, criterionId } = useParams<{ decisionId: string; criterionId: string }>();
+    const { register, handleSubmit, formState: { errors }, reset } = useForm<CreateCriteriaFormData>();
+
     const { addCriteria, isAdding, isSuccess, createdCriteria } = useAddCriteria();
+    const { data: criterion, isLoading: isLoadingCriterion } = useGetCriterion(criterionId);
+    const { updateCriterionMutation, isUpdating, isUpdateSuccess } = useUpdateCriterion();
+
+    useEffect(() => {
+        if (criterionId && criterion?.data) {
+            reset({
+                title: criterion.data.title,
+                description: criterion.data.description || '',
+                priority: criterion.data.priority
+            });
+        }
+    }, [criterionId, criterion, reset]);
+
+    useEffect(() => {
+        if (isUpdateSuccess && decisionId && criterionId) {
+            toast.success("Criterion updated successfully!");
+            navigate(`/decisions/${decisionId}/criteria/${criterionId}`);
+        }
+    }, [isUpdateSuccess, decisionId, criterionId, navigate]);
 
     if (isSuccess && createdCriteria) {
         toast.success("Criteria added successfully!");
@@ -33,14 +56,17 @@ function CreateCriteriaForm() {
             return;
         }
 
-        const criteriaData: CreateCriteriaData = {
+        const criteriaData = {
             title: data.title,
             description: data.description || undefined,
             priority: data.priority,
-            parentDecision: decisionId
         };
 
-        addCriteria(criteriaData);
+        if (criterionId) {
+            updateCriterionMutation({ decisionId, criterionId, formData: criteriaData });
+        } else {
+            addCriteria({ ...criteriaData, parentDecision: decisionId } as CreateCriteriaData);
+        }
     }
 
     function onError(errors: FieldErrors<CreateCriteriaFormData>): void {
@@ -48,10 +74,16 @@ function CreateCriteriaForm() {
         toast.error(errorMessage);
     }
 
+    const isWorking = isAdding || isUpdating || isLoadingCriterion;
+    const pageTitle = criterionId ? "Edit Criteria" : "New Criteria";
+    const buttonText = criterionId
+        ? (isUpdating ? "Updating criterion..." : "Update Criterion")
+        : (isAdding ? "Adding criteria..." : "Create Criteria");
+
     return (
         <>
             {/* <BackButton /> // Removed BackButton usage */}
-            <PageLayout title="New Criteria">
+            <PageLayout title={pageTitle}>
                 <Form onSubmit={handleSubmit(onSubmit, onError)}>
                     <FormInput
                         label="Criteria title"
@@ -77,7 +109,8 @@ function CreateCriteriaForm() {
 
                     <FormInput
                         label="Description (optional)"
-                        type="text"
+                        componentType="textarea"
+                        rows={5}
                         {...register("description", {
                             maxLength: {
                                 value: 500,
@@ -114,9 +147,9 @@ function CreateCriteriaForm() {
 
                     <Button
                         type="submit"
-                        text={isAdding ? "Adding criteria..." : "Create Criteria"}
+                        text={buttonText}
                         size="small"
-                        disabled={isAdding}
+                        disabled={isWorking}
                     />
                 </Form>
             </PageLayout>

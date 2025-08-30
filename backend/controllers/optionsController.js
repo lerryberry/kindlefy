@@ -35,6 +35,7 @@ exports.deleteOption = catchAsync(async (req, res, next) => {
     });
 })
 
+// The getRankedOption function is used for the single criterion view of the options. It shows the user the current ranking of options against that criterion, so they can resort them accordingly.
 exports.getRankedOptions = catchAsync(async (req, res, next) => {
     const decisionId = req.params.decisionId; 
     const criteriaId = req.params.id; 

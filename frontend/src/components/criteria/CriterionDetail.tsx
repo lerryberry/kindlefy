@@ -11,20 +11,6 @@ import Button from '../util/Button';
 import Dialog from '../util/Dialog';
 import toast from 'react-hot-toast';
 
-const StatusBadge = styled.span<{ isArchived: boolean }>`
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    background-color: ${props => props.isArchived ? '#fee2e2' : '#dcfce7'};
-    color: ${props => props.isArchived ? '#991b1b' : '#166534'};
-`;
-
-
-
 const PriorityBadge = styled.span<{ priority: string }>`
     display: inline-block;
     padding: 0.25rem 0.75rem;
@@ -51,6 +37,29 @@ const PriorityBadge = styled.span<{ priority: string }>`
             default: return '#374151';
         }
     }};
+`;
+
+const TitleWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px; // Spacing between title and edit button
+  cursor: pointer;
+
+  h1 {
+    margin: 0;
+    font-size: 1.875rem; // Equivalent to text-3xl
+    line-height: 2.25rem; // Equivalent to leading-9
+  }
+
+  .edit-icon {
+    font-size: 1.5rem;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  &:hover .edit-icon {
+    opacity: 1;
+  }
 `;
 
 const CriterionDetail: React.FC = () => {
@@ -85,7 +94,12 @@ const CriterionDetail: React.FC = () => {
 
     return (
         <>
-            <PageLayout title={criterion.data.title}>
+            <PageLayout title={
+                <TitleWrapper onClick={() => navigate(`/decisions/${decisionId}/criteria/${criterionId}/edit`)}>
+                    <h1>{criterion.data.title}</h1>
+                    <span className="edit-icon">&#x270E;</span>
+                </TitleWrapper>
+            }>
                 <Tabs>
                     <Tab name="Options">
                         <OptionsList />
@@ -94,20 +108,16 @@ const CriterionDetail: React.FC = () => {
                         <GroupedOptionsRankingForm />
                     </Tab> */}
                     <Tab name="Details">
-                        <div style={{ marginBottom: '1rem' }}>
-                            <strong>Description:</strong> {criterion.data.description || 'No description provided'}
-                        </div>
+                        {criterion.data.description && (
+                            <div style={{ marginBottom: '1rem' }}>
+                                <strong>Description:</strong> {criterion.data.description}
+                            </div>
+                        )}
 
                         <div style={{ marginBottom: '1rem' }}>
                             <strong>Priority:</strong> <PriorityBadge priority={criterion.data.priority}>
                                 {criterion.data.priority.replace('_', ' ')}
                             </PriorityBadge>
-                        </div>
-
-                        <div style={{ marginBottom: '2rem' }}>
-                            <strong>Status:</strong> <StatusBadge isArchived={criterion.data.isArchived}>
-                                {criterion.data.isArchived ? 'Archived' : 'Active'}
-                            </StatusBadge>
                         </div>
 
                         <Button

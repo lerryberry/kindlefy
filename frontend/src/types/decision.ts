@@ -49,12 +49,8 @@ export interface CreateDecisionData {
 
 // Hook return types
 export interface UseGetDecisionReturn {
-    data: DecisionResponse | undefined;
+    decision: DecisionResponse | undefined;
     isLoading: boolean;
-    error: Error | null;
-    isSuccess: boolean;
-    isError: boolean;
-    isFetching: boolean;
 }
 
 export interface UseGetAllDecisionsReturn {

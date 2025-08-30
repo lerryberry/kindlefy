@@ -25,6 +25,7 @@ export type MatchLevel = "UNSORTED" | "BEST" | "IMPARTIAL" | "WORST";
 
 export interface GroupedOption extends Option {
     matchLevel: MatchLevel;
+    rank: number; // Add rank property
 }
 
 export interface RankingFormData {

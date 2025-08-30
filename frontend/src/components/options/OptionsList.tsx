@@ -1,26 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import type { DropResult, DroppableProvided, DroppableStateSnapshot, DraggableProvided, DraggableStateSnapshot } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable } from '@hello-pangea/dnd';
+import type { DropResult } from '@hello-pangea/dnd';
 import { useGetRankedOptions } from './useGetRankedOptions';
 import type { MatchLevel, GroupedOption, RankingFormData, UseGetRankedOptionListReturn } from '../../types/options';
 import EmptyState from '../util/EmptyState';
 import Button from '../util/Button';
 import toast from 'react-hot-toast';
 import { useUpdateRankings } from './useUpdateRankings';
-
-const getListStyle = (isDraggingOver: boolean) => ({
-    background: isDraggingOver ? 'lightblue' : 'lightgrey',
-    padding: 8,
-    width: 250,
-});
-
-const getItemStyle = (isDragging: boolean, draggableStyle: any) => ({
-    background: isDragging ? 'lightgreen' : 'grey',
-    padding: 8,
-    marginBottom: 8,
-    ...draggableStyle,
-});
+import DraggableOptionListItem from './DraggableOptionListItem';
 
 const OptionsList: React.FC = () => {
     const navigate = useNavigate();
@@ -139,30 +127,16 @@ const OptionsList: React.FC = () => {
         <div style={{ marginBottom: '1rem', border: '1px solid #ccc', padding: '1rem' }}>
             <h3>{title}</h3>
             <Droppable droppableId={droppableId}>
-                {(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
+                {(provided) => (
                     <div
                         {...provided.droppableProps}
                         ref={provided.innerRef}
-                        style={getListStyle(snapshot.isDraggingOver)}
                     >
-                        {options.map((option, index) => (
-                            <Draggable draggableId={option._id} index={index}>
-                                {/* @ts-ignore */}
-                                {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
-                                    <div
-                                        ref={provided.innerRef}
-                                        {...provided.draggableProps}
-                                        {...provided.dragHandleProps}
-                                        style={getItemStyle(
-                                            snapshot.isDragging,
-                                            provided.draggableProps.style
-                                        )}
-                                    >
-                                        {option.title}
-                                    </div>
-                                )}
-                            </Draggable>
-                        ))}
+                        {options.map((option, index) => {
+                            return (
+                                <DraggableOptionListItem option={option} index={index} />
+                            );
+                        })}
                         {provided.placeholder}
                         {droppableId === "UNSORTED" && (
                             <button

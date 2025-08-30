@@ -1,19 +1,15 @@
 import React from 'react';
 import styled from 'styled-components';
-import { useNavigate, useParams } from 'react-router-dom';
-import RightArrow from '../util/RightArrow';
+import ArrowButton from '../util/ArrowButton';
 
 interface OptionListItemProps {
-    _id: string;
     title: string;
-    rank: number;
-    matchLevel: string;
+    onArrowClick?: () => void;
 }
 
 const ListItem = styled.div`
     padding: 1rem 0;
     border-bottom: 1px solid #e5e7eb;
-    cursor: pointer;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -30,30 +26,19 @@ const ListItem = styled.div`
 const OptionTitle = styled.div`
     font-weight: 500;
     margin-bottom: 0.25rem;
+    cursor: grab;
 `;
 
-const OptionDetails = styled.div`
-    font-size: 0.875rem;
-    color: #6b7280;
-`;
-
-const OptionListItem: React.FC<OptionListItemProps> = ({ _id, title, rank, matchLevel }) => {
-    const navigate = useNavigate();
-    const { decisionId } = useParams();
-
-    const handleClick = () => {
-        navigate(`/decisions/${decisionId}/options/${_id}`);
-    };
+const OptionListItem: React.FC<OptionListItemProps> = ({ title, onArrowClick }) => {
 
     return (
-        <ListItem onClick={handleClick}>
+        <ListItem>
             <div>
-                <OptionTitle>{title}</OptionTitle>
-                <OptionDetails>
-                    Rank: {rank} | Match: {matchLevel} | {_id}
-                </OptionDetails>
+                <OptionTitle>
+                    <span>{'\u283F\u00a0'}</span>{title}
+                </OptionTitle>
             </div>
-            <RightArrow />
+            <ArrowButton size="small" direction="forward" onClick={onArrowClick} />
         </ListItem>
     );
 };

@@ -2,14 +2,14 @@ import * as React from 'react';
 
 // Form input props interface extending HTML input attributes
 interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-    type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date' | 'time' | 'datetime-local' | 'month' | 'week' | 'color' | 'file' | 'range' | 'checkbox' | 'radio' | 'submit' | 'reset' | 'button' | 'hidden';
+    type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date' | 'time' | 'datetime-local' | 'month' | 'week' | 'color' | 'file' | 'range' | 'checkbox' | 'radio' | 'submit' | 'reset' | 'button' | 'hidden' | undefined;
     label?: string;
     required?: boolean;
     placeholder?: string;
     value?: string | number | readonly string[];
-    onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-    onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
-    onFocus?: (event: React.FocusEvent<HTMLInputElement>) => void;
+    onChange?: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+    onBlur?: (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+    onFocus?: (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     disabled?: boolean;
     readOnly?: boolean;
     autoComplete?: 'on' | 'off' | 'name' | 'email' | 'username' | 'current-password' | 'new-password' | 'one-time-code' | 'tel' | 'url' | 'street-address' | 'postal-code' | 'country' | 'language' | 'bday' | 'sex' | 'organization' | 'organization-title' | 'cc-name' | 'cc-given-name' | 'cc-family-name' | 'cc-number' | 'cc-exp' | 'cc-exp-month' | 'cc-exp-year' | 'cc-csc' | 'cc-type' | 'transaction-amount' | 'transaction-currency';
@@ -35,6 +35,8 @@ interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     id?: string;
     className?: string;
     style?: React.CSSProperties;
+    componentType?: 'input' | 'textarea';
+    rows?: number;
 }
 
 const FormInput: React.FC<FormInputProps> = ({
@@ -71,9 +73,50 @@ const FormInput: React.FC<FormInputProps> = ({
     list,
     className,
     style,
+    componentType = 'input',
+    rows = 5,
     ...rest
 }) => {
     const inputId = id || name || `form-input-${Math.random().toString(36).substr(2, 9)}`;
+
+    const commonProps = {
+        id: inputId,
+        name,
+        required,
+        placeholder,
+        value,
+        onChange,
+        onBlur,
+        onFocus,
+        disabled,
+        readOnly,
+        autoComplete,
+        autoFocus,
+        maxLength,
+        minLength,
+        className: `form-input ${className || ''}`,
+        style,
+        ...rest,
+    };
+
+    if (componentType === 'textarea') {
+        return (
+            <div className="form-input-container">
+                {label && (
+                    <label htmlFor={inputId} className="form-input-label">
+                        {label}
+                        {required && <span className="required-asterisk">*</span>}
+                    </label>
+                )}
+                <textarea
+                    rows={rows}
+                    {...commonProps}
+                    // Explicitly set type to undefined for textarea to avoid invalid prop warning
+                    type={undefined}
+                />
+            </div>
+        );
+    }
 
     return (
         <div className="form-input-container">
@@ -84,21 +127,7 @@ const FormInput: React.FC<FormInputProps> = ({
                 </label>
             )}
             <input
-                id={inputId}
                 type={type}
-                name={name}
-                required={required}
-                placeholder={placeholder}
-                value={value}
-                onChange={onChange}
-                onBlur={onBlur}
-                onFocus={onFocus}
-                disabled={disabled}
-                readOnly={readOnly}
-                autoComplete={autoComplete}
-                autoFocus={autoFocus}
-                maxLength={maxLength}
-                minLength={minLength}
                 pattern={pattern}
                 size={size}
                 step={step}
@@ -114,9 +143,7 @@ const FormInput: React.FC<FormInputProps> = ({
                 formNoValidate={formNoValidate}
                 formTarget={formTarget}
                 list={list}
-                className={`form-input ${className || ''}`}
-                style={style}
-                {...rest}
+                {...commonProps}
             />
         </div>
     );

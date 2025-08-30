@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Button from '../util/Button';
 import Form from '../util/Form';
 import FormInput from '../util/FormInput';
@@ -8,6 +8,9 @@ import { useAddOption } from './useAddOption';
 import toast from 'react-hot-toast';
 import type { FieldErrors } from "react-hook-form";
 import type { CreateOptionData } from '../../types/options';
+import { useEffect } from 'react';
+import { useGetOption } from './useGetOption';
+import { useUpdateOption } from './useUpdateOption';
 
 interface CreateOptionFormData {
     title: string;
@@ -16,20 +19,35 @@ interface CreateOptionFormData {
 
 function CreateOptionForm() {
 
-    const { decisionId } = useParams<{ decisionId: string }>();
-    const { register, handleSubmit, formState: { errors } } = useForm<CreateOptionFormData>();
-    const { addOption, isAdding, isSuccess, createdOption } = useAddOption();
+    const { decisionId, optionId } = useParams<{ decisionId: string; optionId: string }>();
+    const navigate = useNavigate();
+    const { register, handleSubmit, formState: { errors }, reset } = useForm<CreateOptionFormData>();
+    const { addOption, isAdding, isSuccess: isAddSuccess, createdOption } = useAddOption();
+    const { data: optionData, isLoading: isLoadingOption } = useGetOption(optionId!); // Fetch option data if in edit mode
+    const { updateOptionMutation, isUpdating, isSuccess: isUpdateSuccess, updatedOption } = useUpdateOption();
 
-    // Show loading state and redirect on success
-    // if (isAdding) {
-    //     return <div>Adding option...</div>;
-    // }
+    useEffect(() => {
+        if (optionId && optionData?.data) {
+            reset({
+                title: optionData.data.title,
+                description: optionData.data.description || "",
+            });
+        }
+    }, [optionId, optionData, reset]);
 
-    if (isSuccess && createdOption) {
-        toast.success("Option added successfully!");
-        // Add a small delay to ensure the options list is refreshed before redirecting
+    const isWorking = isAdding || isUpdating || isLoadingOption;
+
+    if (isAddSuccess && createdOption) {
         setTimeout(() => {
-            window.history.back();
+            // Navigate back to the decision's options list
+            navigate(`/decisions/${decisionId}/criteria`);
+        }, 500);
+    }
+
+    if (isUpdateSuccess && updatedOption) {
+        setTimeout(() => {
+            // Navigate back to the prior page
+            navigate(-1);
         }, 500);
     }
 
@@ -39,13 +57,23 @@ function CreateOptionForm() {
             return;
         }
 
-        const optionData: CreateOptionData = {
-            title: data.title,
-            description: data.description || undefined,
-            parentDecision: decisionId
-        };
-
-        addOption(optionData);
+        if (optionId) {
+            // Edit mode
+            updateOptionMutation({
+                optionId: optionId,
+                decisionId: decisionId,
+                title: data.title,
+                description: data.description || undefined,
+            });
+        } else {
+            // Create mode
+            const optionData: CreateOptionData = {
+                title: data.title,
+                description: data.description || undefined,
+                parentDecision: decisionId
+            };
+            addOption(optionData);
+        }
     }
 
     function onError(errors: FieldErrors<CreateOptionFormData>): void {
@@ -53,9 +81,14 @@ function CreateOptionForm() {
         toast.error(errorMessage);
     }
 
+    const pageTitle = optionId ? "Edit Option" : "New Option";
+    const buttonText = optionId
+        ? (isUpdating ? "Updating option..." : "Update Option")
+        : (isAdding ? "Adding option..." : "Create Option");
+
     return (
         <>
-            <PageLayout title="New Option">
+            <PageLayout title={pageTitle}>
                 <Form onSubmit={handleSubmit(onSubmit, onError)}>
                     <FormInput
                         label="Option title"
@@ -81,7 +114,8 @@ function CreateOptionForm() {
 
                     <FormInput
                         label="Description (optional)"
-                        type="text"
+                        componentType="textarea"
+                        rows={5}
                         {...register("description", {
                             minLength: {
                                 value: 10,
@@ -101,9 +135,9 @@ function CreateOptionForm() {
 
                     <Button
                         type="submit"
-                        text={isAdding ? "Adding option..." : "Create Option"}
+                        text={buttonText}
                         size="small"
-                        disabled={isAdding}
+                        disabled={isWorking}
                     />
                 </Form>
             </PageLayout>

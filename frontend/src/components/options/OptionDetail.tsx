@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import PageLayout from '../layouts/PageLayout';
 import { useGetOption } from './useGetOption';
 
@@ -16,32 +16,61 @@ const StatusBadge = styled.span<{ isArchived: boolean }>`
     color: ${props => props.isArchived ? '#991b1b' : '#166534'};
 `;
 
+const TitleWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+
+  h1 {
+    margin: 0;
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+
+  .edit-icon {
+    font-size: 1.5rem;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  &:hover .edit-icon {
+    opacity: 1;
+  }
+`;
+
 const OptionDetail: React.FC = () => {
-    const { optionId } = useParams<{ optionId: string }>();
+  const { optionId, decisionId } = useParams<{ optionId: string; decisionId: string }>();
+  const navigate = useNavigate();
 
-    if (!optionId) {
-        return <div>Option ID is required</div>;
-    }
+  if (!optionId || !decisionId) {
+    return <div>Option ID and Decision ID are required</div>;
+  }
 
-    const { data: option, isLoading, error } = useGetOption(optionId);
+  const { data: option, isLoading, error } = useGetOption(optionId);
 
-    if (isLoading) return <div>Loading option...</div>;
-    if (error) return <div>Error: {error.message}</div>;
-    if (!option?.data) return <div>Option not found</div>;
+  if (isLoading) return <div>Loading option...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+  if (!option?.data) return <div>Option not found</div>;
 
-    return (
-        <PageLayout title={option.data.title}>
-            <div style={{ marginBottom: '1rem' }}>
-                <strong>Description:</strong> {option.data.description || 'No description provided'}
-            </div>
+  return (
+    <PageLayout title={
+      <TitleWrapper onClick={() => navigate(`/decisions/${decisionId}/options/${optionId}/edit`)}>
+        <h1>{option.data.title}</h1>
+        <span className="edit-icon">&#x270E;</span>
+      </TitleWrapper>
+    }>
+      <div style={{ marginBottom: '1rem' }}>
+        <strong>Description:</strong> {option.data.description || 'No description provided'}
+      </div>
 
-            <div>
-                <strong>Status:</strong> <StatusBadge isArchived={option.data.isArchived}>
-                    {option.data.isArchived ? 'Archived' : 'Active'}
-                </StatusBadge>
-            </div>
-        </PageLayout>
-    );
+      <div>
+        <strong>Status:</strong> <StatusBadge isArchived={option.data.isArchived}>
+          {option.data.isArchived ? 'Archived' : 'Active'}
+        </StatusBadge>
+      </div>
+    </PageLayout>
+  );
 };
 
 export default OptionDetail;

@@ -10,6 +10,7 @@ import CreateCriteriaForm from '../components/criteria/CreateCriteriaForm';
 import CriterionDetail from '../components/criteria/CriterionDetail';
 import CreateOptionForm from '../components/options/CreateOptionForm';
 import OptionDetail from '../components/options/OptionDetail';
+import LandingPage from '../components/landing/LandingPage';
 import DecisionReportPage from '../components/decision/DecisionReportPage';
 
 
@@ -18,8 +19,10 @@ const router = createBrowserRouter([
         path: "/",
         element: <TopBar />,
         children: [
+            { index: true, element: <LandingPage /> },
             { path: "decisions", element: <PageLayout title="Decisions" addButtonText="Add Decision" onAddClick={() => window.location.href = "/decisions/new"}><DecisionList /></PageLayout> },
             { path: "decisions/new", element: <PageLayout title="New Decision"><CreateDecisionForm /></PageLayout> },
+            { path: "decisions/:decisionId/edit", element: <PageLayout title="Edit Decision"><CreateDecisionForm /></PageLayout> },
             {
                 path: "decisions/:decisionId",
                 element: <DecisionHeader />,
@@ -27,12 +30,14 @@ const router = createBrowserRouter([
                     { index: true, element: <CriteriaList /> },
                     { path: "report", element: <DecisionReportPage /> },
                     { path: "criteria/new", element: <CreateCriteriaForm /> },
+                    { path: "criteria/:criterionId/edit", element: <PageLayout title="Edit Criteria"><CreateCriteriaForm /></PageLayout> },
                     { path: "criteria/:criterionId", element: <CriterionDetail /> },
                     { path: "criteria/:criterionId/options/new", element: <CreateOptionForm /> },
                     {
                         path: "options/:optionId",
                         children: [
-                            { index: true, element: <OptionDetail /> }
+                            { index: true, element: <OptionDetail /> },
+                            { path: "edit", element: <PageLayout title="Edit Option"><CreateOptionForm /></PageLayout> }
                         ]
                     }
                 ]

@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { Outlet } from 'react-router-dom';
 import Decision from './Decision';
-import BackButton from '../util/BackButton';
+import ArrowButton from '../util/ArrowButton';
 
 const DecisionContainer = styled.div`
   margin-bottom: 2rem;
@@ -13,6 +13,7 @@ const DecisionContainer = styled.div`
   top: 60px; /* Assuming TopBar height is 60px */
   z-index: 99;
   width: 100%;
+  box-sizing: border-box;
 `;
 
 const DecisionHeader: React.FC = () => {
@@ -21,7 +22,7 @@ const DecisionHeader: React.FC = () => {
             <DecisionContainer>
                 <Decision />
             </DecisionContainer>
-            <BackButton /> {/* Moved to below DecisionContainer */}
+            <ArrowButton size="large" direction="back" onClick={() => history.back()} />
             <Outlet />
         </>
     );
