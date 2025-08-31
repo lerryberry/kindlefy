@@ -100,6 +100,7 @@ function CreateDecisionForm() {
                     text={buttonText}
                     size="small"
                     disabled={isWorking}
+                    isResponsive
                 />
             </Form>
         </>

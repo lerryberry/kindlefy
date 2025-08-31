@@ -4,6 +4,7 @@ import EmptyState from "../util/EmptyState";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import type { UseGetAllDecisionsReturn } from "../../types/decision";
+import Loading from "../util/Loading";
 
 const DecisionGrid = styled.div`
   display: grid;
@@ -22,14 +23,14 @@ export default function DecisionList() {
     const navigate = useNavigate();
     const { data, isLoading, error }: UseGetAllDecisionsReturn = useGetAllDecisions();
 
-    if (isLoading) return <div>Loading...</div>;
+    if (isLoading) return <Loading />;
     if (error) return <div>Error: {error.message}</div>;
 
     // Show empty state if no decisions
     if (!data?.data || data.data.length === 0) {
         return (
             <EmptyState
-                text="No decisions found"
+                text="Start by adding the name of your first decision. This will be the main topic you want to make a choice about."
                 createLinkText="Create Decision"
                 onCreateClick={() => {
                     navigate("/decisions/new");

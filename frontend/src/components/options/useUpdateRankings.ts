@@ -22,6 +22,8 @@ export function useUpdateRankings({
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["rankedOptions", criterionId] });
             queryClient.invalidateQueries({ queryKey: ["criterion", criterionId] });
+            // Invalidate general criteria list to update isRanked status
+            queryClient.invalidateQueries({ queryKey: ["criteria", decisionId] });
         },
     });
 }

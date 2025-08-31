@@ -29,7 +29,7 @@ const StyledArrowButton = styled.button<{
 }>`
     background: none;
     border: none;
-    color: #3b82f6; /* Example color, adjust as needed */
+    color: var(--color-brand-500);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -40,11 +40,11 @@ const StyledArrowButton = styled.button<{
     ${({ size }) => sizeStyles[size]}
 
     &:hover {
-        background-color: rgba(59, 130, 246, 0.1); /* Light blue background on hover */
+        background-color: var(--color-brand-100);
     }
 
     &:active {
-        background-color: rgba(59, 130, 246, 0.2); /* Slightly darker on click */
+        background-color: var(--color-brand-200);
     }
 
     &::before {

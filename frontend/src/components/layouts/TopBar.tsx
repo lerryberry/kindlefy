@@ -5,8 +5,8 @@ import MainMenu from './MainMenu';
 
 const TopBarContainer = styled.div`
   width: 100%;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+  background-color: var(--color-background-secondary);
+  border-bottom: 1px solid var(--color-border-primary);
   padding: 1rem;
   display: flex;
   justify-content: space-between;
@@ -20,13 +20,13 @@ const TopBarContainer = styled.div`
 const Logo = styled.div`
   font-size: 1.5rem;
   font-weight: bold;
-  padding-left: 1.5rem;
+  padding-left: 0.75rem;
   cursor: pointer;
 `;
 
 const BurgerMenu = styled.div`
   cursor: pointer;
-  padding: 0.5rem 1.5rem;
+  padding: 0.5rem 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -35,7 +35,7 @@ const BurgerMenu = styled.div`
 const BurgerLine = styled.div`
   width: 20px;
   height: 2px;
-  background-color: #374151;
+  background-color: var(--color-text-primary);
 `;
 
 const MenuOverlay = styled.div<{ isOpen: boolean }>`
@@ -44,13 +44,13 @@ const MenuOverlay = styled.div<{ isOpen: boolean }>`
   right: 0;
   width: 250px;
   height: 100vh;
-  background-color: #ffffff;
-  border-left: 1px solid #e5e7eb;
+  background-color: var(--color-background-secondary);
+  border-left: 1px solid var(--color-border-primary);
   transform: translateX(${props => props.isOpen ? '0' : '100%'});
   transition: transform 0.3s ease;
   z-index: 1000;
   padding: 2rem 1rem;
-  box-shadow: ${props => props.isOpen ? '-2px 0 10px rgba(0,0,0,0.1)' : 'none'};
+  box-shadow: ${props => props.isOpen ? '-2px 0 10px rgba(0,0,0,0.3)' : 'none'};
 `;
 
 const Overlay = styled.div<{ isOpen: boolean }>`

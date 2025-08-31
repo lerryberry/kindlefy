@@ -17,7 +17,6 @@ const TabsContainer = styled.div`
 
 const TabList = styled.div`
     display: flex;
-    border-bottom: 1px solid #e5e7eb;
     margin-bottom: 1rem;
 `;
 
@@ -27,12 +26,12 @@ const TabButton = styled.button<{ isActive: boolean }>`
     padding: 0.75rem 1rem;
     cursor: pointer;
     font-size: 0.875rem;
-    color: ${props => props.isActive ? '#374151' : '#6b7280'};
-    border-bottom: 2px solid ${props => props.isActive ? '#3b82f6' : 'transparent'};
-    transition: border-bottom 0.2s ease;
+    color: ${props => props.isActive ? 'var(--color-text-secondary)' : 'var(--color-text-primary)'};
+    border-bottom: 2px solid ${props => props.isActive ? 'var(--color-brand-500)' : 'transparent'};
+    transition: all 0.2s ease;
     
     &:hover {
-        color: #374151;
+        color: var(--color-text-secondary);
     }
 `;
 

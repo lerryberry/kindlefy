@@ -13,9 +13,11 @@ export function useAddOption() {
 
     const { mutate: addOption, isPending: isAdding, isSuccess, data: createdOption } = useMutation({
         mutationFn: createOption,
-        onSuccess: () => {
+        onSuccess: (variables: CreateOptionData) => {
             // Invalidate all rankedOptions queries to refresh the options lists
             queryClient.invalidateQueries({ queryKey: ["rankedOptions"] });
+            // Invalidate criteria list to update isRanked status
+            queryClient.invalidateQueries({ queryKey: ["criteria", variables.parentDecision] });
         },
         onError: (err) => console.log(err.message)
     });

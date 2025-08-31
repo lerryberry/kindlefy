@@ -19,7 +19,7 @@ interface CreateOptionFormData {
 
 function CreateOptionForm() {
 
-    const { decisionId, optionId } = useParams<{ decisionId: string; optionId: string }>();
+    const { decisionId, optionId, criterionId } = useParams<{ decisionId: string; optionId: string; criterionId: string }>();
     const navigate = useNavigate();
     const { register, handleSubmit, formState: { errors }, reset } = useForm<CreateOptionFormData>();
     const { addOption, isAdding, isSuccess: isAddSuccess, createdOption } = useAddOption();
@@ -40,7 +40,7 @@ function CreateOptionForm() {
     if (isAddSuccess && createdOption) {
         setTimeout(() => {
             // Navigate back to the decision's options list
-            navigate(`/decisions/${decisionId}/criteria`);
+            navigate(`/decisions/${decisionId}/criteria/${criterionId}`);
         }, 500);
     }
 
@@ -138,6 +138,7 @@ function CreateOptionForm() {
                         text={buttonText}
                         size="small"
                         disabled={isWorking}
+                        isResponsive
                     />
                 </Form>
             </PageLayout>

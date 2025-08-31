@@ -1,11 +1,14 @@
 import React from 'react';
 import styled from 'styled-components';
+import Button from './Button';
 
 interface DialogProps {
     isOpen: boolean;
     onClose: () => void;
     title?: string;
-    children: React.ReactNode;
+    description: string;
+    confirmText: string;
+    onConfirm: () => void;
 }
 
 const Overlay = styled.div`
@@ -22,14 +25,14 @@ const Overlay = styled.div`
 `;
 
 const DialogContainer = styled.div`
-    background: white;
+    background: var(--color-background-secondary);
     border-radius: 8px;
     padding: 1.5rem;
     max-width: 500px;
     width: 90%;
     max-height: 80vh;
     overflow-y: auto;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
 `;
 
 const DialogHeader = styled.div`
@@ -38,14 +41,14 @@ const DialogHeader = styled.div`
     align-items: center;
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--color-border-primary);
 `;
 
 const DialogTitle = styled.h2`
     margin: 0;
     font-size: 1.25rem;
     font-weight: 600;
-    color: #111827;
+    color: var(--color-text-primary);
 `;
 
 const CloseButton = styled.button`
@@ -53,7 +56,7 @@ const CloseButton = styled.button`
     border: none;
     font-size: 1.5rem;
     cursor: pointer;
-    color: #6b7280;
+    color: var(--color-text-tertiary);
     padding: 0;
     width: 24px;
     height: 24px;
@@ -62,16 +65,26 @@ const CloseButton = styled.button`
     justify-content: center;
     
     &:hover {
-        color: #374151;
+        color: var(--color-text-secondary);
     }
 `;
 
 const DialogContent = styled.div`
-    color: #374151;
+    color: var(--color-text-secondary);
 `;
 
-const Dialog: React.FC<DialogProps> = ({ isOpen, onClose, title, children }) => {
+const DialogFooter = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+`;
+
+const Dialog: React.FC<DialogProps> = ({ isOpen, onClose, title, description, confirmText, onConfirm }) => {
     if (!isOpen) return null;
+
+    // Capitalize the first letter of the title
+    const capitalizedTitle = title && typeof title === 'string' ? title.charAt(0).toUpperCase() + title.slice(1) : title || '';
 
     const handleOverlayClick = (e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
@@ -83,12 +96,16 @@ const Dialog: React.FC<DialogProps> = ({ isOpen, onClose, title, children }) => 
         <Overlay onClick={handleOverlayClick}>
             <DialogContainer>
                 <DialogHeader>
-                    {title && <DialogTitle>{title}</DialogTitle>}
+                    {title && <DialogTitle>{capitalizedTitle}</DialogTitle>}
                     <CloseButton onClick={onClose}>&times;</CloseButton>
                 </DialogHeader>
                 <DialogContent>
-                    {children}
+                    {description}
                 </DialogContent>
+                <DialogFooter>
+                    <Button text="Cancel" onClick={onClose} size="small" />
+                    <Button text={confirmText} onClick={onConfirm} size="small" />
+                </DialogFooter>
             </DialogContainer>
         </Overlay>
     );

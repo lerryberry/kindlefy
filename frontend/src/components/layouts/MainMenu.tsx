@@ -14,7 +14,7 @@ const MenuContainer = styled.div`
 
 const MenuItem = styled.div`
     padding: 0.75rem 0;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--color-border-primary);
     
     &:last-child {
         border-bottom: none;
@@ -23,11 +23,11 @@ const MenuItem = styled.div`
 
 const MenuLink = styled(Link)`
     text-decoration: none;
-    color: #374151;
+    color: var(--color-text-primary);
     font-weight: 500;
     
     &:hover {
-        color: #1f2937;
+        color: var(--color-text-secondary);
     }
 `;
 
@@ -39,6 +39,7 @@ const CloseButton = styled.button`
     padding: 0.5rem;
     margin-bottom: 1rem;
     align-self: flex-end;
+    color: var(--color-text-primary);
 `;
 
 export default function MainMenu({ onClose }: MainMenuProps) {

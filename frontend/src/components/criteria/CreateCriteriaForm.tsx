@@ -150,6 +150,7 @@ function CreateCriteriaForm() {
                         text={buttonText}
                         size="small"
                         disabled={isWorking}
+                        isResponsive
                     />
                 </Form>
             </PageLayout>

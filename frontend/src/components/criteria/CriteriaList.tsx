@@ -7,7 +7,7 @@ import styled from "styled-components";
 import type { UseGetCriteriaListReturn } from "../../types/criteria";
 
 const ListContainer = styled.div`
-    background: white;
+    /* Background will inherit from parent or use global styles */
 `;
 
 
@@ -28,7 +28,7 @@ export default function CriteriaList() {
                 onAddClick={() => navigate(`/decisions/${decisionId}/criteria/new`)}
             >
                 <EmptyState
-                    text="No criteria found for this decision"
+                    text="Add your first criterion. This is what you will use to rank options against later."
                     createLinkText="Add Criteria"
                     onCreateClick={() => {
                         navigate(`/decisions/${decisionId}/criteria/new`);

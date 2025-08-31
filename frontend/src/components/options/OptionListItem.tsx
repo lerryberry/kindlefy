@@ -8,15 +8,16 @@ interface OptionListItemProps {
 }
 
 const ListItem = styled.div`
-    padding: 1rem 0;
-    border-bottom: 1px solid #e5e7eb;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--color-border-primary);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    
-    &:hover {
-        background-color: #f9fafb;
-    }
+    min-height: 48px;
+    background-color: var(--color-background-secondary);
+    transition: all 0.2s ease;
+    border-radius: 0.5rem;
+    margin: 0.25rem 0;
     
     &:last-child {
         border-bottom: none;
@@ -25,17 +26,18 @@ const ListItem = styled.div`
 
 const OptionTitle = styled.div`
     font-weight: 500;
-    margin-bottom: 0.25rem;
     cursor: grab;
+    display: flex;
+    align-items: center;
 `;
 
 const OptionListItem: React.FC<OptionListItemProps> = ({ title, onArrowClick }) => {
 
     return (
-        <ListItem>
+        <ListItem data-list-item="true">
             <div>
                 <OptionTitle>
-                    <span>{'\u283F\u00a0'}</span>{title}
+                    <span style={{ marginTop: '3px' }}>{'\u283F\u00a0'}</span>{title}
                 </OptionTitle>
             </div>
             <ArrowButton size="small" direction="forward" onClick={onArrowClick} />

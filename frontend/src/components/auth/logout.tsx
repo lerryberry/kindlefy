@@ -1,13 +1,33 @@
 import { useAuth0 } from "@auth0/auth0-react";
-import { Link } from 'react-router-dom';
+import styled from 'styled-components';
+
+const LogoutLink = styled.button`
+    text-decoration: none;
+    color: var(--color-text-primary);
+    font-weight: 500;
+    background: none;
+    border: none;
+    font-size: inherit;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 0;
+    
+    &:hover {
+        color: var(--color-text-secondary);
+    }
+`;
 
 const LogoutButton = () => {
     const { logout } = useAuth0();
 
+    const handleLogout = () => {
+        logout({ logoutParams: { returnTo: window.location.origin } });
+    };
+
     return (
-        <Link to='#' onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>
+        <LogoutLink onClick={handleLogout}>
             Log Out
-        </Link>
+        </LogoutLink>
     );
 };
 

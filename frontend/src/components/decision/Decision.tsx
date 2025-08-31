@@ -5,6 +5,7 @@ import { useGetDecision } from "./useGetDecision";
 // import toast from "react-hot-toast";
 import type { Decision, UseGetDecisionReturn } from "../../types/decision";
 import Button from "../util/Button";
+import Loading from "../util/Loading";
 
 const DecisionContainer = styled.div`
   width: 100%;
@@ -56,7 +57,7 @@ export default function Decision() {
 
   // Loading state
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <Loading />;
   }
 
   // Error state - Assuming decision.data exists if not loading and no error
@@ -68,16 +69,20 @@ export default function Decision() {
   if (decision?.data) {
     const currentDecision: Decision = decision.data;
 
+    // Capitalize the first letter of the title
+    const capitalizedTitle = currentDecision.title && typeof currentDecision.title === 'string' ? currentDecision.title.charAt(0).toUpperCase() + currentDecision.title.slice(1) : currentDecision.title;
+
     return (
       <DecisionContainer>
         <TitleRow>
           <TitleWrapper onClick={() => navigate(`/decisions/${decisionId}/edit`)}>
-            <h1>{currentDecision.title}</h1>
+            <h1>{capitalizedTitle}</h1>
             <span className="edit-icon">&#x270E;</span>
           </TitleWrapper>
           <Button
             onClick={() => navigate(`/decisions/${decisionId}/report`)}
             text="View Report"
+            variant="ghost"
           />
         </TitleRow>
       </DecisionContainer>

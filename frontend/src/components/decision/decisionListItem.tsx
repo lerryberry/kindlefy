@@ -1,21 +1,23 @@
-import { Link } from "react-router-dom";
 import styled from "styled-components";
 import type { Decision } from "../../types/decision";
+import { useNavigate } from "react-router-dom";
+import ArrowButton from "../util/ArrowButton";
 
 interface DecisionListItemProps {
-    decisionObject: Decision;
+  decisionObject: Decision;
+  arrowClickable?: boolean;
 }
 
 const DecisionTile = styled.div`
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border-primary);
   border-radius: 0.5rem;
   padding: 1rem;
-  background-color: #ffffff;
-  transition: box-shadow 0.2s ease;
-  
-  &:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
+  background-color: var(--color-background-secondary);
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
 `;
 
 const DecisionTitle = styled.h3`
@@ -24,34 +26,34 @@ const DecisionTitle = styled.h3`
   font-weight: 600;
 `;
 
-const DecisionLink = styled(Link)`
-  text-decoration: none;
-  color: inherit;
-  
-  &:hover {
-    text-decoration: none;
-  }
-`;
+const DecisionListItem = ({ decisionObject, arrowClickable = true }: DecisionListItemProps) => {
+  const navigate = useNavigate();
 
-const DecisionStatus = styled.div<{ isArchived: boolean }>`
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: ${props => props.isArchived ? '#6b7280' : '#059669'};
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-`;
+  const handleClick = () => {
+    navigate(`/decisions/${decisionObject._id}`);
+  };
 
-const DecisionListItem = ({ decisionObject }: DecisionListItemProps) => {
-    return (
-        <DecisionTile>
-            <DecisionLink to={`/decisions/${decisionObject._id}`}>
-                <DecisionTitle>{decisionObject.title}</DecisionTitle>
-                <DecisionStatus isArchived={decisionObject.isArchived}>
-                    {decisionObject.isArchived ? 'Archived' : 'Active'}
-                </DecisionStatus>
-            </DecisionLink>
-        </DecisionTile>
-    );
+  const handleArrowClick = () => {
+    if (arrowClickable) {
+      handleClick();
+    }
+  };
+
+  // Capitalize the first letter of the title
+  const capitalizedTitle = decisionObject.title && typeof decisionObject.title === 'string' ? decisionObject.title.charAt(0).toUpperCase() + decisionObject.title.slice(1) : decisionObject.title;
+
+  return (
+    <DecisionTile onClick={handleClick} data-list-item="true">
+      <div>
+        <DecisionTitle>{capitalizedTitle}</DecisionTitle>
+      </div>
+      <ArrowButton
+        size="small"
+        direction="forward"
+        onClick={arrowClickable ? handleArrowClick : undefined}
+      />
+    </DecisionTile>
+  );
 };
 
 export default DecisionListItem;

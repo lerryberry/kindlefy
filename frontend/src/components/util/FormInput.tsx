@@ -1,4 +1,5 @@
 import * as React from 'react';
+import styled from 'styled-components';
 
 // Form input props interface extending HTML input attributes
 interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -38,6 +39,80 @@ interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     componentType?: 'input' | 'textarea';
     rows?: number;
 }
+
+const FormInputContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+`;
+
+const FormInputLabel = styled.label`
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+`;
+
+const RequiredAsterisk = styled.span`
+    color: var(--color-error);
+    margin-left: 0.25rem;
+`;
+
+const StyledInput = styled.input`
+    padding: 0.75rem;
+    border: 1px solid var(--color-border-secondary);
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: var(--color-background-tertiary);
+    transition: border-color 0.2s ease-in-out;
+    
+    @media (max-width: 768px) {
+        font-size: 16px; /* Prevents zoom on iOS */
+        padding: 0.875rem;
+    }
+    
+    &:focus {
+        outline: none;
+        border-color: var(--color-brand-500);
+        box-shadow: 0 0 0 3px var(--color-brand-100);
+    }
+    
+    &:disabled {
+        background-color: var(--color-background-secondary);
+        cursor: not-allowed;
+    }
+`;
+
+const StyledTextarea = styled.textarea`
+    padding: 0.75rem;
+    border: 1px solid var(--color-border-secondary);
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: var(--color-background-tertiary);
+    resize: vertical;
+    min-height: 100px;
+    transition: border-color 0.2s ease-in-out;
+    
+    @media (max-width: 768px) {
+        font-size: 16px; /* Prevents zoom on iOS */
+        padding: 0.875rem;
+    }
+    
+    &:focus {
+        outline: none;
+        border-color: var(--color-brand-500);
+        box-shadow: 0 0 0 3px var(--color-brand-100);
+    }
+    
+    &:disabled {
+        background-color: var(--color-background-secondary);
+        cursor: not-allowed;
+    }
+`;
 
 const FormInput: React.FC<FormInputProps> = ({
     type = 'text',
@@ -94,58 +169,59 @@ const FormInput: React.FC<FormInputProps> = ({
         autoFocus,
         maxLength,
         minLength,
-        className: `form-input ${className || ''}`,
         style,
+    };
+
+    const inputSpecificProps = {
+        pattern,
+        size,
+        step,
+        min,
+        max,
+        multiple,
+        accept,
+        capture,
+        form,
+        formAction,
+        formEncType,
+        formMethod,
+        formNoValidate,
+        formTarget,
+        list,
         ...rest,
     };
 
     if (componentType === 'textarea') {
         return (
-            <div className="form-input-container">
+            <FormInputContainer>
                 {label && (
-                    <label htmlFor={inputId} className="form-input-label">
+                    <FormInputLabel htmlFor={inputId}>
                         {label}
-                        {required && <span className="required-asterisk">*</span>}
-                    </label>
+                        {required && <RequiredAsterisk>*</RequiredAsterisk>}
+                    </FormInputLabel>
                 )}
-                <textarea
+                <StyledTextarea
                     rows={rows}
                     {...commonProps}
-                    // Explicitly set type to undefined for textarea to avoid invalid prop warning
-                    type={undefined}
                 />
-            </div>
+            </FormInputContainer>
         );
     }
 
     return (
-        <div className="form-input-container">
+        <FormInputContainer>
             {label && (
-                <label htmlFor={inputId} className="form-input-label">
+                <FormInputLabel htmlFor={inputId}>
                     {label}
-                    {required && <span className="required-asterisk">*</span>}
-                </label>
+                    {required && <RequiredAsterisk>*</RequiredAsterisk>}
+                </FormInputLabel>
             )}
-            <input
+            <StyledInput
                 type={type}
-                pattern={pattern}
-                size={size}
-                step={step}
-                min={min}
-                max={max}
-                multiple={multiple}
-                accept={accept}
-                capture={capture}
-                form={form}
-                formAction={formAction}
-                formEncType={formEncType}
-                formMethod={formMethod}
-                formNoValidate={formNoValidate}
-                formTarget={formTarget}
-                list={list}
                 {...commonProps}
+                {...inputSpecificProps}
             />
-        </div>
+        </FormInputContainer>
     );
 };
 

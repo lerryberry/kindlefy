@@ -69,7 +69,7 @@ exports.getReport = catchAsync(async (req, res, next) => {
 
     const getCriterionPriorityName = async (criteriaId) => {
         const criterion = criteria.find(obj => obj._id.toString() === criteriaId.toString());
-        return criterion.priority;
+        return criterion ? criterion.priority : 'UNKNOWN';
     }
 
     // determines the multiplier for the score based on the match level
@@ -125,7 +125,7 @@ exports.getReport = catchAsync(async (req, res, next) => {
                     if (rank.matchLevel === "BEST") {
                         option._doc.tags = option._doc.tags || [];
                         const tag = criteria.find(obj => obj._id.toString() === rank.criterionId.toString());
-                        if (tag && !option._doc.tags.includes(tag.title)) { // Avoid duplicate tags
+                        if (tag && tag.title && !option._doc.tags.includes(tag.title)) { // Avoid duplicate tags
                             option._doc.tags.push(tag.title);
                         }
                     }

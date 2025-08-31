@@ -44,9 +44,7 @@ const OptionsList: React.FC = () => {
         }
     }, [rankedOptionsData]);
 
-    const handleAddOption = () => {
-        navigate(`/decisions/${decisionId}/criteria/${criterionId}/options/new`);
-    };
+
 
     const onDragEnd = (result: DropResult) => {
         const { source, destination } = result;
@@ -116,16 +114,21 @@ const OptionsList: React.FC = () => {
     if (allOptionsEmpty && !isLoading) {
         return (
             <EmptyState
-                text="No options found for this criterion"
+                text="Add your first option. Once created, these are global and available to be ranked in all criteria."
                 createLinkText="Add Option"
-                onCreateClick={handleAddOption}
+                onCreateClick={() => navigate(`/decisions/${decisionId}/criteria/${criterionId}/options/new`)}
             />
         );
     }
 
     const renderOptionGroup = (title: string, options: GroupedOption[], droppableId: MatchLevel) => (
-        <div style={{ marginBottom: '1rem', border: '1px solid #ccc', padding: '1rem' }}>
-            <h3>{title}</h3>
+        <div style={{
+            marginBottom: '1rem',
+            border: droppableId === "UNSORTED" ? '1px dashed #ccc' : '1px solid #ccc',
+            padding: '1rem',
+            borderRadius: '0.5rem'
+        }}>
+            <h3 style={{ margin: '0 0 1rem 0' }}>{title}</h3>
             <Droppable droppableId={droppableId}>
                 {(provided) => (
                     <div
@@ -140,7 +143,7 @@ const OptionsList: React.FC = () => {
                         {provided.placeholder}
                         {droppableId === "UNSORTED" && (
                             <button
-                                onClick={handleAddOption}
+                                onClick={() => navigate(`/decisions/${decisionId}/criteria/${criterionId}/options/new`)}
                                 style={{
                                     background: 'none',
                                     border: 'none',

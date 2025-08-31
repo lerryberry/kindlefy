@@ -16,10 +16,10 @@ exports.getAllCriteria = catchAsync(async (req, res) => {
     const page = req.query.page * 1 || 1;
     const limit = req.query.limit * 1 || count;
     const skip = (page - 1) * limit;
-    const lastPage = (count <= (skip + limit)) ? true : false ;
+    const lastPage = (count <= (skip + limit)) ? true : false;
 
     //validate that the child is of the parents decision, and only do that for child documents
-    const query = req.params.decisionId? {parentDecision: { $in: req.params.decisionId }, isArchived : false} : {'accessControl.userId' : req.userId, isArchived : false};
+    const query = req.params.decisionId ? { parentDecision: { $in: req.params.decisionId }, isArchived: false } : { 'accessControl.userId': req.userId, isArchived: false };
 
     //apply paginations filters
     const allCriteria = await Criteria.find(query)
@@ -44,16 +44,19 @@ exports.getAllCriteria = catchAsync(async (req, res) => {
     });
 })
 
-const getCriterionStatus = async (criteriaId, decisionId) => {  
-    
+const getCriterionStatus = async (criteriaId, decisionId) => {
+
     // count all options that belong to the decision
     const optionsCount = await Options.countDocuments({ parentDecision: decisionId, isArchived: false });
-    
+
     //count all the rankings that belong to the criterion
-    const rankingsCount = await Ranking.countDocuments({ criterionId: criteriaId });
+    const distinctRankedOptionsCount = (await Ranking.distinct('optionId', { criterionId: criteriaId })).length;
 
     //check if all the criteria have been ranked 
     // TODO what happens here if options is archvied but rankings are not?
-    const isRanked = optionsCount === rankingsCount ? true : false;
+    const isRanked = optionsCount === distinctRankedOptionsCount ? true : false;
+    console.log("isRanked", isRanked);
+    console.log("optionsCount", optionsCount);
+    console.log("distinctRankedOptionsCount", distinctRankedOptionsCount);
     return isRanked
 }

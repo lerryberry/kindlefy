@@ -22,7 +22,7 @@ const EmptyStateText = styled.p`
 
 const CreateLink = styled.a`
   text-decoration: none;
-  color: #3b82f6;
+  color: var(--color-brand-500);
   cursor: pointer;
   
   &:hover {
@@ -44,14 +44,14 @@ const EmptyState: React.FC<EmptyStateProps> = ({
         if (createLinkHref) {
             return (
                 <CreateLink href={createLinkHref}>
-                    {createLinkText}
+                    + {createLinkText}
                 </CreateLink>
             );
         }
 
         return (
             <CreateLink onClick={onCreateClick}>
-                {createLinkText}
+                + {createLinkText}
             </CreateLink>
         );
     };

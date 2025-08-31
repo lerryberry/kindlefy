@@ -10,10 +10,13 @@ interface PageLayoutProps {
     addButtonText?: string;
     onAddClick?: () => void;
     showBackButton?: boolean;
+    onBackClick?: () => void;
 }
 
 const LayoutContainer = styled.div`
     padding: 1rem;
+    max-width: 600px;
+    margin: 0 auto;
 `;
 
 const Header = styled.div`
@@ -37,16 +40,20 @@ const Content = styled.div`
     /* Content area styling can be customized as needed */
 `;
 
-const PageLayout: React.FC<PageLayoutProps> = ({ title, children, addButtonText, onAddClick, showBackButton = false }) => {
+const PageLayout: React.FC<PageLayoutProps> = ({ title, children, addButtonText, onAddClick, showBackButton = false, onBackClick }) => {
     const navigate = useNavigate();
+
+    // Capitalize the first letter of the title
+    const capitalizedTitle = title && typeof title === 'string' ? title.charAt(0).toUpperCase() + title.slice(1) : title;
+
     return (
         <LayoutContainer>
             <Header>
                 <TitleRow>
                     {showBackButton && (
-                        <ArrowButton size="large" direction="back" onClick={() => navigate(-1)} />
+                        <ArrowButton size="large" direction="back" onClick={onBackClick || (() => navigate(-1))} />
                     )}
-                    <Title>{title}</Title>
+                    <Title>{capitalizedTitle}</Title>
                     {addButtonText && onAddClick && (
                         <Button
                             text={addButtonText}

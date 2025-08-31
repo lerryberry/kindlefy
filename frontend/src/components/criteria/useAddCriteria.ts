@@ -13,8 +13,9 @@ export function useAddCriteria() {
 
     const { mutate: addCriteria, isPending: isAdding, isSuccess, data: createdCriteria } = useMutation({
         mutationFn: createCriteria,
-        onSuccess: (variables) => {
-            queryClient.invalidateQueries({ queryKey: ["criteria", variables.parentDecision] });
+        onSuccess: () => {
+            // Invalidate any individual criteria queries that might be cached
+            queryClient.invalidateQueries({ queryKey: ["criteria"] });
         },
         onError: (err) => console.log(err.message)
     });

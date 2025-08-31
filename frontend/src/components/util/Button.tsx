@@ -7,12 +7,17 @@ type ButtonSize = "small" | "medium" | "large";
 // Button type
 type ButtonType = "button" | "submit" | "reset";
 
+// Button variant type
+type ButtonVariant = "default" | "ghost";
+
 // Main button props interface
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   type?: ButtonType;
   text?: string;
   disabled?: boolean;
   size?: ButtonSize;
+  variant?: ButtonVariant;
+  isResponsive?: boolean;
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   children?: React.ReactNode;
 }
@@ -20,30 +25,49 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 // Size styles configuration
 const sizeStyles: Record<ButtonSize, ReturnType<typeof css>> = {
   small: css`
-    padding: 4px 10px;
+    padding: 8px 16px;
     font-size: 0.85rem;
   `,
   medium: css`
-    padding: 8px 18px;
+    padding: 12px 24px;
     font-size: 1rem;
   `,
   large: css`
-    padding: 14px 28px;
+    padding: 16px 32px;
     font-size: 1.2rem;
   `,
 };
 
 // Styled button component with proper typing
-const StyledButton = styled.button<{ size?: ButtonSize }>`
-  background: var(--color-brand-50);
-  color: white;
-  border: none;
-  border-radius: 4px;
+const StyledButton = styled.button<{ size?: ButtonSize; variant?: ButtonVariant; isResponsive?: boolean }>`
+  background: ${props => props.variant === 'ghost' ? 'transparent' : 'var(--color-brand-500)'};
+  color: ${props => props.variant === 'ghost' ? 'var(--color-brand-500)' : 'var(--color-text-inverse)'};
+  border: ${props => props.variant === 'ghost' ? '1px solid var(--color-brand-500)' : 'none'};
+  border-radius: 9999px;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
+  width: auto;
+  min-width: fit-content;
+  
+  ${props => props.isResponsive && `
+    width: 100%;
+    
+    @media (min-width: 768px) {
+      width: auto;
+      min-width: fit-content;
+    }
+  `}
   
   &:hover:not(:disabled) {
     transform: translateY(-1px);
+    ${props => props.variant === 'ghost' ? `
+      background: var(--color-brand-500);
+      color: var(--color-text-inverse);
+    ` : `
+      background: transparent;
+      color: var(--color-brand-500);
+      border: 1px solid var(--color-brand-500);
+    `}
   }
   
   &:disabled {
@@ -60,6 +84,8 @@ const Button: React.FC<ButtonProps> = ({
   text,
   disabled = false,
   size = "medium",
+  variant = "default",
+  isResponsive = false,
   onClick,
   children,
   ...rest
@@ -68,6 +94,8 @@ const Button: React.FC<ButtonProps> = ({
     type={type}
     disabled={disabled}
     size={size}
+    variant={variant}
+    isResponsive={isResponsive}
     onClick={onClick}
     {...rest}
   >
