@@ -26,6 +26,8 @@ export default function CriteriaList() {
                 title="Criteria"
                 addButtonText="Add Criteria"
                 onAddClick={() => navigate(`/decisions/${decisionId}/criteria/new`)}
+                showBackButton={true}
+                onBackClick={() => navigate('/decisions')}
             >
                 <EmptyState
                     text="Add your first criterion. This is what you will use to rank options against later."
@@ -43,6 +45,8 @@ export default function CriteriaList() {
             title="Criteria"
             addButtonText="Add Criteria"
             onAddClick={() => navigate(`/decisions/${decisionId}/criteria/new`)}
+            showBackButton={true}
+            onBackClick={() => navigate('/decisions')}
         >
             <ListContainer>
                 {data?.output?.map((criteria) => (

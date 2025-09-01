@@ -83,7 +83,11 @@ function CreateCriteriaForm() {
     return (
         <>
             {/* <BackButton /> // Removed BackButton usage */}
-            <PageLayout title={pageTitle}>
+            <PageLayout
+                title={pageTitle}
+                showBackButton={true}
+                onBackClick={() => navigate(`/decisions/${decisionId}`)}
+            >
                 <Form onSubmit={handleSubmit(onSubmit, onError)}>
                     <FormInput
                         label="Criteria title"

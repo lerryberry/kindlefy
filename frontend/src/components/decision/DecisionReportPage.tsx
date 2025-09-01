@@ -1,6 +1,6 @@
 import React from 'react';
 import styled, { css } from 'styled-components';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import PageLayout from '../layouts/PageLayout';
 import { useGetDecisionReport } from './useGetDecisionReport';
 import Chip from '../util/Chip';
@@ -63,6 +63,7 @@ const TagsContainer = styled.div`
 
 const DecisionReportPage: React.FC = () => {
     const { decisionId } = useParams<{ decisionId: string }>();
+    const navigate = useNavigate();
     const { data, isLoading, error } = useGetDecisionReport(decisionId || '');
 
     if (!decisionId) {
@@ -76,6 +77,8 @@ const DecisionReportPage: React.FC = () => {
     return (
         <PageLayout
             title="Decision Report"
+            showBackButton={true}
+            onBackClick={() => navigate(`/decisions/${decisionId}`)}
         >
             <OptionsGrid>
                 {data.data.map((option, index) => {

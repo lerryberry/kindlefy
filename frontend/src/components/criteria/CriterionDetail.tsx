@@ -80,6 +80,8 @@ const CriterionDetail: React.FC = () => {
                 }
                 addButtonText="Add Option"
                 onAddClick={() => navigate(`/decisions/${decisionId}/criteria/${criterionId}/options/new`)}
+                showBackButton={true}
+                onBackClick={() => navigate(`/decisions/${decisionId}`)}
             >
                 <Tabs>
                     <Tab name="Options">

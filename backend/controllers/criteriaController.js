@@ -5,10 +5,37 @@ const Ranking = require('../models/rankingsModel')
 const Options = require('../models/optionsModel');
 
 exports.updateCriterion = factory.updateOne(Criteria);
-exports.deleteCriterion = factory.archiveOne(Criteria);
 exports.addCriterion = factory.addOne(Criteria);
 exports.getCriterion = factory.getOne(Criteria);
 exports.validateChildCriterion = factory.validateChild(Criteria);
+
+exports.deleteCriterion = catchAsync(async (req, res, next) => {
+    const decisionId = req.params.decisionId;
+    const id = req.params.id;
+
+    // Archive the criterion
+    const criterion = await Criteria.findOneAndUpdate(
+        { _id: id, parentDecision: decisionId },
+        { isArchived: true },
+        { new: true, runValidators: true }
+    );
+
+    if (!criterion) {
+        return next(new AppError(`no criterion found with that id`, 404));
+    }
+
+    // Archive all rankings associated with this criterion
+    await Ranking.updateMany(
+        { criterionId: id },
+        { isArchived: true },
+        { new: true, runValidators: true }
+    );
+
+    res.status(204).json({
+        status: "success",
+        data: null
+    });
+});
 
 exports.getAllCriteria = catchAsync(async (req, res) => {
     //set pagination filters
@@ -46,14 +73,16 @@ exports.getAllCriteria = catchAsync(async (req, res) => {
 
 const getCriterionStatus = async (criteriaId, decisionId) => {
 
-    // count all options that belong to the decision
+    // count all active options that belong to the decision
     const optionsCount = await Options.countDocuments({ parentDecision: decisionId, isArchived: false });
 
-    //count all the rankings that belong to the criterion
-    const distinctRankedOptionsCount = (await Ranking.distinct('optionId', { criterionId: criteriaId })).length;
+    //count all active rankings that belong to the criterion for active options only
+    const distinctRankedOptionsCount = (await Ranking.distinct('optionId', {
+        criterionId: criteriaId,
+        isArchived: false
+    })).length;
 
-    //check if all the criteria have been ranked 
-    // TODO what happens here if options is archvied but rankings are not?
+    //check if all the active options have been ranked 
     const isRanked = optionsCount === distinctRankedOptionsCount ? true : false;
     console.log("isRanked", isRanked);
     console.log("optionsCount", optionsCount);

@@ -14,8 +14,7 @@ Handy stuff
 
 Backend
 - strip special characters or caps from slugs
-- move all config to env vars (axios for example)
-- critical alerts for things like tokens running out
+- critical alerts for things like tokens running out, space running out, server usage etc.
 
 Mid-term
 - decision ceiling / freemium point

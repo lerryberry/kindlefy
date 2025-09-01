@@ -56,12 +56,16 @@ const OptionDetail: React.FC = () => {
 
   return (
     <>
-      <PageLayout title={
-        <TitleWrapper onClick={() => navigate(`/decisions/${decisionId}/options/${optionId}/edit`)}>
-          <h1>{option.data.title}</h1>
-          <span className="edit-icon">&#x270E;</span>
-        </TitleWrapper>
-      }>
+      <PageLayout
+        title={
+          <TitleWrapper onClick={() => navigate(`/decisions/${decisionId}/options/${optionId}/edit`)}>
+            <h1>{option.data.title}</h1>
+            <span className="edit-icon">&#x270E;</span>
+          </TitleWrapper>
+        }
+        showBackButton={true}
+        onBackClick={() => navigate(-1)}
+      >
         <div style={{ marginBottom: '1rem' }}>
           <strong>Description:</strong> {option.data.description || 'No description provided'}
         </div>

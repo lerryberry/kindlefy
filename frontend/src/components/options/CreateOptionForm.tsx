@@ -88,7 +88,11 @@ function CreateOptionForm() {
 
     return (
         <>
-            <PageLayout title={pageTitle}>
+            <PageLayout
+                title={pageTitle}
+                showBackButton={true}
+                onBackClick={() => navigate(`/decisions/${decisionId}/criteria/${criterionId}`)}
+            >
                 <Form onSubmit={handleSubmit(onSubmit, onError)}>
                     <FormInput
                         label="Option title"

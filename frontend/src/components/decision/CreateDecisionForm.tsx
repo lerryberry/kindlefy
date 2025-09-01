@@ -9,6 +9,7 @@ import type { CreateDecisionData } from '../../types/decision';
 import { useGetDecision } from './useGetDecision';
 import { useEffect } from 'react';
 import { useUpdateDecision } from './useUpdateDecision';
+import PageLayout from '../layouts/PageLayout';
 
 // Form data interface - only title is needed for creating decisions
 interface CreateDecisionFormData {
@@ -73,36 +74,42 @@ function CreateDecisionForm() {
     return (
         <>
             {/* <BackButton /> // Removed BackButton usage */}
-            <Form onSubmit={handleSubmit(onSubmit, onError)}>
-                <FormInput
-                    label="Decision title"
-                    type="text"
-                    required
-                    {...register("title", {
-                        required: "This field is required",
-                        minLength: {
-                            value: 9,
-                            message: "Minimum of 9 characters required"
-                        },
-                        maxLength: {
-                            value: 200,
-                            message: "Maximum of 200 characters allowed"
-                        }
-                    } as ValidationRules)}
-                />
-                {errors.title && (
-                    <p style={{ color: "red", fontSize: "0.875rem", marginTop: "0.25rem" }}>
-                        {errors.title.message}
-                    </p>
-                )}
-                <Button
-                    type="submit"
-                    text={buttonText}
-                    size="small"
-                    disabled={isWorking}
-                    isResponsive
-                />
-            </Form>
+            <PageLayout
+                title={decisionId ? "Edit Decision" : "New Decision"}
+                showBackButton={true}
+                onBackClick={() => navigate('/decisions')}
+            >
+                <Form onSubmit={handleSubmit(onSubmit, onError)}>
+                    <FormInput
+                        label="Decision title"
+                        type="text"
+                        required
+                        {...register("title", {
+                            required: "This field is required",
+                            minLength: {
+                                value: 9,
+                                message: "Minimum of 9 characters required"
+                            },
+                            maxLength: {
+                                value: 200,
+                                message: "Maximum of 200 characters allowed"
+                            }
+                        } as ValidationRules)}
+                    />
+                    {errors.title && (
+                        <p style={{ color: "red", fontSize: "0.875rem", marginTop: "0.25rem" }}>
+                            {errors.title.message}
+                        </p>
+                    )}
+                    <Button
+                        type="submit"
+                        text={buttonText}
+                        size="small"
+                        disabled={isWorking}
+                        isResponsive
+                    />
+                </Form>
+            </PageLayout>
         </>
     )
 }

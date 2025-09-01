@@ -23,11 +23,15 @@ const Header = styled.div`
     margin-bottom: 2rem;
 `;
 
+const BackButtonRow = styled.div`
+    margin: 1rem 0 0.5rem 0;
+`;
+
 const TitleRow = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 1rem 0 0 0;
+    margin: 0.5rem 0 0 0;
 `;
 
 const Title = styled.h1`
@@ -49,10 +53,12 @@ const PageLayout: React.FC<PageLayoutProps> = ({ title, children, addButtonText,
     return (
         <LayoutContainer>
             <Header>
-                <TitleRow>
-                    {showBackButton && (
+                {showBackButton && (
+                    <BackButtonRow>
                         <ArrowButton size="large" direction="back" onClick={onBackClick || (() => navigate(-1))} />
-                    )}
+                    </BackButtonRow>
+                )}
+                <TitleRow>
                     <Title>{capitalizedTitle}</Title>
                     {addButtonText && onAddClick && (
                         <Button

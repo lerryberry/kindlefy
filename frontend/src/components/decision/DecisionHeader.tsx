@@ -1,11 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import styled from 'styled-components';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useParams } from 'react-router-dom';
 import Decision from './Decision';
-import ArrowButton from '../util/ArrowButton';
+import { useGetDecision } from './useGetDecision';
 
 const DecisionContainer = styled.div`
-  margin-bottom: 2rem;
   border-bottom: 1px solid var(--color-border-primary);
   background-color: var(--color-background-secondary);
   padding: 1rem;
@@ -16,21 +15,30 @@ const DecisionContainer = styled.div`
   box-sizing: border-box;
 `;
 
-const BackButtonContainer = styled.div`
-  padding-left: 20px;
-  margin-bottom: 1rem;
-`;
-
 const DecisionHeader: React.FC = () => {
-    const navigate = useNavigate();
+    const { decisionId } = useParams();
+    const { decision } = useGetDecision(decisionId);
+
+    // Set page title when decision is loaded
+    useEffect(() => {
+        if (decision?.data?.title) {
+            const capitalizedTitle = decision.data.title.charAt(0).toUpperCase() + decision.data.title.slice(1);
+            document.title = `Krystallise - ${capitalizedTitle}`;
+        } else {
+            document.title = 'Krystallise';
+        }
+
+        // Reset title when component unmounts
+        return () => {
+            document.title = 'Krystallise';
+        };
+    }, [decision?.data?.title]);
+
     return (
         <>
             <DecisionContainer>
                 <Decision />
             </DecisionContainer>
-            <BackButtonContainer>
-                <ArrowButton size="large" direction="back" onClick={() => navigate(-1)} />
-            </BackButtonContainer>
             <Outlet />
         </>
     );
