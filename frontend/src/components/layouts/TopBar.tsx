@@ -2,6 +2,7 @@ import { useState } from 'react';
 import styled from 'styled-components';
 import { Outlet, useNavigate } from 'react-router-dom';
 import MainMenu from './MainMenu';
+import logo from '../../assets/logo.png';
 
 const TopBarContainer = styled.div`
   width: 100%;
@@ -18,10 +19,14 @@ const TopBarContainer = styled.div`
 `;
 
 const Logo = styled.div`
-  font-size: 1.5rem;
-  font-weight: bold;
-  padding-left: 0.75rem;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+`;
+
+const LogoImage = styled.img`
+  height: 2rem;
+  width: auto;
 `;
 
 const BurgerMenu = styled.div`
@@ -86,7 +91,9 @@ export default function TopBar() {
   return (
     <>
       <TopBarContainer>
-        <Logo onClick={handleLogoClick}>💎</Logo>
+        <Logo onClick={handleLogoClick}>
+          <LogoImage src={logo} alt="Krystallise Logo" />
+        </Logo>
         <BurgerMenu onClick={toggleMenu}>
           <BurgerLine />
           <BurgerLine />
