@@ -19,6 +19,9 @@ const decisionRouter = require('./routes/decisionRoutes');
 //middleware to start express
 const app = express();
 
+// Trust proxy for x-forwarded-proto header (important for Heroku and other proxies)
+app.set('trust proxy', 1);
+
 // Enable CORS for frontend - must be before auth middleware
 app.use(cors({
     origin: process.env.CORS_ORIGIN,
@@ -26,6 +29,18 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));
+
+// Force SSL in production - check x-forwarded-proto header
+if (process.env.NODE_ENV === 'production') {
+    app.use((req, res, next) => {
+        // Check if the request is coming through a proxy (Heroku, etc.)
+        if (req.headers['x-forwarded-proto'] !== 'https') {
+            // Redirect to HTTPS version
+            return res.redirect(`https://${req.headers.host}${req.url}`);
+        }
+        next();
+    });
+}
 
 // Auth0 configuration
 const jwtCheck = auth({
@@ -58,6 +73,11 @@ app.use(helmet({
                 "https://dev-d85syd7wejqy2nrm.us.auth0.com"
             ]
         }
+    },
+    hsts: {
+        maxAge: 31536000, // 1 year
+        includeSubDomains: true,
+        preload: true
     }
 }));
 
