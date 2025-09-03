@@ -21,8 +21,8 @@ const router = createBrowserRouter([
         children: [
             { index: true, element: <LandingPage /> },
             { path: "decisions", element: <PageLayout title="Decisions" addButtonText="Add Decision" onAddClick={() => window.location.href = "/decisions/new"}><DecisionList /></PageLayout> },
-            { path: "decisions/new", element: <PageLayout title="New Decision"><CreateDecisionForm /></PageLayout> },
-            { path: "decisions/:decisionId/edit", element: <PageLayout title="Edit Decision"><CreateDecisionForm /></PageLayout> },
+            { path: "decisions/new", element: <CreateDecisionForm /> },
+            { path: "decisions/:decisionId/edit", element: <CreateDecisionForm /> },
             {
                 path: "decisions/:decisionId",
                 element: <DecisionHeader />,
