@@ -21,7 +21,8 @@ module.exports = {
             env: {
                 NODE_ENV: "production",
                 PORT: 3000,
-                CORS_ORIGIN: "https://krystallise-469a37509070.herokuapp.com",
+                CORS_ORIGIN: "https://app.krystallise.com",
+                AUTH0_DOMAIN: "https://auth.krystallise.com",
                 ...secrets.backendProd
             }
         }

@@ -59,8 +59,8 @@ app.use(helmet({
             defaultSrc: ["'self'"],
             connectSrc: [
                 "'self'",
-                "https://dev-d85syd7wejqy2nrm.us.auth0.com",
-                "https://krystallise-469a37509070.herokuapp.com"
+                "https://auth.krystallise.com",
+                "https://app.krystallise.com"
             ],
             scriptSrc: ["'self'", "'unsafe-inline'"],
             styleSrc: ["'self'", "'unsafe-inline'"],
@@ -70,7 +70,7 @@ app.use(helmet({
             mediaSrc: ["'self'"],
             frameSrc: [
                 "'self'",
-                "https://dev-d85syd7wejqy2nrm.us.auth0.com"
+                "https://auth.krystallise.com"
             ]
         }
     },
@@ -78,7 +78,11 @@ app.use(helmet({
         maxAge: 31536000, // 1 year
         includeSubDomains: true,
         preload: true
-    }
+    },
+    // Additional security headers
+    noSniff: true,
+    ieNoOpen: true,
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 }));
 
 //global middlewares.. if dev env, make logging verbose

@@ -30,7 +30,7 @@ export function RouteProtectProvider({ children }: { children: React.ReactNode }
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     return (
         <Auth0Provider
-            domain="dev-d85syd7wejqy2nrm.us.auth0.com"
+            domain="auth.krystallise.com"
             clientId="sZ2ckim3v3suG8XLZCPoF24ueQCIl3co"
             authorizationParams={{
                 redirect_uri: window.location.origin,
