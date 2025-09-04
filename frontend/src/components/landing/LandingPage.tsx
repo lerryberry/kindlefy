@@ -42,16 +42,38 @@ const Description = styled.div`
     text-align: left;
 `;
 
-const StepList = styled.ol`
-    text-align: left;
+const UseCaseSection = styled.div`
     margin: 2rem 0;
-    padding-left: 1.5rem;
+    text-align: left;
+`;
+
+const UseCaseTitle = styled.h3`
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 1rem;
+`;
+
+const UseCaseList = styled.ul`
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 2rem;
     
     li {
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem;
         font-size: 1.125rem;
         line-height: 1.6;
         color: var(--color-text-secondary);
+        padding-left: 1.5rem;
+        position: relative;
+        
+        &:before {
+            content: "•";
+            color: var(--color-brand-500);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
     }
 `;
 
@@ -71,50 +93,46 @@ const LandingPage = () => {
             <ContentWrapper>
                 <Title>Welcome to Krystallise</Title>
 
-                <Subtitle>Your Decision-Making Companion</Subtitle>
+                <Subtitle>Krystallise your decision making</Subtitle>
 
                 <Description>
                     <p>
-                        Krystallise is a powerful decision-making tool that helps you make informed choices
-                        by breaking down complex decisions into manageable steps. Whether you're choosing
-                        between job offers, deciding on a new home, or evaluating business opportunities,
-                        Krystallise provides a structured approach to decision-making.
+                        Make better, more confident decisions with Krystallise, an innovative tool designed to help you navigate complex choices. Whether you're facing significant personal milestones or critical business decisions, Krystallise provides a structured framework to evaluate multiple options and arrive at the best possible choice.
                     </p>
 
-                    <h3>How it works:</h3>
-                    <StepList>
-                        <li>
-                            <strong>Define your decision:</strong> Start by clearly stating what you need to decide on.
-                            Give it a meaningful title and description to keep you focused.
-                        </li>
-                        <li>
-                            <strong>Add criteria:</strong> Identify the factors that matter most to you. These could be
-                            cost, quality, location, time, or any other relevant considerations. Assign priorities
-                            to help weigh their importance.
-                        </li>
-                        <li>
-                            <strong>Add options:</strong> List all the possible choices you're considering. Be thorough
-                            and include all viable alternatives to ensure you don't miss the best option.
-                        </li>
-                        <li>
-                            <strong>Rank options per criteria:</strong> For each criterion, rank your options from best
-                            to worst. This step-by-step comparison helps you think through each aspect systematically.
-                        </li>
-                        <li>
-                            <strong>Get your report:</strong> Review a comprehensive summary that shows your top-ranked
-                            option along with detailed insights into how each option performed across all criteria.
-                        </li>
-                    </StepList>
+                    <p>
+                        Krystallise is ideal for situations that require careful consideration of various factors, such as:
+                    </p>
+
+                    <UseCaseSection>
+                        <UseCaseTitle>Personal Decisions</UseCaseTitle>
+                        <UseCaseList>
+                            <li>From purchasing a new home or car to choosing a vacation destination, compare models, features, neighborhoods, and costs with confidence.</li>
+                        </UseCaseList>
+                    </UseCaseSection>
+
+                    <UseCaseSection>
+                        <UseCaseTitle>Work & Business</UseCaseTitle>
+                        <UseCaseList>
+                            <li>Streamline the process of selecting software, hiring new talent, or choosing a new office location by systematically evaluating vendors, candidates, and amenities against your key criteria.</li>
+                        </UseCaseList>
+                    </UseCaseSection>
+
+                    <UseCaseSection>
+                        <UseCaseTitle>Life Choices</UseCaseTitle>
+                        <UseCaseList>
+                            <li>Navigate major life changes, including career moves, educational paths, or investment opportunities, by objectively comparing different offers, programs, and financial strategies.</li>
+                        </UseCaseList>
+                    </UseCaseSection>
 
                     <p>
-                        By following this structured approach, you'll gain clarity on your decision and confidence
-                        in your choice. Krystallise transforms complex decisions into clear, actionable insights.
+                        Krystallise empowers you to break down complex decisions by helping you identify the most important criteria, evaluate each option systematically, and receive a clear, data-driven ranking.
                     </p>
                 </Description>
 
                 <ButtonWrapper>
                     <Button size="large" onClick={handleGetStarted}>
-                        Get Started
+                        Start Making Better Decisions
                     </Button>
                 </ButtonWrapper>
             </ContentWrapper>
