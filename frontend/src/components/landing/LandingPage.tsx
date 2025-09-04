@@ -97,11 +97,11 @@ const LandingPage = () => {
 
                 <Description>
                     <p>
-                        Make better, more confident decisions with Krystallise, an innovative tool designed to help you navigate complex choices. Whether you're facing significant personal milestones or critical business decisions, Krystallise provides a structured framework to evaluate multiple options and arrive at the best possible choice.
+                        Make better, more confident decisions with Krystallise, an innovative tool designed to help you navigate complex multi-option choices. Whether you're facing significant personal milestones or critical business decisions, Krystallise provides a structured framework to evaluate multiple options and arrive at the best possible choice.
                     </p>
 
                     <p>
-                        Krystallise is ideal for situations that require careful consideration of various factors, such as:
+                        Krystallise is ideal for situations that require careful consideration of various options, with one clear winner, such as:
                     </p>
 
                     <UseCaseSection>
@@ -126,13 +126,13 @@ const LandingPage = () => {
                     </UseCaseSection>
 
                     <p>
-                        Krystallise empowers you to break down complex decisions by helping you identify the most important criteria, evaluate each option systematically, and receive a clear, data-driven ranking.
+                        Krystallise empowers you to break down complex decisions by helping you identify the most important criteria, evaluate each options rank against each criterion, and receive a clear, data-driven ranking.
                     </p>
                 </Description>
 
                 <ButtonWrapper>
                     <Button size="large" onClick={handleGetStarted}>
-                        Start Making Better Decisions
+                        Get Started
                     </Button>
                 </ButtonWrapper>
             </ContentWrapper>
