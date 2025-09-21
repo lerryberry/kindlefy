@@ -11,7 +11,7 @@ exports.addOne = Model => catchAsync(async (req, res, next) => {
         return next(new AppError(`Document with that name already exists`, 404))
     }
 
-    //TODO
+    //TODO permissions
     const query = {
         ...req.body,
         accessControl: [{
@@ -20,6 +20,56 @@ exports.addOne = Model => catchAsync(async (req, res, next) => {
         }]
     };
     const data = await Model.create(query);
+
+    res.status(201).json({
+        status: "success",
+        data
+    });
+})
+
+exports.addMany = Model => catchAsync(async (req, res, next) => {
+    const inputArray = req.body;
+
+    // Validate that input is an array
+    if (!Array.isArray(inputArray)) {
+        return next(new AppError(`Array of objects is required`, 400))
+    }
+
+    if (inputArray.length === 0) {
+        return next(new AppError(`Array must not be empty`, 400))
+    }
+
+    // Extract titles for duplicate checking
+    const titles = inputArray.map(item => item.title).filter(title => title);
+
+    if (titles.length === 0) {
+        return next(new AppError(`All objects must have a title property`, 400))
+    }
+
+    // validate there's not another document with the same titles
+    const existingDocs = await Model.find({
+        title: { $in: titles },
+        parentDecision: req.params.decisionId,
+        isArchived: false
+    });
+
+    if (existingDocs.length > 0) {
+        const existingTitles = existingDocs.map(doc => doc.title);
+        return next(new AppError(`Documents with these titles already exist: ${existingTitles.join(', ')}`, 400))
+    }
+
+    // Create documents array with access control
+    const documentsToCreate = inputArray.map(item => ({
+        ...item,
+        parentDecision: req.params.decisionId,
+        accessControl: [{
+            userId: req.userId,
+            permissions: ['READ', 'UPDATE', 'DELETE', 'RANK']
+        }]
+    }));
+
+    // can't be insertMany because the slugify function is not compatible with insertMany
+    const data = await Promise.all(documentsToCreate.map(doc => Model.create(doc)));
 
     res.status(201).json({
         status: "success",
@@ -126,7 +176,7 @@ exports.getAll = Model => catchAsync(async (req, res) => {
 
     //use pagination filters
     const data = await Model.find(query)
-        .sort({ createdAt: -1 })
+        .sort({ createdAt: 1 })
         .skip(skip)
         .limit(limit);
 

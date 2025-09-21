@@ -1,6 +1,5 @@
 import { Draggable } from '@hello-pangea/dnd';
 import OptionListItem from './OptionListItem';
-import { useParams, useNavigate } from 'react-router-dom';
 import type { GroupedOption } from '../../types/options'; // Import GroupedOption
 
 export interface DraggableOptionListItemProps {
@@ -9,14 +8,6 @@ export interface DraggableOptionListItemProps {
 }
 
 const DraggableOptionListItem = ({ option, index }: DraggableOptionListItemProps) => {
-    const { decisionId } = useParams();
-    const navigate = useNavigate();
-
-    const handleClick = () => {
-        if (decisionId) {
-            navigate(`/decisions/${decisionId}/options/${option._id}`);
-        }
-    };
 
     return (
         <Draggable draggableId={option._id} index={index}>
@@ -28,7 +19,6 @@ const DraggableOptionListItem = ({ option, index }: DraggableOptionListItemProps
                 >
                     <OptionListItem
                         title={option.title}
-                        onArrowClick={handleClick}
                     />
                 </div>
             )}

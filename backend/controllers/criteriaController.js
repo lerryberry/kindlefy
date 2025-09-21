@@ -6,6 +6,7 @@ const Options = require('../models/optionsModel');
 
 exports.updateCriterion = factory.updateOne(Criteria);
 exports.addCriterion = factory.addOne(Criteria);
+exports.addManyCriterias = factory.addMany(Criteria);
 exports.getCriterion = factory.getOne(Criteria);
 exports.validateChildCriterion = factory.validateChild(Criteria);
 
@@ -84,8 +85,5 @@ const getCriterionStatus = async (criteriaId, decisionId) => {
 
     //check if all the active options have been ranked 
     const isRanked = optionsCount === distinctRankedOptionsCount ? true : false;
-    console.log("isRanked", isRanked);
-    console.log("optionsCount", optionsCount);
-    console.log("distinctRankedOptionsCount", distinctRankedOptionsCount);
     return isRanked
 }

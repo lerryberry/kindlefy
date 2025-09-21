@@ -7,7 +7,7 @@ const router = express.Router( {mergeParams: true} );
 
 router
     .route('/')
-    .post(criteriaController.addCriterion)
+    .post(criteriaController.addManyCriterias)
     .get(criteriaController.getAllCriteria)
 
 router

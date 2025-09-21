@@ -24,6 +24,10 @@ export function useUpdateRankings({
             queryClient.invalidateQueries({ queryKey: ["criterion", criterionId] });
             // Invalidate general criteria list to update isRanked status
             queryClient.invalidateQueries({ queryKey: ["criteria", decisionId] });
+            // Invalidate decision query to update status object
+            queryClient.invalidateQueries({ queryKey: ["decision", decisionId] });
+            // Invalidate all decisions list to update status in decision tiles
+            queryClient.invalidateQueries({ queryKey: ["allDecisions"] });
         },
     });
 }

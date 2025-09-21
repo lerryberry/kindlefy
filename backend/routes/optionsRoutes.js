@@ -2,17 +2,17 @@ const express = require('express');
 const decisionsController = require('../controllers/decisionsController')
 const optionsController = require('../controllers/optionsController')
 
-const router = express.Router( {mergeParams: true} );
+const router = express.Router({ mergeParams: true });
 
 router
     .route('/')
-    .post(optionsController.addOption)
+    .post(optionsController.addManyOptions)
     .get(optionsController.getAllOptions)
 
 router
     .route('/:id')
     .get(
-        decisionsController.validateDecision, 
+        decisionsController.validateDecision,
         optionsController.validateChildOption,
         optionsController.getOption
     )
@@ -22,7 +22,7 @@ router
         optionsController.updateOption
     )
     .delete(
-        decisionsController.validateDecision, 
+        decisionsController.validateDecision,
         optionsController.validateChildOption,
         optionsController.deleteOption
     )

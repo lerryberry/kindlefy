@@ -17,7 +17,7 @@ export interface OptionResponse {
 export interface OptionListResponse {
     status: 'success' | 'error';
     results: number;
-    output: Option[];
+    data: Option[];
     lastPage: boolean;
 }
 

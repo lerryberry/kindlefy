@@ -1,6 +1,7 @@
 import Button from './../util/Button'
 import Form from './../util/Form'
 import FormInput from './../util/FormInput'
+import ArrowButton from './../util/ArrowButton'
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAddDecisions } from './useAddDecision';
@@ -10,6 +11,7 @@ import { useGetDecision } from './useGetDecision';
 import { useEffect } from 'react';
 import { useUpdateDecision } from './useUpdateDecision';
 import PageLayout from '../layouts/PageLayout';
+import styled from 'styled-components';
 
 // Form data interface - only title is needed for creating decisions
 interface CreateDecisionFormData {
@@ -24,6 +26,14 @@ interface ValidationRules {
         message: string;
     };
 }
+
+// Styled component for button row
+const ButtonRow = styled.div`
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-top: 1rem;
+`;
 
 function CreateDecisionForm() {
     const navigate = useNavigate();
@@ -76,8 +86,6 @@ function CreateDecisionForm() {
             {/* <BackButton /> // Removed BackButton usage */}
             <PageLayout
                 title={decisionId ? "Edit Decision" : "New Decision"}
-                showBackButton={true}
-                onBackClick={() => navigate('/decisions')}
             >
                 <Form onSubmit={handleSubmit(onSubmit, onError)}>
                     <FormInput
@@ -101,13 +109,20 @@ function CreateDecisionForm() {
                             {errors.title.message}
                         </p>
                     )}
-                    <Button
-                        type="submit"
-                        text={buttonText}
-                        size="small"
-                        disabled={isWorking}
-                        isResponsive
-                    />
+                    <ButtonRow>
+                        <ArrowButton
+                            size="large"
+                            direction="back"
+                            onClick={() => navigate('/decisions')}
+                        />
+                        <Button
+                            type="submit"
+                            text={buttonText}
+                            size="small"
+                            disabled={isWorking}
+                            isResponsive
+                        />
+                    </ButtonRow>
                 </Form>
             </PageLayout>
         </>

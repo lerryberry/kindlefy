@@ -128,4 +128,34 @@ export const GlobalStyle = createGlobalStyle`
     padding: 2rem;
     color: var(--color-text-secondary);
   }
+  
+  /* Global input styles */
+  input, select, textarea {
+    color: var(--color-text-primary) !important;
+  }
+  
+  input::placeholder, textarea::placeholder {
+    color: var(--color-text-tertiary) !important;
+  }
+  
+  /* Global container styles */
+  .container {
+    width: 100%;
+  }
+  
+  .container-content {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+  
+  .container-wide {
+    width: 100%;
+  }
+  
+  .container-wide-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
 `;

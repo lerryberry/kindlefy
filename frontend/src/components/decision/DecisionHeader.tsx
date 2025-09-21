@@ -36,8 +36,10 @@ const DecisionHeader: React.FC = () => {
 
     return (
         <>
-            <DecisionContainer>
-                <Decision />
+            <DecisionContainer className="container">
+                <div className="container-content">
+                    <Decision />
+                </div>
             </DecisionContainer>
             <Outlet />
         </>

@@ -4,13 +4,16 @@ import styled from "styled-components";
 import { useGetDecision } from "./useGetDecision";
 // import toast from "react-hot-toast";
 import type { Decision, UseGetDecisionReturn } from "../../types/decision";
-import Button from "../util/Button";
 import Loading from "../util/Loading";
+import Stepper from "../util/Stepper";
 
 const DecisionContainer = styled.div`
   width: 100%;
-  padding: 0.5rem;
+  padding: 0.5rem 0.5rem -0.5rem 0.5rem;
   text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
 `;
 
 const TitleWrapper = styled.div`
@@ -38,7 +41,7 @@ const TitleWrapper = styled.div`
 
 const TitleRow = styled.div`
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
 `;
 
@@ -72,6 +75,34 @@ export default function Decision() {
     // Capitalize the first letter of the title
     const capitalizedTitle = currentDecision.title && typeof currentDecision.title === 'string' ? currentDecision.title.charAt(0).toUpperCase() + currentDecision.title.slice(1) : currentDecision.title;
 
+    // Create stepper steps based on decision status
+    const steps = [
+      {
+        id: 'add-options',
+        label: 'Add Options',
+        isComplete: currentDecision.status?.hasOptions || false,
+        onClick: () => navigate(`/decisions/${decisionId}/options`)
+      },
+      {
+        id: 'add-criteria',
+        label: 'Add Criteria',
+        isComplete: currentDecision.status?.hasCriteria || false,
+        onClick: () => navigate(`/decisions/${decisionId}/criteria`)
+      },
+      {
+        id: 'rank-criteria',
+        label: 'Rank Options',
+        isComplete: currentDecision.status?.isFullyRanked || false,
+        onClick: () => navigate(`/decisions/${decisionId}/ranking`)
+      },
+      {
+        id: 'decide',
+        label: 'Decide',
+        isComplete: currentDecision.status?.isFullyRanked || false,
+        onClick: () => navigate(`/decisions/${decisionId}/report`)
+      }
+    ];
+
     return (
       <DecisionContainer>
         <TitleRow>
@@ -79,12 +110,8 @@ export default function Decision() {
             <h1>{capitalizedTitle}</h1>
             <span className="edit-icon">&#x270E;</span>
           </TitleWrapper>
-          <Button
-            onClick={() => navigate(`/decisions/${decisionId}/report`)}
-            text="View Report"
-            variant="ghost"
-          />
         </TitleRow>
+        <Stepper steps={steps} />
       </DecisionContainer>
     );
   }

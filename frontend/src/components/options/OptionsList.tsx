@@ -1,18 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import type { DropResult } from '@hello-pangea/dnd';
 import { useGetRankedOptions } from './useGetRankedOptions';
 import type { MatchLevel, GroupedOption, RankingFormData, UseGetRankedOptionListReturn } from '../../types/options';
-import EmptyState from '../util/EmptyState';
 import Button from '../util/Button';
 import toast from 'react-hot-toast';
 import { useUpdateRankings } from './useUpdateRankings';
 import DraggableOptionListItem from './DraggableOptionListItem';
 
-const OptionsList: React.FC = () => {
-    const navigate = useNavigate();
-    const { decisionId, criterionId } = useParams<{ decisionId: string; criterionId: string }>();
+interface OptionsListProps {
+    criterionId?: string;
+    onRankingSaved?: () => void;
+}
+
+const OptionsList: React.FC<OptionsListProps> = ({ criterionId: propCriterionId, onRankingSaved }) => {
+    const { decisionId, criterionId: urlCriterionId } = useParams<{ decisionId: string; criterionId: string }>();
+
+    // Use prop criterionId if provided, otherwise fall back to URL param
+    const criterionId = propCriterionId || urlCriterionId;
 
     const { data: rankedOptionsData, isLoading, error, refetch }: UseGetRankedOptionListReturn = useGetRankedOptions(criterionId!); // Assuming this hook fetches all options for the decision, with ranking info for the current criterion
     const [groupedOptions, setGroupedOptions] = useState<Record<MatchLevel, GroupedOption[]>>({
@@ -98,7 +104,8 @@ const OptionsList: React.FC = () => {
             onSuccess: () => {
                 toast.success("Rankings saved successfully!");
                 refetch(); // Refetch to ensure UI is consistent with backend
-                navigate(`/decisions/${decisionId}`); // Navigate back to the decision detail page
+                // Call the callback to close the accordion
+                onRankingSaved?.();
             },
             onError: (err: Error) => {
                 toast.error(`Failed to save rankings: ${err.message}`);
@@ -110,14 +117,11 @@ const OptionsList: React.FC = () => {
     if (error) return <div>Error: {error.message}</div>;
 
     const allOptionsEmpty = Object.values(groupedOptions).every(group => group.length === 0);
+    const hasUnsortedOptions = groupedOptions.UNSORTED.length > 0;
 
     if (allOptionsEmpty && !isLoading) {
         return (
-            <EmptyState
-                text="Add your first option. Once created, these are global and available to be ranked in all criteria."
-                createLinkText="Add Option"
-                onCreateClick={() => navigate(`/decisions/${decisionId}/criteria/${criterionId}/options/new`)}
-            />
+            <div>No options found. Add your first option to get started.</div>
         );
     }
 
@@ -128,7 +132,7 @@ const OptionsList: React.FC = () => {
             padding: '1rem',
             borderRadius: '0.5rem'
         }}>
-            <h3 style={{ margin: '0 0 1rem 0' }}>{title}</h3>
+            <h4 style={{ margin: '0 0 1rem 0' }}>{title}</h4>
             <Droppable droppableId={droppableId}>
                 {(provided) => (
                     <div
@@ -141,23 +145,6 @@ const OptionsList: React.FC = () => {
                             );
                         })}
                         {provided.placeholder}
-                        {droppableId === "UNSORTED" && (
-                            <button
-                                onClick={() => navigate(`/decisions/${decisionId}/criteria/${criterionId}/options/new`)}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: '#3b82f6',
-                                    cursor: 'pointer',
-                                    padding: 0,
-                                    font: 'inherit',
-                                    textDecoration: 'underline',
-                                    marginTop: '1rem'
-                                }}
-                            >
-                                + add option
-                            </button>
-                        )}
                     </div>
                 )}
             </Droppable>
@@ -173,7 +160,8 @@ const OptionsList: React.FC = () => {
             <Button
                 text={isUpdatingRankings ? "Saving..." : "Save Rankings"}
                 onClick={handleSaveRankings}
-                disabled={isUpdatingRankings}
+                disabled={isUpdatingRankings || hasUnsortedOptions}
+                size="small"
             />
         </DragDropContext>
     );

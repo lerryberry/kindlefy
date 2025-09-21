@@ -1,10 +1,11 @@
 import { useGetAllDecisions } from "./useGetDecisions";
 import DecisionListItem from "./decisionListItem";
-import EmptyState from "../util/EmptyState";
+import Button from "../util/Button";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import type { UseGetAllDecisionsReturn } from "../../types/decision";
 import Loading from "../util/Loading";
+import PageLayout from "../layouts/PageLayout";
 
 const DecisionGrid = styled.div`
   display: grid;
@@ -29,23 +30,35 @@ export default function DecisionList() {
     // Show empty state if no decisions
     if (!data?.data || data.data.length === 0) {
         return (
-            <EmptyState
-                text="Start by adding the name of your first decision. This will be the main topic you want to make a choice about."
-                createLinkText="Create Decision"
-                onCreateClick={() => {
-                    navigate("/decisions/new");
-                }}
-            />
+            <PageLayout title="Decisions">
+                <div style={{ textAlign: 'center', padding: '2rem' }}>
+                    <p style={{ marginBottom: '1rem', color: 'var(--color-text-secondary)' }}>
+                        Create your first decision to get started.
+                    </p>
+                    <Button
+                        text="Create Decision"
+                        onClick={() => navigate("/decisions/new")}
+                        size="medium"
+                    />
+                </div>
+            </PageLayout>
         );
     }
 
     return (
-        <DecisionGrid>
-            {data?.data?.map((decision) => (
-                <div key={decision._id}>
-                    <DecisionListItem decisionObject={decision} />
-                </div>
-            ))}
-        </DecisionGrid>
+        <PageLayout
+            title="Decisions"
+            showAddButton={true}
+            addButtonText="New Decision"
+            onAddClick={() => navigate("/decisions/new")}
+        >
+            <DecisionGrid>
+                {data?.data?.map((decision) => (
+                    <div key={decision._id}>
+                        <DecisionListItem decisionObject={decision} />
+                    </div>
+                ))}
+            </DecisionGrid>
+        </PageLayout>
     )
 }

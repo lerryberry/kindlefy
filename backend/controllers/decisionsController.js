@@ -8,9 +8,56 @@ const AppError = require('../utils/appError');
 
 exports.updateDecision = factory.updateOne(Decision);
 exports.deleteDecision = factory.archiveOne(Decision);
-exports.getAllDecisions = factory.getAll(Decision);
+exports.getAllDecisions = catchAsync(async (req, res, next) => {
+    const decisions = await Decision.find({
+        'accessControl.userId': req.userId,
+        isArchived: false
+    });
+
+    // Add status object to each decision
+    const decisionsWithStatus = await Promise.all(
+        decisions.map(async (decision) => {
+            const decisionId = decision._id;
+
+            // Check if decision has options (more than 1 non-archived option)
+            const optionsCount = await Option.countDocuments({
+                parentDecision: decisionId,
+                isArchived: false
+            });
+            const hasOptions = optionsCount > 1;
+
+            // Check if decision has criteria (at least 1 non-archived criterion)
+            const criteriaCount = await Criteria.countDocuments({
+                parentDecision: decisionId,
+                isArchived: false
+            });
+            const hasCriteria = criteriaCount >= 1;
+
+            // Check if all criteria are fully ranked
+            const isFullyRanked = await getAllCriteriaStatus(decisionId);
+
+            // Create status object
+            const status = {
+                hasOptions,
+                hasCriteria,
+                isFullyRanked
+            };
+
+            // Return decision with status
+            return {
+                ...decision.toObject(),
+                status
+            };
+        })
+    );
+
+    res.status(200).json({
+        status: 'success',
+        results: decisionsWithStatus.length,
+        data: decisionsWithStatus
+    });
+});
 exports.addDecision = factory.addOne(Decision);
-exports.getDecision = factory.getOne(Decision);
 
 exports.validateDecision = catchAsync(async (req, res, next) => {
     // make this function work for all routes, parent or child
@@ -34,6 +81,57 @@ exports.validateDecision = catchAsync(async (req, res, next) => {
     }
 
     next();
+})
+
+exports.getDecision = catchAsync(async (req, res, next) => {
+    const id = req.params.id;
+
+    const data = await Decision.findOne({ _id: id });
+
+    if (data.isArchived) {
+        return next(new AppError(`that document is archived`, 404))
+    }
+
+    if (!data) {
+        return next(new AppError(`no document found with that id`, 404))
+    }
+
+    // Check if decision has options (more than 1 non-archived option)
+    const optionsCount = await Option.countDocuments({
+        parentDecision: id,
+        isArchived: false
+    });
+    const hasOptions = optionsCount > 1;
+
+    // Check if decision has criteria (at least 1 non-archived criterion)
+    const criteriaCount = await Criteria.countDocuments({
+        parentDecision: id,
+        isArchived: false
+    });
+    const hasCriteria = criteriaCount >= 1;
+
+    // Check if all criteria are fully ranked
+    const isFullyRanked = await getAllCriteriaStatus(id);
+
+    // Create status object
+    const status = {
+        hasOptions,
+        hasCriteria,
+        isFullyRanked
+    };
+
+    console.log("status", status);
+
+    // Add status to the data object
+    const dataWithStatus = {
+        ...data.toObject(),
+        status
+    };
+
+    res.status(200).json({
+        status: "success",
+        data: dataWithStatus
+    });
 })
 
 //The getReport function is the final outcome of all the rankings, this function does all the maths to determine the grand final score for each option. It's used in the report page.
@@ -154,3 +252,45 @@ exports.getReport = catchAsync(async (req, res, next) => {
         data
     });
 });
+
+// Helper function to check if all criteria are fully ranked
+const getAllCriteriaStatus = async (decisionId) => {
+    // Get all non-archived criteria for the decision
+    const criteria = await Criteria.find({
+        parentDecision: decisionId,
+        isArchived: false
+    });
+
+    // If no criteria exist, return false
+    if (criteria.length === 0) {
+        return false;
+    }
+
+    // Count all active options that belong to the decision
+    const optionsCount = await Option.countDocuments({
+        parentDecision: decisionId,
+        isArchived: false
+    });
+
+    // If no options exist, return false
+    if (optionsCount === 0) {
+        return false;
+    }
+
+    // Check each criterion to see if it's fully ranked
+    for (const criterion of criteria) {
+        // Count all active rankings that belong to the criterion for active options only
+        const distinctRankedOptionsCount = (await Ranking.distinct('optionId', {
+            criterionId: criterion._id,
+            isArchived: false
+        })).length;
+
+        // If this criterion doesn't have all options ranked, return false
+        if (optionsCount !== distinctRankedOptionsCount) {
+            return false;
+        }
+    }
+
+    // All criteria are fully ranked
+    return true;
+};

@@ -14,7 +14,7 @@ const ListItem = styled.div`
     justify-content: space-between;
     align-items: center;
     min-height: 48px;
-    background-color: var(--color-background-secondary);
+    background-color: var(--color-background-tertiary);
     transition: all 0.2s ease;
     border-radius: 0.5rem;
     margin: 0.25rem 0;
@@ -31,16 +31,27 @@ const OptionTitle = styled.div`
     align-items: center;
 `;
 
+const DragHandle = styled.span`
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    margin-top: 3px;
+    margin-right: 4px;
+    
+    ${ListItem}:hover & {
+        opacity: 1;
+    }
+`;
+
 const OptionListItem: React.FC<OptionListItemProps> = ({ title, onArrowClick }) => {
 
     return (
         <ListItem data-list-item="true">
             <div>
                 <OptionTitle>
-                    <span style={{ marginTop: '3px' }}>{'\u283F\u00a0'}</span>{title}
+                    <DragHandle>{'\u283F'}</DragHandle>{title}
                 </OptionTitle>
             </div>
-            <ArrowButton size="small" direction="forward" onClick={onArrowClick} />
+            {onArrowClick && <ArrowButton size="small" direction="forward" onClick={onArrowClick} />}
         </ListItem>
     );
 };

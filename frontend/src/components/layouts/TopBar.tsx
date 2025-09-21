@@ -8,7 +8,7 @@ const TopBarContainer = styled.div`
   width: 100%;
   background-color: var(--color-background-secondary);
   border-bottom: 1px solid var(--color-border-primary);
-  padding: 1rem;
+  padding: 0.8rem;
   display: flex;
   justify-content: space-between;
   align-items: center;

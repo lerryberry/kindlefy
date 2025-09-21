@@ -18,9 +18,9 @@ export function useUpdateCriterion() {
 
     const { mutate: updateCriterionMutation, isPending: isUpdating, isSuccess: isUpdateSuccess } = useMutation({
         mutationFn: updateCriterion,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["allCriteria"] });
-            queryClient.invalidateQueries({ queryKey: ["criterion"] });
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ["criteria", variables.decisionId] });
+            queryClient.invalidateQueries({ queryKey: ["criterion", variables.criterionId] });
         },
         onError: (err) => console.log(err.message)
     });

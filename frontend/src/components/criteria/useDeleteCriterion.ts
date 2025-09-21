@@ -15,8 +15,12 @@ export function useDeleteCriterion() {
     const { mutate: deleteCriterionMutation, isPending: isDeleting, isSuccess } = useMutation({
         mutationFn: deleteCriterion,
         onSuccess: () => {
-            // Invalidate criteria queries to refresh the lists
-            queryClient.invalidateQueries({ queryKey: ["criteria"] });
+            // Invalidate criteria list to refresh the criteria list
+            queryClient.invalidateQueries({ queryKey: ["criteria", decisionId] });
+            // Invalidate decision query to update status object
+            queryClient.invalidateQueries({ queryKey: ["decision", decisionId] });
+            // Invalidate all decisions list to update status in decision tiles
+            queryClient.invalidateQueries({ queryKey: ["allDecisions"] });
         },
         onError: (err) => console.log(err.message)
     });

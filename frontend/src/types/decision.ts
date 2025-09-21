@@ -10,6 +10,11 @@ export interface Decision {
     }>;
     createdAt: string;
     updatedAt: string;
+    status?: {
+        hasOptions: boolean;
+        hasCriteria: boolean;
+        isFullyRanked: boolean;
+    };
 }
 
 // API response structure

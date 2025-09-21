@@ -1,0 +1,11 @@
+# Cursor Rules for Krystallise Project
+
+## Frontend Build Rule
+- When any changes are made to files in the `frontend/` folder, automatically run `npm run build` in the frontend directory to compile and build the project.
+- This ensures the frontend is always up-to-date and ready for deployment after modifications.
+
+## General Development Guidelines
+- Follow existing design patterns in the project when creating new components
+- Always examine backend code to understand front-end/back-end contracts
+- Use consistent styling with existing components
+- Maintain TypeScript type safety throughout the codebase

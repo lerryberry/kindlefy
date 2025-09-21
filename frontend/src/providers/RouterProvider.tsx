@@ -3,13 +3,11 @@ import TopBar from '../components/layouts/TopBar';
 import PageLayout from '../components/layouts/PageLayout';
 import DecisionList from '../components/decision/decisionList';
 import DecisionHeader from '../components/decision/DecisionHeader';
-import CriteriaList from '../components/criteria/CriteriaList';
+import CriteriaRankingList from '../components/criteria/CriteriaRankingList';
 import Profile from '../components/auth/profile';
 import CreateDecisionForm from '../components/decision/CreateDecisionForm';
-import CreateCriteriaForm from '../components/criteria/CreateCriteriaForm';
-import CriterionDetail from '../components/criteria/CriterionDetail';
-import CreateOptionForm from '../components/options/CreateOptionForm';
-import OptionDetail from '../components/options/OptionDetail';
+import CreateCriteriaListForm from '../components/criteria/CreateCriteriaListForm';
+import CreateOptionListForm from '../components/options/CreateOptionListForm';
 import LandingPage from '../components/landing/LandingPage';
 import DecisionReportPage from '../components/decision/DecisionReportPage';
 
@@ -20,26 +18,18 @@ const router = createBrowserRouter([
         element: <TopBar />,
         children: [
             { index: true, element: <LandingPage /> },
-            { path: "decisions", element: <PageLayout title="Decisions" addButtonText="Add Decision" onAddClick={() => window.location.href = "/decisions/new"}><DecisionList /></PageLayout> },
+            { path: "decisions", element: <DecisionList /> },
             { path: "decisions/new", element: <CreateDecisionForm /> },
             { path: "decisions/:decisionId/edit", element: <CreateDecisionForm /> },
             {
                 path: "decisions/:decisionId",
                 element: <DecisionHeader />,
                 children: [
-                    { index: true, element: <CriteriaList /> },
+                    { index: true, element: <CreateOptionListForm /> },
+                    { path: "options", element: <CreateOptionListForm /> },
+                    { path: "criteria", element: <CreateCriteriaListForm /> },
+                    { path: "ranking", element: <CriteriaRankingList /> },
                     { path: "report", element: <DecisionReportPage /> },
-                    { path: "criteria/new", element: <CreateCriteriaForm /> },
-                    { path: "criteria/:criterionId/edit", element: <PageLayout title="Edit Criteria"><CreateCriteriaForm /></PageLayout> },
-                    { path: "criteria/:criterionId", element: <CriterionDetail /> },
-                    { path: "criteria/:criterionId/options/new", element: <CreateOptionForm /> },
-                    {
-                        path: "options/:optionId",
-                        children: [
-                            { index: true, element: <OptionDetail /> },
-                            { path: "edit", element: <PageLayout title="Edit Option"><CreateOptionForm /></PageLayout> }
-                        ]
-                    }
                 ]
             },
             { path: "profile", element: <PageLayout title="Profile"><Profile /></PageLayout> },

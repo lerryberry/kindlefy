@@ -21,6 +21,7 @@ export function useUpdateOption() {
         mutationFn: updateOption,
         onSuccess: (variables) => {
             queryClient.invalidateQueries({ queryKey: ["option", variables.optionId] });
+            queryClient.invalidateQueries({ queryKey: ["allOptions", variables.decisionId] });
             queryClient.invalidateQueries({ queryKey: ["rankedOptions"] });
         },
         onError: (err) => console.log(err.message)

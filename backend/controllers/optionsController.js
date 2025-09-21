@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 
 exports.updateOption = factory.updateOne(Option);
 exports.getAllOptions = factory.getAll(Option);
-exports.addOption = factory.addOne(Option);
+exports.addManyOptions = factory.addMany(Option);
 exports.getOption = factory.getOne(Option);
 exports.validateChildOption = factory.validateChild(Option);
 
@@ -19,7 +19,7 @@ exports.deleteOption = catchAsync(async (req, res, next) => {
         runValidators: true
     });
 
-    if(!option){
+    if (!option) {
         return next(new AppError(`no document found with that id`, 404))
     }
 
@@ -37,19 +37,19 @@ exports.deleteOption = catchAsync(async (req, res, next) => {
 
 // The getRankedOption function is used for the single criterion view of the options. It shows the user the current ranking of options against that criterion, so they can resort them accordingly.
 exports.getRankedOptions = catchAsync(async (req, res, next) => {
-    const decisionId = req.params.decisionId; 
-    const criteriaId = req.params.id; 
+    const decisionId = req.params.decisionId;
+    const criteriaId = req.params.id;
 
     const getAllRankedOptions = async function (decisionId, criterionId) {
-    
+
         const parentDecisionObjectId = new mongoose.Types.ObjectId(decisionId);
-        const criterionObjectId = new mongoose.Types.ObjectId(criterionId); 
-    
-        const optionsWithCategory = await Option.aggregate([ 
+        const criterionObjectId = new mongoose.Types.ObjectId(criterionId);
+
+        const optionsWithCategory = await Option.aggregate([
             // Stage 1: Match Options belonging to the specified Decision
             {
                 $match: {
-                // Use the correct field name from the Option schema
+                    // Use the correct field name from the Option schema
                     parentDecision: parentDecisionObjectId,
                     isArchived: false, // Ensure we only consider non-archived options
                 }
@@ -57,29 +57,29 @@ exports.getRankedOptions = catchAsync(async (req, res, next) => {
             // Stage 2: Perform a LEFT OUTER JOIN with the 'rankings' collection using a pipeline
             {
                 $lookup: {
-                from: 'rankings', // The MongoDB collection name for Rankings
-                let: { option_id_from_option_doc: '$_id' }, // Variable for the current Option's _id
-                pipeline: [
-                    // Pipeline stages run on the 'rankings' collection for each Option
-                    {
-                        $match: {
-                            // Use $expr to compare fields from 'rankings' with the 'let' variable and external criterionId
-                            $expr: {
-                                $and: [
-                                    // Use the correct field name from the Ranking schema ('optionId')
-                                    { $eq: ['$optionId', '$$option_id_from_option_doc'] },
-                                    // Use the correct field name from the Ranking schema ('criterionId')
-                                    { $eq: ['$criterionId', criterionObjectId] }
-                                ]
+                    from: 'rankings', // The MongoDB collection name for Rankings
+                    let: { option_id_from_option_doc: '$_id' }, // Variable for the current Option's _id
+                    pipeline: [
+                        // Pipeline stages run on the 'rankings' collection for each Option
+                        {
+                            $match: {
+                                // Use $expr to compare fields from 'rankings' with the 'let' variable and external criterionId
+                                $expr: {
+                                    $and: [
+                                        // Use the correct field name from the Ranking schema ('optionId')
+                                        { $eq: ['$optionId', '$$option_id_from_option_doc'] },
+                                        // Use the correct field name from the Ranking schema ('criterionId')
+                                        { $eq: ['$criterionId', criterionObjectId] }
+                                    ]
+                                }
                             }
-                        }
-                    },
-                    // Optional: Limit to 1 if you expect only one ranking per option/criteria combo
-                    { $limit: 1 },
-                    // Optional: Project only the category field needed
-                    { $project: { matchLevel: 1, rank: 1, _id: 0 } } // Retrieve the 'category' field
-                ],
-                as: 'rankingInfo' // Output array field name
+                        },
+                        // Optional: Limit to 1 if you expect only one ranking per option/criteria combo
+                        { $limit: 1 },
+                        // Optional: Project only the category field needed
+                        { $project: { matchLevel: 1, rank: 1, _id: 0 } } // Retrieve the 'category' field
+                    ],
+                    as: 'rankingInfo' // Output array field name
                 }
             },
             // Stage 3: Extract the category from the potentially empty 'rankingInfo' array
@@ -99,7 +99,7 @@ exports.getRankedOptions = catchAsync(async (req, res, next) => {
             // Stage 4: Sort by rank in ascending order
             {
                 $sort: {
-                    rank: 1 
+                    rank: 1
                 }
             },
             // Stage 5: Project the final desired output shape
