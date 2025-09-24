@@ -1,9 +1,3 @@
-Front end 
-- Scaffolding of all components 
-    - basic; profile menu, navbar, loaders, button save/next/add, button delete, errors, modal, empty states, 
-    list item decision, list item criterion, list item option
-    - modules; banner/head, tabs, forms, decision, lists criteria, set rank, report
-
 Handy stuff
 - reducer for advanced state management between familes of components
 - add key to maintain state and change it to reload the component automatically

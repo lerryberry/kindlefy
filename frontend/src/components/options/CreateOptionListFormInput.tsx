@@ -21,11 +21,23 @@ const InlineFormContainer = styled.div`
     align-items: stretch;
     gap: 0.5rem;
     width: 100%;
+    flex-direction: column;
+    
+    @media (min-width: 768px) {
+        flex-direction: row;
+    }
 `;
 
 const InputContainer = styled.div`
     flex: 1;
     position: relative;
+`;
+
+const ButtonContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: flex-end;
 `;
 
 const StyledForm = styled(Form)`
@@ -147,23 +159,25 @@ function CreateOptionListFormInput({ optionId, optionTitle, isNew = false }: Cre
                         </p>
                     )}
                 </InputContainer>
-                {isHovered && optionId && !isNew && (
-                    <InlineButton
-                        type="button"
-                        onClick={handleDelete}
-                        isWorking={isWorking}
-                    >
-                        ✗
-                    </InlineButton>
-                )}
-                {isFocused && (
-                    <InlineButton
-                        type="submit"
-                        isWorking={isWorking}
-                    >
-                        ✓
-                    </InlineButton>
-                )}
+                <ButtonContainer>
+                    {isHovered && optionId && !isNew && (
+                        <InlineButton
+                            type="button"
+                            onClick={handleDelete}
+                            isWorking={isWorking}
+                        >
+                            ✗
+                        </InlineButton>
+                    )}
+                    {isFocused && (
+                        <InlineButton
+                            type="submit"
+                            isWorking={isWorking}
+                        >
+                            ✓
+                        </InlineButton>
+                    )}
+                </ButtonContainer>
             </InlineFormContainer>
         </StyledForm>
     );

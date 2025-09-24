@@ -74,7 +74,9 @@ exports.getRankedOptions = catchAsync(async (req, res, next) => {
                                 }
                             }
                         },
-                        // Optional: Limit to 1 if you expect only one ranking per option/criteria combo
+                        // Sort by createdAt in descending order to get the newest ranking
+                        { $sort: { createdAt: -1 } },
+                        // Limit to 1 to get only the newest ranking per option/criteria combo
                         { $limit: 1 },
                         // Optional: Project only the category field needed
                         { $project: { matchLevel: 1, rank: 1, _id: 0 } } // Retrieve the 'category' field

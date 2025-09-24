@@ -50,6 +50,7 @@ const ChipContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin: 0.5rem 0 0;
 `;
 
 const DecisionListItem = ({ decisionObject, arrowClickable = true }: DecisionListItemProps) => {
@@ -92,7 +93,7 @@ const DecisionListItem = ({ decisionObject, arrowClickable = true }: DecisionLis
         </DecisionTitle>
         {isFullyComplete && (
           <ChipContainer>
-            <Chip variant="tag" success={true} ghost={true}>Report generated</Chip>
+            <Chip variant="tag" ghost={true} style={{ color: 'white', borderColor: 'white' }}>Report generated</Chip>
           </ChipContainer>
         )}
       </ContentContainer>

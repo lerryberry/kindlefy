@@ -9,11 +9,10 @@ interface MainMenuProps {
 const MenuContainer = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 1rem; 
 `;
 
 const MenuItem = styled.div`
-    padding: 0.75rem 0;
+    padding: 1rem 0;
     border-bottom: 1px solid var(--color-border-primary);
     
     &:last-child {

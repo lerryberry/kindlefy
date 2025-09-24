@@ -1,7 +1,5 @@
-import Button from './../util/Button'
 import Form from './../util/Form'
 import FormInput from './../util/FormInput'
-import ArrowButton from './../util/ArrowButton'
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAddDecisions } from './useAddDecision';
@@ -11,7 +9,6 @@ import { useGetDecision } from './useGetDecision';
 import { useEffect } from 'react';
 import { useUpdateDecision } from './useUpdateDecision';
 import PageLayout from '../layouts/PageLayout';
-import styled from 'styled-components';
 
 // Form data interface - only title is needed for creating decisions
 interface CreateDecisionFormData {
@@ -27,20 +24,13 @@ interface ValidationRules {
     };
 }
 
-// Styled component for button row
-const ButtonRow = styled.div`
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    margin-top: 1rem;
-`;
 
 function CreateDecisionForm() {
     const navigate = useNavigate();
     const { decisionId } = useParams<{ decisionId: string }>();
     const { register, handleSubmit, formState: { errors }, reset } = useForm<CreateDecisionFormData>();
     const { addDecision, isAdding, isSuccess, createdDecision } = useAddDecisions();
-    const { decision, isLoading: isLoadingDecision } = useGetDecision(decisionId);
+    const { decision } = useGetDecision(decisionId);
     const { updateDecisionMutation, isUpdating, isUpdateSuccess } = useUpdateDecision();
 
     useEffect(() => {
@@ -52,7 +42,7 @@ function CreateDecisionForm() {
     useEffect(() => {
         if (isUpdateSuccess && decisionId) {
             toast.success("Decision updated successfully!");
-            navigate(`/decisions/${decisionId}`);
+            navigate(-1);
         }
     }, [isUpdateSuccess, decisionId, navigate]);
 
@@ -76,56 +66,52 @@ function CreateDecisionForm() {
         toast.error(errorMessage);
     }
 
-    const isWorking = isAdding || isUpdating || isLoadingDecision;
     const buttonText = decisionId
         ? (isUpdating ? "Updating decision..." : "Update Decision")
         : (isAdding ? "Adding decision..." : "Create Decision");
 
+    const handleBackClick = () => {
+        navigate('/decisions');
+    };
+
+    const handleNextClick = () => {
+        // Trigger form submission
+        handleSubmit(onSubmit, onError)();
+    };
+
     return (
-        <>
-            {/* <BackButton /> // Removed BackButton usage */}
-            <PageLayout
-                title={decisionId ? "Edit Decision" : "New Decision"}
-            >
-                <Form onSubmit={handleSubmit(onSubmit, onError)}>
-                    <FormInput
-                        label="Decision title"
-                        type="text"
-                        required
-                        {...register("title", {
-                            required: "This field is required",
-                            minLength: {
-                                value: 9,
-                                message: "Minimum of 9 characters required"
-                            },
-                            maxLength: {
-                                value: 200,
-                                message: "Maximum of 200 characters allowed"
-                            }
-                        } as ValidationRules)}
-                    />
-                    {errors.title && (
-                        <p style={{ color: "red", fontSize: "0.875rem", marginTop: "0.25rem" }}>
-                            {errors.title.message}
-                        </p>
-                    )}
-                    <ButtonRow>
-                        <ArrowButton
-                            size="large"
-                            direction="back"
-                            onClick={() => navigate('/decisions')}
-                        />
-                        <Button
-                            type="submit"
-                            text={buttonText}
-                            size="small"
-                            disabled={isWorking}
-                            isResponsive
-                        />
-                    </ButtonRow>
-                </Form>
-            </PageLayout>
-        </>
+        <PageLayout
+            title={decisionId ? "Edit Decision" : "New Decision"}
+            showBackButton={true}
+            onBackClick={handleBackClick}
+            showNextButton={true}
+            nextButtonText={buttonText}
+            onNextClick={handleNextClick}
+        >
+            <Form onSubmit={handleSubmit(onSubmit, onError)}>
+                <FormInput
+                    label="Decision title"
+                    type="text"
+                    required
+                    {...register("title", {
+                        required: "This field is required",
+                        minLength: {
+                            value: 9,
+                            message: "Minimum of 9 characters required"
+                        },
+                        maxLength: {
+                            value: 200,
+                            message: "Maximum of 200 characters allowed"
+                        }
+                    } as ValidationRules)}
+                />
+                {errors.title && (
+                    <p style={{ color: "red", fontSize: "0.875rem", marginTop: "0.25rem" }}>
+                        {errors.title.message}
+                    </p>
+                )}
+            </Form>
+        </PageLayout>
     )
 }
 

@@ -84,6 +84,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ title, children, showBackButton
                                 text={nextButtonText}
                                 onClick={onNextClick}
                                 size="medium"
+                                isResponsive
                             />
                         )}
                     </BottomButtonRow>

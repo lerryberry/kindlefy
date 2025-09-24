@@ -139,14 +139,11 @@ export const GlobalStyle = createGlobalStyle`
   }
   
   /* Global container styles */
-  .container {
-    width: 100%;
-  }
+  
   
   .container-content {
     max-width: 600px;
     margin: 0 auto;
-    padding: 0 1rem;
   }
   
   .container-wide {

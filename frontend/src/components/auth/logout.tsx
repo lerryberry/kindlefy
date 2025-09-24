@@ -11,6 +11,8 @@ const LogoutLink = styled.button`
     font-family: inherit;
     cursor: pointer;
     padding: 0;
+    width: 100%;
+    text-align: left;
     
     &:hover {
         color: var(--color-text-secondary);

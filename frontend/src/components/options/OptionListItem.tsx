@@ -37,6 +37,10 @@ const DragHandle = styled.span`
     margin-top: 3px;
     margin-right: 4px;
     
+    @media (max-width: 767px) {
+        opacity: 1;
+    }
+    
     ${ListItem}:hover & {
         opacity: 1;
     }

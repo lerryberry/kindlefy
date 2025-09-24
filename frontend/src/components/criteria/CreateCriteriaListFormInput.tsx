@@ -22,6 +22,18 @@ const InlineFormContainer = styled.div`
     align-items: stretch;
     gap: 0.5rem;
     width: 100%;
+    flex-direction: column;
+    
+    @media (min-width: 768px) {
+        flex-direction: row;
+    }
+`;
+
+const InputsContainer = styled.div`
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    flex: 1;
 `;
 
 const InputContainer = styled.div`
@@ -50,6 +62,13 @@ const PriorityContainer = styled.div`
         margin: 0;
         z-index: 1;
     }
+`;
+
+const ButtonContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: flex-end;
 `;
 
 const StyledForm = styled(Form)`
@@ -157,80 +176,83 @@ function CreateCriteriaListFormInput({ criterionId, criterionTitle, criterionPri
             onMouseLeave={() => setIsHovered(false)}
         >
             <InlineFormContainer>
-                <InputContainer
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => setIsFocused(false)}
-                >
-                    <FormInput
-                        type="text"
-                        required
-                        {...register("title", {
-                            required: "Title is required",
-                            minLength: {
-                                value: 3,
-                                message: "Minimum of 3 characters required"
-                            },
-                            maxLength: {
-                                value: 200,
-                                message: "Maximum of 200 characters allowed"
-                            }
-                        })}
-                    />
-                    {errors.title && (
-                        <p style={{ color: "red", fontSize: "0.875rem" }}>
-                            {errors.title.message}
-                        </p>
-                    )}
-                </InputContainer>
+                <InputsContainer>
+                    <InputContainer
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() => setIsFocused(false)}
+                    >
+                        <FormInput
+                            type="text"
+                            required
+                            {...register("title", {
+                                required: "Title is required",
+                                minLength: {
+                                    value: 3,
+                                    message: "Minimum of 3 characters required"
+                                },
+                                maxLength: {
+                                    value: 200,
+                                    message: "Maximum of 200 characters allowed"
+                                }
+                            })}
+                        />
+                        {errors.title && (
+                            <p style={{ color: "red", fontSize: "0.875rem" }}>
+                                {errors.title.message}
+                            </p>
+                        )}
+                    </InputContainer>
 
-                <PriorityContainer
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => setIsFocused(false)}
-                >
-                    <select
-                        {...register("priority", {
-                            required: "Priority is required"
-                        })}
-                        style={{
-                            width: "100%",
-                            height: "100%",
-                            padding: "0.5rem",
-                            border: "1px solid var(--color-border-secondary)",
-                            borderRadius: "4px",
-                            backgroundColor: "var(--color-background-tertiary)",
-                            color: "var(--color-text-primary)"
-                        }}
+                    <PriorityContainer
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() => setIsFocused(false)}
                     >
-                        <option value=""></option>
-                        <option value="MUST_HAVE">Must Have</option>
-                        <option value="SHOULD_HAVE">Should Have</option>
-                        <option value="COULD_HAVE">Could Have</option>
-                        <option value="WONT_HAVE">Won't Have</option>
-                    </select>
-                    {errors.priority && (
-                        <p style={{ color: "red", fontSize: "0.875rem" }}>
-                            {errors.priority.message}
-                        </p>
-                    )}
-                </PriorityContainer>
+                        <select
+                            {...register("priority", {
+                                required: "Priority is required"
+                            })}
+                            style={{
+                                width: "100%",
+                                height: "100%",
+                                padding: "0.5rem",
+                                border: "1px solid var(--color-border-secondary)",
+                                borderRadius: "4px",
+                                backgroundColor: "var(--color-background-tertiary)",
+                                color: "var(--color-text-primary)"
+                            }}
+                        >
+                            <option value="MUST_HAVE">Must Have</option>
+                            <option value="SHOULD_HAVE">Should Have</option>
+                            <option value="COULD_HAVE">Could Have</option>
+                            <option value="WONT_HAVE">Won't Have</option>
+                        </select>
+                        {errors.priority && (
+                            <p style={{ color: "red", fontSize: "0.875rem" }}>
+                                {errors.priority.message}
+                            </p>
+                        )}
+                    </PriorityContainer>
+                </InputsContainer>
 
-                {isHovered && criterionId && !isNew && (
-                    <InlineButton
-                        type="button"
-                        onClick={handleDelete}
-                        isWorking={isWorking}
-                    >
-                        ✗
-                    </InlineButton>
-                )}
-                {isFocused && (
-                    <InlineButton
-                        type="submit"
-                        isWorking={isWorking}
-                    >
-                        ✓
-                    </InlineButton>
-                )}
+                <ButtonContainer>
+                    {isHovered && criterionId && !isNew && (
+                        <InlineButton
+                            type="button"
+                            onClick={handleDelete}
+                            isWorking={isWorking}
+                        >
+                            ✗
+                        </InlineButton>
+                    )}
+                    {isFocused && (
+                        <InlineButton
+                            type="submit"
+                            isWorking={isWorking}
+                        >
+                            ✓
+                        </InlineButton>
+                    )}
+                </ButtonContainer>
             </InlineFormContainer>
         </StyledForm>
     );
