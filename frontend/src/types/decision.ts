@@ -50,6 +50,9 @@ export interface DecisionReportResponse {
 // Form data for creating decisions
 export interface CreateDecisionData {
     title: string;
+    category?: string;
+    scope?: string;
+    type?: string;
 }
 
 // Hook return types

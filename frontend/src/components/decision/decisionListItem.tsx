@@ -93,7 +93,7 @@ const DecisionListItem = ({ decisionObject, arrowClickable = true }: DecisionLis
         </DecisionTitle>
         {isFullyComplete && (
           <ChipContainer>
-            <Chip variant="tag" ghost={true} style={{ color: 'white', borderColor: 'white' }}>Report generated</Chip>
+            <Chip variant="tag" success={true} ghost={true}>Report generated</Chip>
           </ChipContainer>
         )}
       </ContentContainer>

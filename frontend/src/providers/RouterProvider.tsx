@@ -8,7 +8,6 @@ import Profile from '../components/auth/profile';
 import CreateDecisionForm from '../components/decision/CreateDecisionForm';
 import CreateCriteriaListForm from '../components/criteria/CreateCriteriaListForm';
 import CreateOptionListForm from '../components/options/CreateOptionListForm';
-import LandingPage from '../components/landing/LandingPage';
 import DecisionReportPage from '../components/decision/DecisionReportPage';
 
 
@@ -17,7 +16,7 @@ const router = createBrowserRouter([
         path: "/",
         element: <TopBar />,
         children: [
-            { index: true, element: <LandingPage /> },
+            { index: true, element: <DecisionList /> },
             { path: "decisions", element: <DecisionList /> },
             { path: "decisions/new", element: <CreateDecisionForm /> },
             { path: "decisions/:decisionId/edit", element: <CreateDecisionForm /> },
