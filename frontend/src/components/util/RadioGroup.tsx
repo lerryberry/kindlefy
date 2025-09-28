@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { Tooltip } from 'react-tooltip';
 
 export interface RadioOption {
     value: string;
@@ -81,22 +82,13 @@ const RadioInput = styled.input`
     cursor: pointer;
     flex-shrink: 0;
     margin-top: 0.125rem;
-    
-    /* Ensure the radio button dot is visible when selected */
-    &:checked {
-        background-color: var(--color-brand-500);
-        border-color: var(--color-brand-500);
-    }
-    
-    /* Custom radio button styling */
-    appearance: none;
-    border: 2px solid var(--color-border-primary);
+    border: 2px solid white;
     border-radius: 50%;
     background-color: transparent;
     
-    &:checked {
+    &:checked:not(:disabled) {
+        appearance: none;
         background-color: var(--color-brand-500);
-        border-color: var(--color-brand-500);
         position: relative;
         
         &::after {
@@ -110,6 +102,11 @@ const RadioInput = styled.input`
             background-color: white;
             border-radius: 50%;
         }
+    }
+    
+    &:checked:disabled {
+        appearance: none;
+        background-color: transparent;
     }
     
     &:hover:not(:disabled) {
@@ -166,6 +163,8 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
                     key={option.value}
                     isSelected={value === option.value}
                     disabled={option.disabled || disabled}
+                    data-tooltip-id={option.disabled ? `tooltip-${option.value}` : undefined}
+                    data-tooltip-content={option.disabled ? "Coming soon" : undefined}
                 >
                     <RadioInput
                         type="radio"
@@ -180,6 +179,9 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
                         <RadioDescription>{option.description}</RadioDescription>
                     </RadioContent>
                 </RadioOption>
+            ))}
+            {options.filter(option => option.disabled).map(option => (
+                <Tooltip key={`tooltip-${option.value}`} id={`tooltip-${option.value}`} />
             ))}
         </RadioGroupContainer>
     );

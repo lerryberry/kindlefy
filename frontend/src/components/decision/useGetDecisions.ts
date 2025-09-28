@@ -1,16 +1,23 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { useAuthenticatedAxios } from "../../api/services/useAuthenticatedAxios";
 import { useParams } from "react-router-dom";
 
-export function useGetAllDecisions() {
+export function useGetDecisions() {
     const api = useAuthenticatedAxios();
 
-    return useQuery({
-        queryKey: ["allDecisions"],
-        queryFn: async () => {
-            const res = await api.get("/decisions");
+    return useInfiniteQuery({
+        queryKey: ["decisions"],
+        queryFn: async ({ pageParam = 1 }) => {
+            const res = await api.get(`/decisions?page=${pageParam}&limit=10`);
             return res.data;
-        }
+        },
+        getNextPageParam: (lastPage, allPages) => {
+            // If lastPage is true, we've reached the end
+            if (lastPage.lastPage) return undefined;
+            // Otherwise, return the next page number
+            return allPages.length + 1;
+        },
+        initialPageParam: 1
     });
 }
 

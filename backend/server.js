@@ -1,8 +1,5 @@
 const mongoose = require('mongoose');
 
-process.on('uncaughtException', (err) => handleCrash(err, 'Uncaught Exception:'));
-process.on('unhandledRejection', (err) => handleCrash(err, 'Unhandled Rejection:'));
-
 const app = require('./app');
 const DB = process.env.DATABASE;
 
@@ -16,15 +13,18 @@ const server = app.listen(port, () => {
 function handleCrash(err, eventName) {
     console.error(eventName, err.name, err.message);
     console.error("App crashed, killing session");
-  
+
     if (server) {
-      server.close(() => {
-        process.exit(1);
-      });
+        server.close(() => {
+            process.exit(1);
+        });
     } else {
-      process.exit(1);
+        process.exit(1);
     }
 }
+
+process.on('uncaughtException', (err) => handleCrash(err, 'Uncaught Exception:'));
+process.on('unhandledRejection', (err) => handleCrash(err, 'Unhandled Rejection:'));
 
 // Handle SIGTERM signal (e.g., from Docker stop command)
 process.on('SIGTERM', () => {
@@ -41,8 +41,7 @@ process.on('SIGTERM', () => {
         process.exit(0);
     }
 });
-  
 
-  
 
-  
+
+

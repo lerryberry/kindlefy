@@ -9,7 +9,7 @@ const DecisionContainer = styled.div`
   background-color: var(--color-background-secondary);
   padding: 1rem;
   position: sticky;
-  top: 60px; /* Assuming TopBar height is 60px */
+  top: 58px; /* Assuming TopBar height is 58px */
   z-index: 99;
   width: 100%;
   box-sizing: border-box;

@@ -1,9 +1,8 @@
-import { useGetAllDecisions } from "./useGetDecisions";
+import { useGetDecisions } from "./useGetDecisions";
 import DecisionListItem from "./decisionListItem";
 import Button from "../util/Button";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import type { UseGetAllDecisionsReturn } from "../../types/decision";
 import Loading from "../util/Loading";
 import PageLayout from "../layouts/PageLayout";
 
@@ -18,17 +17,33 @@ const DecisionGrid = styled.div`
   }
 `;
 
+const LoadMoreContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+`;
+
 
 
 export default function DecisionList() {
     const navigate = useNavigate();
-    const { data, isLoading, error }: UseGetAllDecisionsReturn = useGetAllDecisions();
+    const {
+        data,
+        isLoading,
+        error,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage
+    } = useGetDecisions();
 
     if (isLoading) return <Loading />;
     if (error) return <div>Error: {error.message}</div>;
 
+    // Flatten all pages of decisions
+    const allDecisions = data?.pages?.flatMap(page => page.data) || [];
+
     // Show empty state if no decisions
-    if (!data?.data || data.data.length === 0) {
+    if (allDecisions.length === 0) {
         return (
             <PageLayout title="Decisions">
                 <div style={{ textAlign: 'center', padding: '2rem' }}>
@@ -53,12 +68,24 @@ export default function DecisionList() {
             onAddClick={() => navigate("/decisions/new")}
         >
             <DecisionGrid>
-                {data?.data?.map((decision) => (
+                {allDecisions.map((decision) => (
                     <div key={decision._id}>
                         <DecisionListItem decisionObject={decision} />
                     </div>
                 ))}
             </DecisionGrid>
+
+            {hasNextPage && (
+                <LoadMoreContainer>
+                    <Button
+                        text={isFetchingNextPage ? "Loading..." : "Load More"}
+                        onClick={() => fetchNextPage()}
+                        size="medium"
+                        variant="ghost"
+                        disabled={isFetchingNextPage}
+                    />
+                </LoadMoreContainer>
+            )}
         </PageLayout>
     )
 }

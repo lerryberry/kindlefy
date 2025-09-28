@@ -6,7 +6,7 @@ const decisionSchema = new mongoose.Schema({
     title: {
         type: String,
         required: [true, 'A decision must have a title'],
-        minlength: [10, 'A decision title must have more than 9 characters'],
+        minlength: [5, 'A decision title must have more than 4 characters'],
         maxlength: [201, 'A decision title must be 200 character or less']
     },
     accessControl: [{

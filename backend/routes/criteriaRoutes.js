@@ -2,12 +2,13 @@ const express = require('express');
 const decisionsController = require('../controllers/decisionsController')
 const criteriaController = require('../controllers/criteriaController')
 const rankingRouter = require('./rankingRoutes')
+const { sanitizeRequestBody } = require('../middleware/sanitize')
 
-const router = express.Router( {mergeParams: true} );
+const router = express.Router({ mergeParams: true });
 
 router
     .route('/')
-    .post(criteriaController.addManyCriterias)
+    .post(sanitizeRequestBody, criteriaController.addManyCriterias)
     .get(criteriaController.getAllCriteria)
 
 router
@@ -18,12 +19,13 @@ router
         criteriaController.getCriterion
     )
     .put(
-        decisionsController.validateDecision, 
+        sanitizeRequestBody,
+        decisionsController.validateDecision,
         criteriaController.validateChildCriterion,
         criteriaController.updateCriterion
     )
     .delete(
-        decisionsController.validateDecision, 
+        decisionsController.validateDecision,
         criteriaController.validateChildCriterion,
         criteriaController.deleteCriterion
     )

@@ -1,12 +1,13 @@
 const express = require('express');
 const decisionsController = require('../controllers/decisionsController')
 const optionsController = require('../controllers/optionsController')
+const { sanitizeRequestBody } = require('../middleware/sanitize')
 
 const router = express.Router({ mergeParams: true });
 
 router
     .route('/')
-    .post(optionsController.addManyOptions)
+    .post(sanitizeRequestBody, optionsController.addManyOptions)
     .get(optionsController.getAllOptions)
 
 router
@@ -17,6 +18,7 @@ router
         optionsController.getOption
     )
     .put(
+        sanitizeRequestBody,
         decisionsController.validateDecision,
         optionsController.validateChildOption,
         optionsController.updateOption

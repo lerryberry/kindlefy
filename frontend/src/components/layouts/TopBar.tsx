@@ -2,7 +2,7 @@ import { useState } from 'react';
 import styled from 'styled-components';
 import { Outlet, useNavigate } from 'react-router-dom';
 import MainMenu from './MainMenu';
-import logo from '../../assets/logo.png';
+import logo from '../../assets/logo.svg';
 
 const TopBarContainer = styled.div`
   width: 100%;

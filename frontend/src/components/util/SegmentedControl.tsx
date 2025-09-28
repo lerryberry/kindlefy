@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styled from 'styled-components';
+import { Tooltip } from 'react-tooltip';
 
 export interface SegmentedControlOption {
     value: string;
     label: string;
     disabled?: boolean;
-    tooltip?: string;
 }
 
 export interface SegmentedControlProps {
@@ -74,33 +74,6 @@ const SegmentedControlOption = styled.button<{
     }
 `;
 
-const Tooltip = styled.div<{ show: boolean }>`
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: var(--color-background-inverse);
-    color: var(--color-text-inverse);
-    padding: 0.5rem 0.75rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    white-space: nowrap;
-    z-index: 1000;
-    opacity: ${props => props.show ? 1 : 0};
-    visibility: ${props => props.show ? 'visible' : 'hidden'};
-    transition: opacity 0.2s ease, visibility 0.2s ease;
-    margin-bottom: 0.5rem;
-    
-    &::after {
-        content: '';
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        border: 4px solid transparent;
-        border-top-color: var(--color-background-inverse);
-    }
-`;
 
 const SegmentedControl: React.FC<SegmentedControlProps> = ({
     options,
@@ -109,19 +82,9 @@ const SegmentedControl: React.FC<SegmentedControlProps> = ({
     disabled = false,
     className
 }) => {
-    const [hoveredOption, setHoveredOption] = useState<string | null>(null);
-
     const handleOptionClick = (optionValue: string, optionDisabled?: boolean) => {
         if (optionDisabled || disabled) return;
         onChange?.(optionValue);
-    };
-
-    const handleMouseEnter = (optionValue: string) => {
-        setHoveredOption(optionValue);
-    };
-
-    const handleMouseLeave = () => {
-        setHoveredOption(null);
     };
 
     return (
@@ -138,16 +101,14 @@ const SegmentedControl: React.FC<SegmentedControlProps> = ({
                     isFirst={index === 0}
                     isLast={index === options.length - 1}
                     onClick={() => handleOptionClick(option.value, option.disabled)}
-                    onMouseEnter={() => handleMouseEnter(option.value)}
-                    onMouseLeave={handleMouseLeave}
+                    data-tooltip-id={option.disabled ? `tooltip-${option.value}` : undefined}
+                    data-tooltip-content={option.disabled ? "Coming soon" : undefined}
                 >
                     {option.label}
-                    {option.tooltip && hoveredOption === option.value && (
-                        <Tooltip show={true}>
-                            {option.tooltip}
-                        </Tooltip>
-                    )}
                 </SegmentedControlOption>
+            ))}
+            {options.filter(option => option.disabled).map(option => (
+                <Tooltip key={`tooltip-${option.value}`} id={`tooltip-${option.value}`} />
             ))}
         </SegmentedControlContainer>
     );

@@ -19,6 +19,7 @@ interface PageLayoutProps {
 
 const LayoutContainer = styled.div`
     padding: 1rem;
+    padding-bottom: 3rem;
 `;
 
 const Header = styled.div`

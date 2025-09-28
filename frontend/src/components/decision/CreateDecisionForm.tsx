@@ -11,6 +11,8 @@ import { useGetDecision } from './useGetDecision';
 import { useEffect, useState } from 'react';
 import { useUpdateDecision } from './useUpdateDecision';
 import PageLayout from '../layouts/PageLayout';
+import DOMPurify from 'dompurify';
+import validator from 'validator';
 
 // Form data interface - only title is needed for creating decisions
 interface CreateDecisionFormData {
@@ -28,6 +30,16 @@ interface ValidationRules {
         message: string;
     };
 }
+
+// Strict sanitization function - strips ALL HTML/code, only allows plain text
+const sanitizeText = (input: string): string => {
+    // First escape HTML entities
+    const escaped = validator.escape(input);
+    // Then strip ALL HTML tags (including safe ones)
+    const stripped = DOMPurify.sanitize(escaped, { ALLOWED_TAGS: [] });
+    // Trim whitespace
+    return stripped.trim();
+};
 
 
 function CreateDecisionForm() {
@@ -63,11 +75,17 @@ function CreateDecisionForm() {
     }
 
     function onSubmit(data: CreateDecisionFormData): void {
+        // Sanitize all text inputs - strip ALL HTML/code, only allow plain text
+        const sanitizedTitle = sanitizeText(data.title);
+        const sanitizedCategory = sanitizeText(category);
+        const sanitizedScope = sanitizeText(scope);
+        const sanitizedType = sanitizeText(type);
+
         const decisionData: CreateDecisionData = {
-            title: data.title,
-            category: category,
-            scope: scope,
-            type: type
+            title: sanitizedTitle,
+            category: sanitizedCategory,
+            scope: sanitizedScope,
+            type: sanitizedType
         };
         if (decisionId) {
             updateDecisionMutation({ id: decisionId, formData: decisionData });
@@ -111,8 +129,8 @@ function CreateDecisionForm() {
                     {...register("title", {
                         required: "This field is required",
                         minLength: {
-                            value: 9,
-                            message: "Minimum of 9 characters required"
+                            value: 5,
+                            message: "Minimum of 5 characters required"
                         },
                         maxLength: {
                             value: 200,
@@ -141,7 +159,7 @@ function CreateDecisionForm() {
                     <SegmentedControl
                         options={[
                             { value: 'Individual', label: 'Individual' },
-                            { value: 'Group', label: 'Group', disabled: true, tooltip: 'Coming soon' }
+                            { value: 'Group', label: 'Group', disabled: true }
                         ]}
                         value={scope}
                         onChange={setScope}

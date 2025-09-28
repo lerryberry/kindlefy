@@ -9,10 +9,24 @@ const AppError = require('../utils/appError');
 exports.updateDecision = factory.updateOne(Decision);
 exports.deleteDecision = factory.archiveOne(Decision);
 exports.getAllDecisions = catchAsync(async (req, res, next) => {
-    const decisions = await Decision.find({
+    // Set pagination filters
+    const count = await Decision.countDocuments({
         'accessControl.userId': req.userId,
         isArchived: false
     });
+    const page = req.query.page * 1 || 1;
+    const limit = req.query.limit * 1 || count;
+    const skip = (page - 1) * limit;
+    const lastPage = (count <= (skip + limit)) ? true : false;
+
+    // Get decisions with pagination
+    const decisions = await Decision.find({
+        'accessControl.userId': req.userId,
+        isArchived: false
+    })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
 
     // Add status object to each decision
     const decisionsWithStatus = await Promise.all(
@@ -54,7 +68,8 @@ exports.getAllDecisions = catchAsync(async (req, res, next) => {
     res.status(200).json({
         status: 'success',
         results: decisionsWithStatus.length,
-        data: decisionsWithStatus
+        data: decisionsWithStatus,
+        lastPage: lastPage
     });
 });
 exports.addDecision = factory.addOne(Decision);
@@ -120,8 +135,6 @@ exports.getDecision = catchAsync(async (req, res, next) => {
         isFullyRanked
     };
 
-    console.log("status", status);
-
     // Add status to the data object
     const dataWithStatus = {
         ...data.toObject(),
@@ -136,7 +149,7 @@ exports.getDecision = catchAsync(async (req, res, next) => {
 
 //The getReport function is the final outcome of all the rankings, this function does all the maths to determine the grand final score for each option. It's used in the report page.
 //it looks at the options ranking against each criterion, giving higher scores to those more favourable (i.e. BEST), and then multiplies that by the importance of the associated 
-//criterion, more important criterion (MUST HAVE have a higher score, which boosts the final calculated score.
+//criterion, more important criterion (MUST HAVE have a higher score, which boosts the final calculated score).
 exports.getReport = catchAsync(async (req, res, next) => {
     const decisionId = req.params.id;
 
