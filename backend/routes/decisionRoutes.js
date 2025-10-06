@@ -3,6 +3,7 @@ const decisionsController = require('../controllers/decisionsController')
 const userController = require('../controllers/userController')
 const criteriaRouter = require('./criteriaRoutes')
 const optionsRouter = require('./optionsRoutes')
+const reportsRouter = require('./reportsRoutes')
 const { sanitizeRequestBody } = require('../middleware/sanitize')
 
 const router = express.Router();
@@ -18,11 +19,8 @@ router
     .get(decisionsController.validateDecision, decisionsController.getDecision)
     .put(sanitizeRequestBody, decisionsController.validateDecision, decisionsController.updateDecision)
     .delete(decisionsController.validateDecision, decisionsController.deleteDecision);
-router
-    .route('/:id/report')
-    .get(decisionsController.validateDecision, decisionsController.getReport)
-
 router.use('/:decisionId/criteria', criteriaRouter)
 router.use('/:decisionId/options', optionsRouter)
+router.use('/:decisionId/report', reportsRouter)
 
 module.exports = router;

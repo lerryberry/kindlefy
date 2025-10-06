@@ -27,8 +27,10 @@ export function useDeleteOption() {
             queryClient.invalidateQueries({ queryKey: ["allDecisions"] });
             toast.success("Option deleted successfully");
         },
-        onError: (err: Error) => {
-            toast.error(`Failed to delete option: ${err.message}`);
+        onError: (err: any) => {
+            // Extract the error message from the server response
+            const errorMessage = err?.response?.data?.message || err?.message || 'Failed to delete option';
+            toast.error(errorMessage);
         },
     });
 

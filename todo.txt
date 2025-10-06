@@ -36,3 +36,4 @@ git add -A && git commit -m "fixed auth" && git push origin main && git push her
 postman
 - entered most credentials for the application (new SPA), but with audience 
 header value of the BE API from auth0
+- Otherwise add accetss_token value into postman bearer token field

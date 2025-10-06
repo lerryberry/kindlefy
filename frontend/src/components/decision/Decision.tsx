@@ -98,8 +98,8 @@ export default function Decision() {
       {
         id: 'decide',
         label: 'Decide',
-        isComplete: currentDecision.status?.isFullyRanked || false,
-        onClick: () => navigate(`/decisions/${decisionId}/report`)
+        isComplete: currentDecision.status?.isDecided || false,
+        onClick: () => navigate(`/decisions/${decisionId}/decide`)
       }
     ];
 

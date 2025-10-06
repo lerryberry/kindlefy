@@ -1,7 +1,9 @@
 const factory = require('./handlerFactory.js');
 const Option = require('../models/optionsModel.js')
 const Ranking = require('../models/rankingsModel.js');
+const Report = require('../models/reportModel.js');
 const catchAsync = require('../utils/catchAsync.js');
+const AppError = require('../utils/appError.js');
 const mongoose = require('mongoose');
 
 exports.updateOption = factory.updateOne(Option);
@@ -13,6 +15,16 @@ exports.validateChildOption = factory.validateChild(Option);
 exports.deleteOption = catchAsync(async (req, res, next) => {
     const decisionId = req.params.decisionId;
     const id = req.params.id;
+
+    // Check if this option is referenced in any active reports
+    const activeReports = await Report.find({
+        winningOptionId: id,
+        isArchived: false
+    });
+
+    if (activeReports.length > 0) {
+        return next(new AppError(`Cannot delete option while it is selected as the winner of a decision`, 400));
+    }
 
     const option = await Option.updateMany({ _id: id, parentDecision: decisionId }, { isArchived: true }, {
         new: true,

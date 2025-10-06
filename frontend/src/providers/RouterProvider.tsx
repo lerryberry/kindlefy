@@ -28,7 +28,7 @@ const router = createBrowserRouter([
                     { path: "options", element: <CreateOptionListForm /> },
                     { path: "criteria", element: <CreateCriteriaListForm /> },
                     { path: "ranking", element: <CriteriaRankingList /> },
-                    { path: "report", element: <DecisionReportPage /> },
+                    { path: "decide", element: <DecisionReportPage /> },
                 ]
             },
             { path: "profile", element: <PageLayout title="Profile"><Profile /></PageLayout> },

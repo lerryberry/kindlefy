@@ -57,16 +57,11 @@ const DecisionListItem = ({ decisionObject, arrowClickable = true }: DecisionLis
   const navigate = useNavigate();
 
   const handleClick = () => {
-    // Check if decision is fully complete (has options, criteria, and is fully ranked)
-    const isComplete = decisionObject.status?.hasOptions &&
-      decisionObject.status?.hasCriteria &&
-      decisionObject.status?.isFullyRanked;
-
-    if (isComplete) {
-      // Navigate to report page if decision is complete
-      navigate(`/decisions/${decisionObject._id}/report`);
+    if (decisionObject.isDecided) {
+      // Navigate to decide page if decision is decided
+      navigate(`/decisions/${decisionObject._id}/decide`);
     } else {
-      // Navigate to options page if decision is not complete
+      // Navigate to options page if decision is not decided
       navigate(`/decisions/${decisionObject._id}/options`);
     }
   };
@@ -80,20 +75,15 @@ const DecisionListItem = ({ decisionObject, arrowClickable = true }: DecisionLis
   // Capitalize the first letter of the title
   const capitalizedTitle = decisionObject.title && typeof decisionObject.title === 'string' ? decisionObject.title.charAt(0).toUpperCase() + decisionObject.title.slice(1) : decisionObject.title;
 
-  // Check if all status booleans are true
-  const isFullyComplete = decisionObject.status?.hasOptions &&
-    decisionObject.status?.hasCriteria &&
-    decisionObject.status?.isFullyRanked;
-
   return (
     <DecisionTile onClick={handleClick} data-list-item="true">
       <ContentContainer>
         <DecisionTitle>
           {capitalizedTitle}
         </DecisionTitle>
-        {isFullyComplete && (
+        {decisionObject.isDecided && (
           <ChipContainer>
-            <Chip variant="tag" success={true} ghost={true}>Report generated</Chip>
+            <Chip variant="tag" success={true} ghost={true}>Decided</Chip>
           </ChipContainer>
         )}
       </ContentContainer>

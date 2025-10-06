@@ -10,10 +10,12 @@ export interface Decision {
     }>;
     createdAt: string;
     updatedAt: string;
+    isDecided: boolean;
     status?: {
         hasOptions: boolean;
         hasCriteria: boolean;
         isFullyRanked: boolean;
+        isDecided: boolean;
     };
 }
 
@@ -40,6 +42,7 @@ export interface ReportOption {
     updatedAt: string;
     score: number;
     tags?: string[];
+    isWinner: boolean;
 }
 
 export interface DecisionReportResponse {

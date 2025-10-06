@@ -11,7 +11,7 @@ exports.updateRanking = catchAsync(async (req, res, next) => {
     const rankingsArray = req.body;
 
     //validate the criterion and options are all from the same decision and the criterion is not archived
-    const isChildCriterion = await Criteria.countDocuments({ _id: criterionId, parentDecision: decisionId, isArchived: false});
+    const isChildCriterion = await Criteria.countDocuments({ _id: criterionId, parentDecision: decisionId, isArchived: false });
     if (isChildCriterion === 0) {
         return next(new AppError(`Criterion does not belong to the decision or its archived`, 404));
     }
@@ -19,25 +19,25 @@ exports.updateRanking = catchAsync(async (req, res, next) => {
     //validate the options are all from the same decision
     const validateOptions = rankingsArray.map(async (rank) => {
         const isChild = await Option.countDocuments({ _id: rank.optionId, parentDecision: decisionId });
-        return isChild 
+        return isChild
     });
     const results = await Promise.all(validateOptions);
-    if (results.includes(0)){
+    if (results.includes(0)) {
         return next(new AppError(`One or more options do not belong to the decision`, 404));
     }
 
     //validate none of the options are archived
     const validateArchivedOptions = rankingsArray.map(async (rank) => {
         const isArchived = await Option.countDocuments({ _id: rank.optionId, isArchived: true });
-        return isArchived 
+        return isArchived
     });
     const archivedResults = await Promise.all(validateArchivedOptions);
-    if (archivedResults.includes(1)){
+    if (archivedResults.includes(1)) {
         return next(new AppError(`One or more options are archived`, 404));
     }
 
     const rankingsToInsert = rankingsArray.map((rank) => ({
-        ...rank, 
+        ...rank,
         criterionId: criterionId,
         userId: userId
     }));
@@ -49,7 +49,7 @@ exports.updateRanking = catchAsync(async (req, res, next) => {
 
     res.status(201).json({
         status: 'success',
-        results: insertedRankings.length, 
+        results: insertedRankings.length,
         data: insertedRankings
     });
 })

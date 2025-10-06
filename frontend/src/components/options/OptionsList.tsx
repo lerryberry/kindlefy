@@ -87,15 +87,17 @@ const OptionsList: React.FC<OptionsListProps> = ({ criterionId: propCriterionId,
 
     const handleSaveRankings = () => {
         const rankingsToSubmit: RankingFormData[] = [];
+        let globalRank = 1;
 
         // Process "BEST", "IMPARTIAL", "WORST" categories for submission
+        // Process in order: BEST -> IMPARTIAL -> WORST
         ["BEST", "IMPARTIAL", "WORST"].forEach(level => {
-            groupedOptions[level as Exclude<MatchLevel, "UNSORTED">].forEach((option, index) => {
+            groupedOptions[level as Exclude<MatchLevel, "UNSORTED">].forEach((option) => {
                 rankingsToSubmit.push({
                     optionId: option._id,
                     criterionId: criterionId!,
                     matchLevel: level as Exclude<MatchLevel, "UNSORTED">,
-                    rank: index + 1, // Add rank based on the order in the array
+                    rank: globalRank++, // Global rank across all categories
                 });
             });
         });

@@ -4,6 +4,7 @@ import Accordion, { type AccordionRef } from "../util/Accordion";
 import PageLayout from "../layouts/PageLayout";
 import OptionsList from "../options/OptionsList";
 import StatusIndicator from "../util/StatusIndicator";
+import EmptyState from "../util/EmptyState";
 import styled from "styled-components";
 import type { UseGetCriteriaListReturn } from "../../types/criteria";
 import { useRef } from "react";
@@ -25,7 +26,7 @@ export default function CriteriaRankingList() {
     // Determine if we're on the ranking page
     const isRankingPage = location.pathname.includes('/ranking');
     const nextButtonAction = isRankingPage ?
-        () => navigate(`/decisions/${decisionId}/report`) :
+        () => navigate(`/decisions/${decisionId}/decide`) :
         () => navigate(`/decisions/${decisionId}/ranking`);
 
     // Function to handle accordion toggle - only one can be open at a time
@@ -62,6 +63,23 @@ export default function CriteriaRankingList() {
 
     if (isLoading) return <div>Loading criteria...</div>;
     if (error) return <div>Error: {error.message}</div>;
+
+    // Show empty state if no criteria
+    if (!data?.output || data.output.length === 0) {
+        return (
+            <PageLayout
+                title="How do the options rank per criteria?"
+                showBackButton={true}
+                onBackClick={() => navigate(`/decisions/${decisionId}/criteria`)}
+                showNextButton={true}
+                onNextClick={nextButtonAction}
+            >
+                <EmptyState
+                    text="No criteria found. Add criteria to start ranking options."
+                />
+            </PageLayout>
+        );
+    }
 
     return (
         <PageLayout

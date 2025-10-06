@@ -3,7 +3,9 @@ import styled, { css } from 'styled-components';
 import { useParams, useNavigate } from 'react-router-dom';
 import PageLayout from '../layouts/PageLayout';
 import { useGetDecisionReport } from './useGetDecisionReport';
+import { useSelectWinner } from './useSelectWinner';
 import Chip from '../util/Chip';
+import EmptyState from '../util/EmptyState';
 
 const OptionsGrid = styled.div`
   display: flex; /* Use flexbox for a single column */
@@ -12,18 +14,45 @@ const OptionsGrid = styled.div`
   margin-top: 2rem;
 `;
 
-const OptionBox = styled.div<{ isTopOption: boolean }>`
-  background-color: var(--color-background-secondary);
-  /* Removed full border */
-  border-radius: 0.5rem;
-  padding: 1.5rem;
+const OptionBox = styled.label<{ isTopOption: boolean; isSelected: boolean }>`
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 2px solid ${props =>
+        props.isSelected
+            ? 'var(--color-brand-500)'
+            : 'var(--color-border-primary)'
+    };
+  border-radius: 8px;
+  background-color: ${props =>
+        props.isSelected
+            ? 'var(--color-brand-50)'
+            : 'var(--color-background-primary)'
+    };
+  cursor: pointer;
+  transition: all 0.2s ease;
   width: 100%;
-  max-width: 450px; /* Default width for non-top options (25% smaller than 600px) */
-  /* text-align: center; No longer needed for overall box due to flex layout */
-  box-shadow: none;
-  transition: none;
-  border-top: 1px solid var(--color-border-primary); /* Top border only, using global border color */
+  max-width: 450px;
   margin: 0.5rem 0;
+  
+  &:hover {
+    border-color: ${props =>
+        props.isSelected
+            ? 'var(--color-brand-600)'
+            : 'var(--color-brand-400)'
+    };
+    background-color: ${props =>
+        props.isSelected
+            ? 'var(--color-brand-100)'
+            : 'var(--color-background-secondary)'
+    };
+  }
+  
+  &:focus-within {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
 
   h2 {
     margin-top: 0;
@@ -59,12 +88,62 @@ const TagsContainer = styled.div`
   margin-top: 0.5rem;
 `;
 
+const RadioInput = styled.input`
+  margin: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--color-brand-500);
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+  border: 2px solid white;
+  border-radius: 50%;
+  background-color: transparent;
+  
+  &:checked:not(:disabled) {
+    appearance: none;
+    background-color: var(--color-brand-500);
+    position: relative;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 0.5rem;
+      height: 0.5rem;
+      background-color: white;
+      border-radius: 50%;
+    }
+  }
+  
+  &:hover:not(:disabled) {
+    border-color: var(--color-brand-400);
+  }
+  
+  &:focus {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
+`;
+
+const Form = styled.form`
+  width: 100%;
+  max-width: 600px;
+`;
+
 
 
 const DecisionReportPage: React.FC = () => {
     const { decisionId } = useParams<{ decisionId: string }>();
     const navigate = useNavigate();
     const { data, isLoading, error } = useGetDecisionReport(decisionId || '');
+    const selectWinnerMutation = useSelectWinner(decisionId || '');
+
+    const handleOptionChange = (optionId: string) => {
+        selectWinnerMutation.mutate(optionId);
+    };
 
     if (!decisionId) {
         return <PageLayout title="Error"><div>Decision ID is required</div></PageLayout>;
@@ -72,36 +151,68 @@ const DecisionReportPage: React.FC = () => {
 
     if (isLoading) return <PageLayout title="Loading Report..."><div>Loading decision report...</div></PageLayout>;
     if (error) return <PageLayout title="Error"><div>Error: {error.message}</div></PageLayout>;
-    if (!data?.data || data.data.length === 0) return <PageLayout title="No Report Data"><div>No report data found for this decision.</div></PageLayout>;
+
+    // Show empty state if no options to decide between
+    if (!data?.data || data.data.length === 0) {
+        return (
+            <PageLayout
+                title="Select Winner"
+                showBackButton={true}
+                onBackClick={() => navigate(`/decisions/${decisionId}`)}
+            >
+                <EmptyState
+                    text="No options found to decide between. Add options to make a decision."
+                />
+            </PageLayout>
+        );
+    }
 
     return (
         <PageLayout
-            title="Decision Report"
+            title="Select Winner"
             showBackButton={true}
             onBackClick={() => navigate(`/decisions/${decisionId}`)}
         >
-            <OptionsGrid>
-                {data.data.map((option, index) => {
-                    const isTopOption = index === 0;
-                    return (
-                        <OptionBox key={option._id} isTopOption={isTopOption}>
-                            <h2>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    {isTopOption && <span>⭐️</span>}
-                                    {option.title}
-                                </span>
-                            </h2>
-                            {option.tags && option.tags.length > 0 && (
-                                <TagsContainer>
-                                    {option.tags.map((tag) => (
-                                        <Chip key={tag} variant="tag">{tag}</Chip>
-                                    ))}
-                                </TagsContainer>
-                            )}
-                        </OptionBox>
-                    );
-                })}
-            </OptionsGrid>
+            <Form>
+                <OptionsGrid>
+                    {data.data.map((option, index) => {
+                        const isTopOption = index === 0;
+                        return (
+                            <OptionBox
+                                key={option._id}
+                                isTopOption={isTopOption}
+                                isSelected={option.isWinner}
+                                htmlFor={`option-${option._id}`}
+                            >
+                                <RadioInput
+                                    type="radio"
+                                    id={`option-${option._id}`}
+                                    name="winner"
+                                    value={option._id}
+                                    defaultChecked={option.isWinner}
+                                    onChange={() => handleOptionChange(option._id)}
+                                    disabled={selectWinnerMutation.isPending}
+                                />
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        {isTopOption && <span>🏆</span>}
+                                        <h2 style={{ margin: 0, fontWeight: 600, fontSize: '1rem', color: 'var(--color-text-primary)' }}>
+                                            {option.title}
+                                        </h2>
+                                    </div>
+                                    {option.tags && option.tags.length > 0 && (
+                                        <TagsContainer>
+                                            {option.tags.map((tag) => (
+                                                <Chip key={tag} variant="tag">{tag}</Chip>
+                                            ))}
+                                        </TagsContainer>
+                                    )}
+                                </div>
+                            </OptionBox>
+                        );
+                    })}
+                </OptionsGrid>
+            </Form>
         </PageLayout>
     );
 };
