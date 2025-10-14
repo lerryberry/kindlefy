@@ -28,7 +28,7 @@ export function useAddOption() {
             // Invalidate all decisions list to update status in decision tiles
             queryClient.invalidateQueries({ queryKey: ["allDecisions"] });
         },
-               onError: (err: any) => {
+        onError: (err: any) => {
             reportError(err, { feature: 'options', action: 'create', entity: 'option' });
         }
     });

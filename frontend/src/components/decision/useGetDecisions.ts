@@ -18,7 +18,7 @@ export function useGetDecisions() {
             return allPages.length + 1;
         },
         initialPageParam: 1
-    });
+    } as any);
 }
 
 export function useGetDecision() {
