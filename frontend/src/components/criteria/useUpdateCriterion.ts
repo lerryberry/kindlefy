@@ -19,7 +19,7 @@ export function useUpdateCriterion() {
 
     const { mutate: updateCriterionMutation, isPending: isUpdating, isSuccess: isUpdateSuccess, error } = useMutation({
         mutationFn: updateCriterion,
-        onSuccess: (_, variables) => {
+               onSuccess: (_: any, variables: any) => {
             queryClient.invalidateQueries({ queryKey: ["criteria", variables.decisionId] });
             queryClient.invalidateQueries({ queryKey: ["criterion", variables.criterionId] });
             // Invalidate decision details so the stepper reflects latest status

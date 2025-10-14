@@ -40,7 +40,7 @@ export default function DecisionList() {
     if (error) return <div>Error: {error.message}</div>;
 
     // Flatten all pages of decisions
-    const allDecisions = data?.pages?.flatMap(page => page.data) || [];
+    const allDecisions = data?.pages?.flatMap((page: any) => page.data) || [];
 
     // Show empty state if no decisions
     if (allDecisions.length === 0) {
@@ -68,7 +68,7 @@ export default function DecisionList() {
             onAddClick={() => navigate("/decisions/new")}
         >
             <DecisionGrid>
-                {allDecisions.map((decision) => (
+                {allDecisions.map((decision: any) => (
                     <div key={decision._id}>
                         <DecisionListItem decisionObject={decision} />
                     </div>

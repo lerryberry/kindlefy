@@ -6,12 +6,12 @@ export function useGetDecisions() {
     const api = useAuthenticatedAxios();
 
     return useInfiniteQuery({
-        queryKey: ["decisions"],
-        queryFn: async ({ pageParam = 1 }) => {
+        queryKey: ["allDecisions"],
+        queryFn: async ({ pageParam = 1 }: any) => {
             const res = await api.get(`/decisions?page=${pageParam}&limit=10`);
             return res.data;
         },
-        getNextPageParam: (lastPage, allPages) => {
+        getNextPageParam: (lastPage: any, allPages: any) => {
             // If lastPage is true, we've reached the end
             if (lastPage.lastPage) return undefined;
             // Otherwise, return the next page number

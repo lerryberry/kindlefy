@@ -23,7 +23,7 @@ export function useSelectWinner(decisionId: string) {
             // Invalidate all decisions list to update status in decision tiles
             queryClient.invalidateQueries({ queryKey: ["allDecisions"] });
         },
-        onError: (err) => {
+               onError: (err: any) => {
             reportError(err, { feature: 'decisions', action: 'select-winner', entity: 'report' });
         }
     });

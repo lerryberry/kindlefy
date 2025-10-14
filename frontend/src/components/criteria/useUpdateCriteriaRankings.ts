@@ -27,7 +27,7 @@ export function useUpdateCriteriaRankings({ decisionId }: UseUpdateCriteriaRanki
             // Only invalidate criteria and decision queries - rankings don't affect other data
             queryClient.invalidateQueries({ queryKey: ["criteria", decisionId] });
         },
-        onError: (err) => {
+        onError: (err: any) => {
             reportError(err, { feature: 'criteria', action: 'updateRankings', entity: 'criteria' });
         }
     });

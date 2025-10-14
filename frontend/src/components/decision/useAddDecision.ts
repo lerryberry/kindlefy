@@ -13,14 +13,14 @@ export function useAddDecisions() {
 
     const { mutate: addDecision, isPending: isAdding, isSuccess, data: createdDecision } = useMutation({
         mutationFn: createDecision,
-        onSuccess: (data) => {
+               onSuccess: (data: any) => {
             queryClient.invalidateQueries({ queryKey: ["allDecisions"] });
             // Navigate to the newly created decision
             if (data?.data?._id) {
                 window.location.href = `/decisions/${data.data._id}`;
             }
         },
-        onError: (err) => {
+               onError: (err: any) => {
             reportError(err, { feature: 'decisions', action: 'create', entity: 'decision' });
         }
     });

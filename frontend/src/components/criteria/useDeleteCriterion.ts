@@ -23,9 +23,9 @@ export function useDeleteCriterion() {
             // Invalidate all decisions list to update status in decision tiles
             queryClient.invalidateQueries({ queryKey: ["allDecisions"] });
         },
-        onError: (err) => {
-            reportError(err, { feature: 'criteria', action: 'delete', entity: 'criterion' });
-        }
+               onError: (err: any) => {
+                   reportError(err, { feature: 'criteria', action: 'delete', entity: 'criterion' });
+               }
     });
 
     return { deleteCriterion: deleteCriterionMutation, isDeleting, isSuccess };

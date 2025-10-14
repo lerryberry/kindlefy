@@ -21,7 +21,7 @@ export function useUpdateDecision() {
             queryClient.invalidateQueries({ queryKey: ["allDecisions"] });
             queryClient.invalidateQueries({ queryKey: ["decision"] }); // Invalidate single decision query
         },
-        onError: (err) => {
+               onError: (err: any) => {
             reportError(err, { feature: 'decisions', action: 'update', entity: 'decision' });
         }
     });

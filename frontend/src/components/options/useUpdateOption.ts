@@ -20,7 +20,7 @@ export function useUpdateOption() {
 
     const { mutate: updateOptionMutation, isPending: isUpdating, isSuccess, data: updatedOption } = useMutation({
         mutationFn: updateOption,
-        onSuccess: (variables) => {
+               onSuccess: (variables: any) => {
             queryClient.invalidateQueries({ queryKey: ["option", variables.optionId] });
             queryClient.invalidateQueries({ queryKey: ["allOptions", variables.decisionId] });
             queryClient.invalidateQueries({ queryKey: ["rankedOptions"] });
@@ -28,7 +28,7 @@ export function useUpdateOption() {
             queryClient.invalidateQueries({ queryKey: ["decision", variables.decisionId] });
             queryClient.invalidateQueries({ queryKey: ["allDecisions"] });
         },
-        onError: (err) => {
+               onError: (err: any) => {
             reportError(err, { feature: 'options', action: 'update', entity: 'option' });
         }
     });
