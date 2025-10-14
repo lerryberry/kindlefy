@@ -21,12 +21,17 @@ const criteriaSchema = new mongoose.Schema({
     },
     priority: {
         type: String,
-        default: "MUST_HAVE",
+        default: "UNSORTED",
         enum: {
-            values: ['MUST_HAVE', 'SHOULD_HAVE', 'COULD_HAVE'],
-            message: "must be MUST_HAVE, SHOULD HAVE, or COULD HAVE"
+            values: ['UNSORTED', 'MUST_HAVE', 'SHOULD_HAVE', 'COULD_HAVE', 'WONT_HAVE'],
+            message: "must be UNSORTED, MUST_HAVE, SHOULD_HAVE, COULD_HAVE, or WONT_HAVE"
         },
         required: true,
+    },
+    globalRank: {
+        type: Number,
+        default: 1,
+        min: [1, 'Global rank must be 1 or greater']
     },
     slug: {
         type: String,

@@ -1,6 +1,7 @@
 import { useAuthenticatedAxios } from "../../api/services/useAuthenticatedAxios";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
+import { reportError } from "../../utils/errorReporting";
 
 export function useDeleteCriterion() {
     const api = useAuthenticatedAxios();
@@ -22,7 +23,9 @@ export function useDeleteCriterion() {
             // Invalidate all decisions list to update status in decision tiles
             queryClient.invalidateQueries({ queryKey: ["allDecisions"] });
         },
-        onError: (err) => console.log(err.message)
+        onError: (err) => {
+            reportError(err, { feature: 'criteria', action: 'delete', entity: 'criterion' });
+        }
     });
 
     return { deleteCriterion: deleteCriterionMutation, isDeleting, isSuccess };

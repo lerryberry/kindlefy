@@ -131,13 +131,33 @@ exports.getDecision = catchAsync(async (req, res, next) => {
         },
         {
             $addFields: {
+                _criteriaCount: { $size: '$criteria' },
+                _unsortedCriteriaCount: {
+                    $size: {
+                        $filter: {
+                            input: '$criteria',
+                            as: 'c',
+                            cond: { $eq: ['$$c.priority', 'UNSORTED'] }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            $addFields: {
                 status: {
                     hasOptions: { $gt: [{ $size: '$options' }, 1] },
-                    hasCriteria: { $gt: [{ $size: '$criteria' }, 0] },
+                    hasCriteria: {
+                        $and: [
+                            { $gt: ['$_criteriaCount', 0] },
+                            { $eq: ['$_unsortedCriteriaCount', 0] }
+                        ]
+                    },
                     isDecided: { $gt: [{ $size: '$reports' }, 0] }
                 }
             }
-        }
+        },
+        { $project: { _criteriaCount: 0, _unsortedCriteriaCount: 0 } }
     ]);
 
     // For isFullyRanked, we still need a separate query due to complex logic

@@ -16,6 +16,7 @@
     "@vitejs/plugin-react": "^4.4.1",
     "axios": "^1.10.0",
     "dompurify": "^3.2.7",
+    "ordinal": "^1.0.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.59.0",

@@ -2,6 +2,7 @@ import { useAuthenticatedAxios } from "../../api/services/useAuthenticatedAxios"
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { CreateOptionData } from '../../types/options';
 import { useParams } from "react-router-dom";
+import { reportError } from "../../utils/errorReporting";
 
 export function useAddOption() {
     const api = useAuthenticatedAxios();
@@ -27,7 +28,9 @@ export function useAddOption() {
             // Invalidate all decisions list to update status in decision tiles
             queryClient.invalidateQueries({ queryKey: ["allDecisions"] });
         },
-        onError: (err) => console.log(err.message)
+        onError: (err) => {
+            reportError(err, { feature: 'options', action: 'create', entity: 'option' });
+        }
     });
 
     return { isAdding, isSuccess, addOption, createdOption };

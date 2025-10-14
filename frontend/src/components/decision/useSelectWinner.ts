@@ -1,6 +1,7 @@
 import { useAuthenticatedAxios } from '../../api/services/useAuthenticatedAxios';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
+import { reportError } from '../../utils/errorReporting';
 
 export function useSelectWinner(decisionId: string) {
     const api = useAuthenticatedAxios();
@@ -22,9 +23,8 @@ export function useSelectWinner(decisionId: string) {
             // Invalidate all decisions list to update status in decision tiles
             queryClient.invalidateQueries({ queryKey: ["allDecisions"] });
         },
-        onError: (error) => {
-            toast.error('Failed to select winner');
-            console.error('Error selecting winner:', error);
+        onError: (err) => {
+            reportError(err, { feature: 'decisions', action: 'select-winner', entity: 'report' });
         }
     });
 }

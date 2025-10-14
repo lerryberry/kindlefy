@@ -1,94 +1,39 @@
-import { useForm } from 'react-hook-form';
 import { useParams } from "react-router-dom";
-import InlineButton from '../util/InlineButton';
-import Form from '../util/Form';
-import FormInput from '../util/FormInput';
 import { useAddOption } from './useAddOption';
 import { useUpdateOption } from './useUpdateOption';
 import { useDeleteOption } from './useDeleteOption';
 import toast from 'react-hot-toast';
-import type { FieldErrors } from "react-hook-form";
 import type { CreateOptionData } from '../../types/options';
-import { useEffect, useState } from 'react';
-import styled from 'styled-components';
-
-interface CreateOptionFormData {
-    title: string;
-}
-
-const InlineFormContainer = styled.div`
-    display: flex;
-    align-items: stretch;
-    gap: 0.5rem;
-    width: 100%;
-    flex-direction: column;
-    
-    @media (min-width: 768px) {
-        flex-direction: row;
-    }
-`;
-
-const InputContainer = styled.div`
-    flex: 1;
-    position: relative;
-`;
-
-const ButtonContainer = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    justify-content: flex-end;
-`;
-
-const StyledForm = styled(Form)`
-    padding: 0.5rem 0;
-`;
-
-interface CreateOptionListFormInputProps {
-    optionId?: string;
-    optionTitle?: string;
-    isNew?: boolean;
-}
+import type { CreateOptionFormData, CreateOptionListFormInputProps } from '../../types/common';
+import { useEffect } from 'react';
+import InlineFormInput from '../util/InlineFormInput';
 
 function CreateOptionListFormInput({ optionId, optionTitle, isNew = false }: CreateOptionListFormInputProps) {
     const { decisionId } = useParams<{ decisionId: string }>();
-    const { register, handleSubmit, formState: { errors }, reset } = useForm<CreateOptionFormData>();
     const { addOption, isAdding, isSuccess: isAddSuccess, createdOption } = useAddOption();
     const { updateOptionMutation, isUpdating, isSuccess: isUpdateSuccess, updatedOption } = useUpdateOption();
     const { deleteOptionMutation, isDeleting } = useDeleteOption();
-    const [isFocused, setIsFocused] = useState(false);
-    const [isHovered, setIsHovered] = useState(false);
+    // Original values are now managed by InlineFormInput
 
-    useEffect(() => {
-        if (optionId && optionTitle) {
-            reset({
-                title: optionTitle,
-            });
-        }
-    }, [optionId, optionTitle, reset]);
+    // Original values are now managed by InlineFormInput
 
     // Handle successful add operation
     useEffect(() => {
         if (isAddSuccess && createdOption) {
-            // Option added successfully - query invalidation will update the UI
             toast.success("Option added successfully");
-
-            // If this is a new option form, clear the input field
-            if (isNew) {
-                reset({ title: "" });
-            }
+            // Reset handled by InlineFormInput
         }
-    }, [isAddSuccess, createdOption, isNew, reset]);
+    }, [isAddSuccess, createdOption, isNew]);
 
     // Handle successful update operation
     useEffect(() => {
         if (isUpdateSuccess && updatedOption) {
-            // Option updated successfully - query invalidation will update the UI
             toast.success("Option updated successfully");
         }
     }, [isUpdateSuccess, updatedOption]);
 
-    const isWorking = isAdding || isUpdating || isDeleting;
+    const isSubmitWorking = isAdding || isUpdating;
+    const isDeleteWorking = isDeleting;
 
     function onSubmit(data: CreateOptionFormData): void {
         if (!decisionId) {
@@ -113,11 +58,6 @@ function CreateOptionListFormInput({ optionId, optionTitle, isNew = false }: Cre
         }
     }
 
-    function onError(errors: FieldErrors<CreateOptionFormData>): void {
-        const errorMessage = Object.values(errors)[0]?.message || "Form validation failed";
-        toast.error(errorMessage);
-    }
-
     function handleDelete(): void {
         if (!optionId || isNew) {
             toast.error("Cannot delete new option");
@@ -128,58 +68,20 @@ function CreateOptionListFormInput({ optionId, optionTitle, isNew = false }: Cre
     }
 
     return (
-        <StyledForm
-            onSubmit={handleSubmit(onSubmit, onError)}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-        >
-            <InlineFormContainer>
-                <InputContainer
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => setIsFocused(false)}
-                >
-                    <FormInput
-                        type="text"
-                        required
-                        {...register("title", {
-                            required: "Title is required",
-                            minLength: {
-                                value: 3,
-                                message: "Minimum of 3 characters required"
-                            },
-                            maxLength: {
-                                value: 200,
-                                message: "Maximum of 200 characters allowed"
-                            }
-                        })}
-                    />
-                    {errors.title && (
-                        <p style={{ color: "red", fontSize: "0.875rem", marginTop: "0.25rem" }}>
-                            {errors.title.message}
-                        </p>
-                    )}
-                </InputContainer>
-                <ButtonContainer>
-                    {isHovered && optionId && !isNew && (
-                        <InlineButton
-                            type="button"
-                            onClick={handleDelete}
-                            isWorking={isWorking}
-                        >
-                            ✗
-                        </InlineButton>
-                    )}
-                    {isFocused && (
-                        <InlineButton
-                            type="submit"
-                            isWorking={isWorking}
-                        >
-                            ✓
-                        </InlineButton>
-                    )}
-                </ButtonContainer>
-            </InlineFormContainer>
-        </StyledForm>
+        <InlineFormInput
+            itemId={optionId}
+            itemTitle={optionTitle}
+            isNew={isNew}
+            hidePriority={true} // Options don't have priority
+            formData={{ title: optionTitle || '' }}
+            placeholder="Create an option"
+            onSubmit={onSubmit}
+            onDelete={handleDelete}
+            isSubmitWorking={isSubmitWorking}
+            isDeleteWorking={isDeleteWorking}
+            onAddSuccess={isAddSuccess ? () => { } : undefined}
+            onUpdateSuccess={isUpdateSuccess ? () => { } : undefined}
+        />
     );
 }
 

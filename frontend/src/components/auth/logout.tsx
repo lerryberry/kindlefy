@@ -14,6 +14,10 @@ const LogoutLink = styled.button`
     width: 100%;
     text-align: left;
     
+    @media (max-width: 768px) {
+        text-align: right;
+    }
+    
     &:hover {
         color: var(--color-text-secondary);
     }

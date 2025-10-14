@@ -13,9 +13,6 @@ const ListContainer = styled.div`
     /* Background will inherit from parent or use global styles */
 `;
 
-
-
-
 export default function CriteriaRankingList() {
     const navigate = useNavigate();
     const { decisionId } = useParams();

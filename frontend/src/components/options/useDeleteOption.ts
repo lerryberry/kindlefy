@@ -2,6 +2,7 @@ import { useAuthenticatedAxios } from "../../api/services/useAuthenticatedAxios"
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { reportError } from "../../utils/errorReporting";
 
 export function useDeleteOption() {
     const api = useAuthenticatedAxios();
@@ -28,9 +29,7 @@ export function useDeleteOption() {
             toast.success("Option deleted successfully");
         },
         onError: (err: any) => {
-            // Extract the error message from the server response
-            const errorMessage = err?.response?.data?.message || err?.message || 'Failed to delete option';
-            toast.error(errorMessage);
+            reportError(err, { feature: 'options', action: 'delete', entity: 'option' });
         },
     });
 

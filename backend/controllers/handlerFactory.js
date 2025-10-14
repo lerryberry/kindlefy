@@ -145,6 +145,19 @@ exports.updateOne = Model => catchAsync(async (req, res, next) => {
     const decisionId = req.params.decisionId;
     const id = req.params.id;
 
+    // If updating title, validate there's not another document with the same title
+    if (req.body && typeof req.body.title === 'string' && req.body.title.trim().length > 0) {
+        const duplicateCount = await Model.countDocuments({
+            _id: { $ne: id },
+            title: req.body.title,
+            parentDecision: decisionId,
+            isArchived: false
+        });
+        if (duplicateCount > 0) {
+            return next(new AppError(`Document with that name already exists`, 400));
+        }
+    }
+
     //validate that the child is of the parents decision, and only do that for child documents
     const query = decisionId ? { _id: id, parentDecision: decisionId, isArchived: false } : { _id: id, isArchived: false };
 

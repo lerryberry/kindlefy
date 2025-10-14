@@ -18,6 +18,10 @@ const MenuItem = styled.div`
     &:last-child {
         border-bottom: none;
     }
+    
+    @media (max-width: 768px) {
+        text-align: right;
+    }
 `;
 
 const MenuLink = styled(Link)`

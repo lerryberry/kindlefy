@@ -79,16 +79,25 @@ exports.getReport = catchAsync(async (req, res, next) => {
         let multiple
         switch (criterion.priority) {
             case "MUST_HAVE":
-                multiple = 3;
+                multiple = 6;
                 break;
             case "SHOULD_HAVE":
-                multiple = 2;
+                multiple = 4;
                 break;
             case "COULD_HAVE":
-                multiple = 1;
+                multiple = 2;
                 break;
         }
         return multiple
+    };
+
+    // receives criterion id, and returns the global rank to subtract from the score
+    const getCriterionRanking = async (criteriaId) => {
+        const criterion = criteria.find(obj => obj._id.toString() === criteriaId.toString());
+        if (!criterion) {
+            return 0
+        }
+        return criterion.globalRank || 0;
     };
 
     const getCriterionPriorityName = async (criteriaId) => {
@@ -134,13 +143,14 @@ exports.getReport = catchAsync(async (req, res, next) => {
                 rankings.map(async (rank) => {
                     const score = await getMatchScore(rank.matchLevel);
                     const multiple = await getCriterionScore(rank.criterionId);
+                    const criterionRanking = await getCriterionRanking(rank.criterionId);
                     const criterionPriorityName = await getCriterionPriorityName(rank.criterionId);
-                    const scoreContribution = score * multiple; // Calculate the individual score contribution
+                    const scoreContribution = (score * multiple) - criterionRanking; // Calculate the individual score contribution minus ranking
 
                     // Add details of this score change to the meta array
                     option._doc.meta.push({
                         criterionId: rank.criterionId,
-                        math: `${score}(${rank.matchLevel}) * ${multiple}(${criterionPriorityName}) = ${scoreContribution}`,
+                        math: `(${score}(${rank.matchLevel}) * ${multiple}(${criterionPriorityName})) - ${criterionRanking}(ranking) = ${scoreContribution}`,
                         // Add any other relevant info here
                     });
 

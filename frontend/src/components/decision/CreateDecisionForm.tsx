@@ -7,29 +7,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAddDecisions } from './useAddDecision';
 import toast from 'react-hot-toast';
 import type { CreateDecisionData } from '../../types/decision';
+import type { CreateDecisionFormData, ValidationRules } from '../../types/common';
 import { useGetDecision } from './useGetDecision';
 import { useEffect, useState } from 'react';
 import { useUpdateDecision } from './useUpdateDecision';
 import PageLayout from '../layouts/PageLayout';
 import DOMPurify from 'dompurify';
 import validator from 'validator';
-
-// Form data interface - only title is needed for creating decisions
-interface CreateDecisionFormData {
-    title: string;
-    category: string;
-    scope: string;
-    type: string;
-}
-
-// Validation rules type
-interface ValidationRules {
-    required: string;
-    minLength: {
-        value: number;
-        message: string;
-    };
-}
 
 // Strict sanitization function - strips ALL HTML/code, only allows plain text
 const sanitizeText = (input: string): string => {

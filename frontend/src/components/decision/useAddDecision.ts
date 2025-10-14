@@ -1,5 +1,6 @@
 import { useAuthenticatedAxios } from "../../api/services/useAuthenticatedAxios";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { reportError } from "../../utils/errorReporting";
 
 export function useAddDecisions() {
     const api = useAuthenticatedAxios();
@@ -19,7 +20,9 @@ export function useAddDecisions() {
                 window.location.href = `/decisions/${data.data._id}`;
             }
         },
-        onError: (err) => console.log(err.message)
+        onError: (err) => {
+            reportError(err, { feature: 'decisions', action: 'create', entity: 'decision' });
+        }
     });
 
     return { isAdding, isSuccess, addDecision, createdDecision };

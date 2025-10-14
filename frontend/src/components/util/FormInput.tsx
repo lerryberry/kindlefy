@@ -60,7 +60,7 @@ const RequiredAsterisk = styled.span`
 
 const StyledInput = styled.input`
     padding: 0.75rem;
-    border: 1px solid var(--color-border-secondary);
+    border: 1px solid transparent;
     border-radius: 0.375rem;
     font-size: 0.875rem;
     width: 100%;
@@ -71,6 +71,15 @@ const StyledInput = styled.input`
     @media (max-width: 768px) {
         font-size: 16px; /* Prevents zoom on iOS */
         padding: 0.875rem;
+    }
+    
+    &::placeholder {
+        color: var(--color-text-tertiary);
+        opacity: 0.7;
+    }
+    
+    &:hover {
+        border-color: var(--color-border-secondary);
     }
     
     &:focus {
@@ -87,7 +96,7 @@ const StyledInput = styled.input`
 
 const StyledTextarea = styled.textarea`
     padding: 0.75rem;
-    border: 1px solid var(--color-border-secondary);
+    border: 1px solid transparent;
     border-radius: 0.375rem;
     font-size: 0.875rem;
     width: 100%;
@@ -100,6 +109,15 @@ const StyledTextarea = styled.textarea`
     @media (max-width: 768px) {
         font-size: 16px; /* Prevents zoom on iOS */
         padding: 0.875rem;
+    }
+    
+    &::placeholder {
+        color: var(--color-text-tertiary);
+        opacity: 0.7;
+    }
+    
+    &:hover {
+        border-color: var(--color-border-secondary);
     }
     
     &:focus {

@@ -88,7 +88,7 @@ app.use(helmet({
 //global middlewares.. if dev env, make logging verbose
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
-    console.log("Morgan in development mode")
+    
 }
 
 //rate limiter
@@ -119,15 +119,13 @@ app.use('/api/v1/decisions', decisionRouter);
 
 // Serve static files from the frontend build
 const staticPath = path.join(__dirname, '../frontend/dist');
-console.log('Static files path:', staticPath);
-console.log('Path exists:', require('fs').existsSync(staticPath));
+ 
 app.use(express.static(staticPath));
 
 // For SPA: serve index.html for any unknown route (after your API routes)
 app.get('*', (req, res) => {
     const indexPath = path.join(__dirname, '../frontend/dist/index.html');
-    console.log('Serving index.html from:', indexPath);
-    console.log('Index file exists:', require('fs').existsSync(indexPath));
+    
     res.sendFile(indexPath);
 });
 

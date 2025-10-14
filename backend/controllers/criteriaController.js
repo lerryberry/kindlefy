@@ -1,5 +1,6 @@
 const factory = require('./handlerFactory');
 const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/appError');
 const Criteria = require('../models/criteriaModel')
 const Ranking = require('../models/rankingsModel')
 const Options = require('../models/optionsModel');
@@ -71,6 +72,52 @@ exports.getAllCriteria = catchAsync(async (req, res) => {
         lastPage: lastPage
     });
 })
+
+exports.updateCriteriaRankings = catchAsync(async (req, res, next) => {
+    const decisionId = req.params.decisionId;
+    const rankingsArray = req.body;
+
+    // Validate that input is an array
+    if (!Array.isArray(rankingsArray)) {
+        return next(new AppError(`Array of ranking objects is required`, 400));
+    }
+
+    if (rankingsArray.length === 0) {
+        return next(new AppError(`Array must not be empty`, 400));
+    }
+
+    // Validate all criteria belong to the decision and are not archived
+    const criteriaIds = rankingsArray.map(rank => rank.criterionId);
+    const existingCriteria = await Criteria.find({
+        _id: { $in: criteriaIds },
+        parentDecision: decisionId,
+        isArchived: false
+    });
+
+    if (existingCriteria.length !== criteriaIds.length) {
+        return next(new AppError(`One or more criteria do not belong to the decision or are archived`, 404));
+    }
+
+    // Update criteria rankings in batch
+    const updatePromises = rankingsArray.map(rank =>
+        Criteria.findByIdAndUpdate(
+            rank.criterionId,
+            {
+                priority: rank.priority,
+                globalRank: rank.globalRank || 1
+            },
+            { new: true, runValidators: true }
+        )
+    );
+
+    const updatedCriteria = await Promise.all(updatePromises);
+
+    res.status(200).json({
+        status: 'success',
+        results: updatedCriteria.length,
+        data: updatedCriteria
+    });
+});
 
 const getCriterionStatus = async (criteriaId, decisionId) => {
 

@@ -14,17 +14,31 @@ const sanitizeText = (input) => {
     const escaped = validator.escape(input);
     // Then strip ALL HTML tags (including safe ones)
     const stripped = DOMPurify.sanitize(escaped, { ALLOWED_TAGS: [] });
+
+    // Restore commonly needed characters after sanitization
+    const restored = stripped
+        .replace(/&amp;/g, '&')           // Ampersand
+        .replace(/&quot;/g, '"')          // Double quote
+        .replace(/&#x27;/g, "'")          // Apostrophe
+        .replace(/&#x2F;/g, '/')          // Forward slash
+        .replace(/&#96;/g, '`');          // Backtick
+
     // Trim whitespace
-    return stripped.trim();
+    return restored.trim();
 };
 
 // Middleware to sanitize all text fields in request body
 const sanitizeRequestBody = (req, res, next) => {
     if (req.body) {
+
+
         // Sanitize all string fields in the request body
         Object.keys(req.body).forEach(key => {
             if (typeof req.body[key] === 'string') {
+                const originalValue = req.body[key];
                 req.body[key] = sanitizeText(req.body[key]);
+
+
             }
         });
     }

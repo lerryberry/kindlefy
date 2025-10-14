@@ -1,9 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import PageLayout from '../layouts/PageLayout';
 import { useGetCriteriaList } from './useGetCriteria';
-import CreateCriteriaListFormInput from './CreateCriteriaListFormInput';
+import CriteriaDragDropList from './CriteriaDragDropList';
 import Loading from '../util/Loading';
-import type { Criteria } from '../../types/criteria';
 
 function CreateCriteriaListForm() {
     const { decisionId } = useParams<{ decisionId: string }>();
@@ -16,6 +15,8 @@ function CreateCriteriaListForm() {
 
     const criteria = criteriaData?.output || [];
 
+
+
     return (
         <PageLayout
             title="What are the criteria?"
@@ -24,16 +25,7 @@ function CreateCriteriaListForm() {
             showNextButton={true}
             onNextClick={() => navigate(`/decisions/${decisionId}/ranking`)}
         >
-            {criteria.map((criterion: Criteria) => (
-                <div key={criterion._id}>
-                    <CreateCriteriaListFormInput
-                        criterionId={criterion._id}
-                        criterionTitle={criterion.title}
-                        criterionPriority={criterion.priority}
-                    />
-                </div>
-            ))}
-            <CreateCriteriaListFormInput isNew={true} />
+            <CriteriaDragDropList criteria={criteria} />
         </PageLayout>
     );
 }

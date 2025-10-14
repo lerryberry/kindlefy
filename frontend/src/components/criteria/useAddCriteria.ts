@@ -2,6 +2,7 @@ import { useAuthenticatedAxios } from "../../api/services/useAuthenticatedAxios"
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { CreateCriteriaData } from '../../types/criteria';
 import { useParams } from "react-router-dom";
+import { reportError } from "../../utils/errorReporting";
 
 export function useAddCriteria() {
     const api = useAuthenticatedAxios();
@@ -20,7 +21,7 @@ export function useAddCriteria() {
         return res.data;
     };
 
-    const { mutate: addCriteria, isPending: isAdding, isSuccess, data: createdCriteria } = useMutation({
+    const { mutate: addCriteria, isPending: isAdding, isSuccess, data: createdCriteria, error } = useMutation({
         mutationFn: createCriteria,
         onSuccess: () => {
             // Invalidate criteria list to refresh the criteria list
@@ -30,8 +31,10 @@ export function useAddCriteria() {
             // Invalidate all decisions list to update status in decision tiles
             queryClient.invalidateQueries({ queryKey: ["allDecisions"] });
         },
-        onError: (err) => console.log(err.message)
+        onError: (err: any) => {
+            reportError(err, { feature: 'criteria', action: 'create', entity: 'criterion' });
+        }
     });
 
-    return { isAdding, isSuccess, addCriteria, createdCriteria };
+    return { isAdding, isSuccess, addCriteria, createdCriteria, error };
 }

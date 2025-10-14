@@ -12,6 +12,14 @@ router
     .get(criteriaController.getAllCriteria)
 
 router
+    .route('/rankings')
+    .put(
+        sanitizeRequestBody,
+        decisionsController.validateDecision,
+        criteriaController.updateCriteriaRankings
+    )
+
+router
     .route('/:id')
     .get(
         decisionsController.validateDecision,
