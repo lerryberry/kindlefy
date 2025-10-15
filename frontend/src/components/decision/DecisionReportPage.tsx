@@ -197,7 +197,7 @@ const DecisionReportPage: React.FC = () => {
                   />
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      {isTopOption && <span>🏆</span>}
+                      {isTopOption && <span style={{ marginTop: 0 }}>🏆</span>}
                       <h2 style={{ margin: 0, fontWeight: 600, fontSize: '1rem', color: 'var(--color-text-primary)' }}>
                         {option.title}
                       </h2>
