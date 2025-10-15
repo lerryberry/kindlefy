@@ -94,6 +94,8 @@ const RadioInput = styled.input`
   height: 1.25rem;
   accent-color: var(--color-brand-500);
   cursor: pointer;
+  display: flex;
+  align-self: center;
   flex-shrink: 0;
   margin-top: 0.125rem;
   border: 2px solid white;
