@@ -64,7 +64,7 @@ const StyledChip = styled.span<{ variant: string; size: string; type: string }>`
       case 'default':
       default:
         return `
-          background-color: ${props.variant === 'ghost' ? 'transparent' : 'var(--color-background-primary)'};
+          background-color: ${props.variant === 'ghost' ? 'transparent' : 'var(--color-background-secondary)'};
           color: var(--color-text-primary);
           border-color: var(--color-text-primary);
         `;
