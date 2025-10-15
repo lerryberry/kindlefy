@@ -20,16 +20,16 @@ const OptionBox = styled.label<{ isTopOption: boolean; isSelected: boolean }>`
   gap: 1rem;
   padding: 1.25rem;
   border: 2px solid ${props =>
-        props.isSelected
-            ? 'var(--color-brand-500)'
-            : 'var(--color-border-primary)'
-    };
+    props.isSelected
+      ? 'var(--color-brand-500)'
+      : 'var(--color-border-primary)'
+  };
   border-radius: 8px;
   background-color: ${props =>
-        props.isSelected
-            ? 'var(--color-brand-50)'
-            : 'var(--color-background-primary)'
-    };
+    props.isSelected
+      ? 'var(--color-brand-50)'
+      : 'var(--color-background-primary)'
+  };
   cursor: pointer;
   transition: all 0.2s ease;
   width: 100%;
@@ -38,15 +38,15 @@ const OptionBox = styled.label<{ isTopOption: boolean; isSelected: boolean }>`
   
   &:hover {
     border-color: ${props =>
-        props.isSelected
-            ? 'var(--color-brand-600)'
-            : 'var(--color-brand-400)'
-    };
+    props.isSelected
+      ? 'var(--color-brand-600)'
+      : 'var(--color-brand-400)'
+  };
     background-color: ${props =>
-        props.isSelected
-            ? 'var(--color-brand-100)'
-            : 'var(--color-background-secondary)'
-    };
+    props.isSelected
+      ? 'var(--color-brand-100)'
+      : 'var(--color-background-secondary)'
+  };
   }
   
   &:focus-within {
@@ -136,87 +136,87 @@ const Form = styled.form`
 
 
 const DecisionReportPage: React.FC = () => {
-    const { decisionId } = useParams<{ decisionId: string }>();
-    const navigate = useNavigate();
-    const { data, isLoading, error } = useGetDecisionReport(decisionId || '');
-    const selectWinnerMutation = useSelectWinner(decisionId || '');
+  const { decisionId } = useParams<{ decisionId: string }>();
+  const navigate = useNavigate();
+  const { data, isLoading, error } = useGetDecisionReport(decisionId || '');
+  const selectWinnerMutation = useSelectWinner(decisionId || '');
 
-    const handleOptionChange = (optionId: string) => {
-        selectWinnerMutation.mutate(optionId);
-    };
+  const handleOptionChange = (optionId: string) => {
+    selectWinnerMutation.mutate(optionId);
+  };
 
-    if (!decisionId) {
-        return <PageLayout title="Error"><div>Decision ID is required</div></PageLayout>;
-    }
+  if (!decisionId) {
+    return <PageLayout title="Error"><div>Decision ID is required</div></PageLayout>;
+  }
 
-    if (isLoading) return <PageLayout title="Loading Report..."><div>Loading decision report...</div></PageLayout>;
-    if (error) return <PageLayout title="Error"><div>Error: {error.message}</div></PageLayout>;
+  if (isLoading) return <PageLayout title="Loading Report..."><div>Loading decision report...</div></PageLayout>;
+  if (error) return <PageLayout title="Error"><div>Error: {error.message}</div></PageLayout>;
 
-    // Show empty state if no options to decide between
-    if (!data?.data || data.data.length === 0) {
-        return (
-            <PageLayout
-                title="Select Winner"
-                showBackButton={true}
-                onBackClick={() => navigate(`/decisions/${decisionId}`)}
-            >
-                <EmptyState
-                    text="No options found to decide between. Add options to make a decision."
-                />
-            </PageLayout>
-        );
-    }
-
+  // Show empty state if no options to decide between
+  if (!data?.data || data.data.length === 0) {
     return (
-        <PageLayout
-            title="Select Winner"
-            showBackButton={true}
-            onBackClick={() => navigate(`/decisions/${decisionId}`)}
-        >
-            <Form>
-                <OptionsGrid>
-                    {data.data
-                        .sort((a, b) => b.score - a.score) // Sort by score descending to maintain consistent order
-                        .map((option, index) => {
-                        const isTopOption = index === 0;
-                        return (
-                            <OptionBox
-                                key={option._id}
-                                isTopOption={isTopOption}
-                                isSelected={option.isWinner}
-                                htmlFor={`option-${option._id}`}
-                            >
-                                <RadioInput
-                                    type="radio"
-                                    id={`option-${option._id}`}
-                                    name="winner"
-                                    value={option._id}
-                                    defaultChecked={option.isWinner}
-                                    onChange={() => handleOptionChange(option._id)}
-                                    disabled={selectWinnerMutation.isPending}
-                                />
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        {isTopOption && <span>🏆</span>}
-                                        <h2 style={{ margin: 0, fontWeight: 600, fontSize: '1rem', color: 'var(--color-text-primary)' }}>
-                                            {option.title}
-                                        </h2>
-                                    </div>
-                                    {option.tags && option.tags.length > 0 && (
-                                        <TagsContainer>
-                                            {option.tags.map((tag) => (
-                                                <Chip key={tag} variant="tag">{tag}</Chip>
-                                            ))}
-                                        </TagsContainer>
-                                    )}
-                                </div>
-                            </OptionBox>
-                        );
-                    })}
-                </OptionsGrid>
-            </Form>
-        </PageLayout>
+      <PageLayout
+        title="Select Winner"
+        showBackButton={true}
+        onBackClick={() => navigate(`/decisions/${decisionId}`)}
+      >
+        <EmptyState
+          text="No options found to decide between. Add options to make a decision."
+        />
+      </PageLayout>
     );
+  }
+
+  return (
+    <PageLayout
+      title="Select Winner"
+      showBackButton={true}
+      onBackClick={() => navigate(`/decisions/${decisionId}`)}
+    >
+      <Form>
+        <OptionsGrid>
+          {data.data
+            .sort((a, b) => b.score - a.score) // Sort by score descending to maintain consistent order
+            .map((option, index) => {
+              const isTopOption = index === 0;
+              return (
+                <OptionBox
+                  key={option._id}
+                  isTopOption={isTopOption}
+                  isSelected={option.isWinner}
+                  htmlFor={`option-${option._id}`}
+                >
+                  <RadioInput
+                    type="radio"
+                    id={`option-${option._id}`}
+                    name="winner"
+                    value={option._id}
+                    defaultChecked={option.isWinner}
+                    onChange={() => handleOptionChange(option._id)}
+                    disabled={selectWinnerMutation.isPending}
+                  />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      {isTopOption && <span>🏆</span>}
+                      <h2 style={{ margin: 0, fontWeight: 600, fontSize: '1rem', color: 'var(--color-text-primary)' }}>
+                        {option.title}
+                      </h2>
+                    </div>
+                    {option.tags && option.tags.length > 0 && (
+                      <TagsContainer>
+                                            {option.tags.map((tag) => (
+                                                <Chip key={tag} variant="filled" size="small" type="default">{tag}</Chip>
+                                            ))}
+                      </TagsContainer>
+                    )}
+                  </div>
+                </OptionBox>
+              );
+            })}
+        </OptionsGrid>
+      </Form>
+    </PageLayout>
+  );
 };
 
 export default DecisionReportPage;

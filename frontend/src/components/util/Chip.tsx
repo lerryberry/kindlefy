@@ -3,77 +3,81 @@ import styled from 'styled-components';
 
 export interface ChipProps extends React.HTMLAttributes<HTMLSpanElement> {
     children: React.ReactNode;
-    variant?: 'priority' | 'tag';
-    priority?: 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE';
-    success?: boolean;
-    ghost?: boolean;
+    variant?: 'ghost' | 'filled';
+    size?: 'small' | 'medium' | 'large';
+    type?: 'success' | 'fail' | 'default';
 }
 
-const StyledChip = styled.span<{ variant: string; priority?: string; success?: boolean; ghost?: boolean }>`
+const StyledChip = styled.span<{ variant: string; size: string; type: string }>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 1.5rem;
-  min-width: 2rem;
-  padding: 0 0.5rem;
   border-radius: 50px;
-  font-size: 12px;
   font-weight: 600;
   line-height: 1;
-  text-transform: ${props => props.variant === 'priority' ? 'uppercase' : 'none'};
-  letter-spacing: ${props => props.variant === 'priority' ? '0.05em' : 'normal'};
   white-space: nowrap;
+  border: 2px solid transparent;
   
-  /* Default tag styling */
-  background-color: var(--color-background-tertiary);
-  color: var(--color-text-secondary);
+  /* Size variants */
+  ${props => {
+    switch (props.size) {
+      case 'small':
+        return `
+          height: 1.25rem;
+          min-width: 1.5rem;
+          padding: 0 0.375rem;
+          font-size: 10px;
+        `;
+      case 'large':
+        return `
+          height: 2rem;
+          min-width: 2.5rem;
+          padding: 0 0.75rem;
+          font-size: 14px;
+        `;
+      case 'medium':
+      default:
+        return `
+          height: 1.5rem;
+          min-width: 2rem;
+          padding: 0 0.5rem;
+          font-size: 12px;
+        `;
+    }
+  }}
   
-  /* Priority-specific styling */
-  ${props => props.variant === 'priority' && props.priority && `
-    background-color: ${getPriorityBackgroundColor(props.priority)};
-    color: ${getPriorityTextColor(props.priority)};
-  `}
-  
-  /* Success-specific styling */
-  ${props => props.success && `
-    background-color: var(--color-success);
-    color: var(--color-text-inverse);
-  `}
-  
-  /* Ghost-specific styling */
-  ${props => props.ghost && `
-    background-color: transparent;
-    color: var(--color-success);
-    border: 2px solid var(--color-success);
-  `}
+  /* Type variants */
+  ${props => {
+    switch (props.type) {
+      case 'success':
+        return `
+          background-color: ${props.variant === 'ghost' ? 'transparent' : 'var(--color-success)'};
+          color: var(--color-text-inverse);
+          border-color: var(--color-success);
+        `;
+      case 'fail':
+        return `
+          background-color: ${props.variant === 'ghost' ? 'transparent' : 'var(--color-error)'};
+          color: var(--color-text-inverse);
+          border-color: var(--color-error);
+        `;
+      case 'default':
+      default:
+        return `
+          background-color: ${props.variant === 'ghost' ? 'transparent' : 'var(--color-background-tertiary)'};
+          color: var(--color-text-secondary);
+          border-color: var(--color-border-secondary);
+        `;
+    }
+  }}
 `;
 
-const getPriorityBackgroundColor = (priority: string): string => {
-    switch (priority) {
-        case 'MUST_HAVE': return 'var(--color-success)';
-        case 'SHOULD_HAVE': return 'var(--color-warning)';
-        case 'COULD_HAVE': return 'var(--color-info)';
-        case 'WONT_HAVE': return 'var(--color-error)';
-        default: return 'var(--color-gray-100)';
-    }
-};
-
-const getPriorityTextColor = (priority: string): string => {
-    switch (priority) {
-        case 'MUST_HAVE': return 'var(--color-text-inverse)';
-        case 'SHOULD_HAVE': return 'var(--color-text-inverse)';
-        case 'COULD_HAVE': return 'var(--color-text-inverse)';
-        case 'WONT_HAVE': return 'var(--color-text-inverse)';
-        default: return 'var(--color-text-primary)';
-    }
-};
 
 const Chip = React.forwardRef<HTMLSpanElement, ChipProps>(({
     children,
-    variant = 'tag',
-    priority,
-    success = false,
-    ghost = false,
+    variant = 'filled',
+    size = 'medium',
+    type = 'default',
     ...props
 }, ref) => {
     const [isHovered, setIsHovered] = useState(false);
@@ -91,10 +95,9 @@ const Chip = React.forwardRef<HTMLSpanElement, ChipProps>(({
         if (typeof children === 'string') {
             // Show full text on hover, truncated text otherwise
             const text = isHovered ? children : truncateText(children);
-            // Add tick at the beginning if success is true
-            return success ? `✓ ${text}` : text;
+            return text;
         }
-        return success ? `✓ ${children}` : children;
+        return children;
     };
 
     const handleMouseEnter = () => {
@@ -111,9 +114,8 @@ const Chip = React.forwardRef<HTMLSpanElement, ChipProps>(({
         <StyledChip
             ref={ref}
             variant={variant}
-            priority={priority}
-            success={success}
-            ghost={ghost}
+            size={size}
+            type={type}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             {...props}

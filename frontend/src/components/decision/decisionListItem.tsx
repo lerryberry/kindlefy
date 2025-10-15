@@ -83,7 +83,7 @@ const DecisionListItem = ({ decisionObject, arrowClickable = true }: DecisionLis
         </DecisionTitle>
         {decisionObject.isDecided && (
           <ChipContainer>
-            <Chip variant="tag" success={true} ghost={true}>Decided</Chip>
+            <Chip variant="ghost" size="small" type="success">Decided</Chip>
           </ChipContainer>
         )}
       </ContentContainer>
