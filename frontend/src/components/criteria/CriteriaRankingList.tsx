@@ -7,7 +7,7 @@ import StatusIndicator from "../util/StatusIndicator";
 import EmptyState from "../util/EmptyState";
 import styled from "styled-components";
 import type { UseGetCriteriaListReturn } from "../../types/criteria";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 const ListContainer = styled.div`
     /* Background will inherit from parent or use global styles */
@@ -19,6 +19,7 @@ export default function CriteriaRankingList() {
     const location = useLocation();
     const { data, isLoading, error }: UseGetCriteriaListReturn = useGetCriteriaList(decisionId!);
     const accordionRefs = useRef<{ [key: number]: AccordionRef }>({});
+    const [openAccordion, setOpenAccordion] = useState<number | null>(null);
 
     // Determine if we're on the ranking page
     const isRankingPage = location.pathname.includes('/ranking');
@@ -36,6 +37,9 @@ export default function CriteriaRankingList() {
                     accordionRefs.current[num]?.close();
                 }
             });
+            setOpenAccordion(accordionNumber);
+        } else {
+            setOpenAccordion(null);
         }
     };
 
@@ -46,6 +50,7 @@ export default function CriteriaRankingList() {
         if (currentAccordionRef) {
             currentAccordionRef.close();
         }
+        setOpenAccordion(null);
 
         // Auto-open next accordion if it exists
         const nextAccordionNumber = accordionNumber + 1;
@@ -54,6 +59,7 @@ export default function CriteriaRankingList() {
             // Small delay for smooth UX - wait for close animation to complete
             setTimeout(() => {
                 nextAccordionRef.open();
+                setOpenAccordion(nextAccordionNumber);
             }, 300);
         }
     };
@@ -108,6 +114,7 @@ export default function CriteriaRankingList() {
                                 <OptionsList
                                     criterionId={criteria._id}
                                     onRankingSaved={() => handleRankingSaved(accordionNumber)}
+                                    isAccordionOpen={openAccordion === accordionNumber}
                                 />
                             </Accordion>
                         </div>

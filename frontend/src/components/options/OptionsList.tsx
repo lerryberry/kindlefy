@@ -12,15 +12,16 @@ import type { CategoryConfig } from '../../hooks/useDragAndDrop';
 interface OptionsListProps {
     criterionId?: string;
     onRankingSaved?: () => void;
+    isAccordionOpen?: boolean;
 }
 
-const OptionsList: React.FC<OptionsListProps> = ({ criterionId: propCriterionId, onRankingSaved }) => {
+const OptionsList: React.FC<OptionsListProps> = ({ criterionId: propCriterionId, onRankingSaved, isAccordionOpen = true }) => {
     const { decisionId, criterionId: urlCriterionId } = useParams<{ decisionId: string; criterionId: string }>();
 
     // Use prop criterionId if provided, otherwise fall back to URL param
     const criterionId = propCriterionId || urlCriterionId;
 
-    const { data: rankedOptionsData, isLoading, error, refetch }: UseGetRankedOptionListReturn = useGetRankedOptions(criterionId!);
+    const { data: rankedOptionsData, isLoading, error, refetch }: UseGetRankedOptionListReturn = useGetRankedOptions(criterionId!, isAccordionOpen);
     const [groupedOptions, setGroupedOptions] = useState<Record<MatchLevel, GroupedOption[]>>({
         "UNSORTED": [],
         "BEST": [],

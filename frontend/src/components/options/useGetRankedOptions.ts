@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import type { UseGetRankedOptionListReturn } from '../../types/options';
 
-export function useGetRankedOptions(criterionId: string): UseGetRankedOptionListReturn {
+export function useGetRankedOptions(criterionId: string, enabled: boolean = true): UseGetRankedOptionListReturn {
     const api = useAuthenticatedAxios();
     const { decisionId } = useParams();
 
@@ -13,7 +13,7 @@ export function useGetRankedOptions(criterionId: string): UseGetRankedOptionList
             const res = await api.get(`/decisions/${decisionId}/criteria/${criterionId}/ranking`);
             return res.data;
         },
-        enabled: !!criterionId && !!decisionId
+        enabled: !!criterionId && !!decisionId && enabled
     });
 
     return { data, isLoading, error, isSuccess, isError, isFetching, refetch };
