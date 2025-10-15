@@ -24,8 +24,12 @@ export function useUpdateCriteriaRankings({ decisionId }: UseUpdateCriteriaRanki
     const { mutate: updateCriteriaRankingsMutation, isPending: isUpdating, isSuccess, error } = useMutation({
         mutationFn: updateCriteriaRankings,
         onSuccess: () => {
-            // Only invalidate criteria and decision queries - rankings don't affect other data
+            // Invalidate criteria list to refresh the criteria list
             queryClient.invalidateQueries({ queryKey: ["criteria", decisionId] });
+            // Invalidate decision query to update status object
+            queryClient.invalidateQueries({ queryKey: ["decision", decisionId] });
+            // Invalidate all decisions list to update status in decision tiles
+            queryClient.invalidateQueries({ queryKey: ["allDecisions"] });
         },
         onError: (err: any) => {
             reportError(err, { feature: 'criteria', action: 'updateRankings', entity: 'criteria' });

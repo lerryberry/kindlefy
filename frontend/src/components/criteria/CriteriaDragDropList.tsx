@@ -151,7 +151,18 @@ const CriteriaDragDropList: React.FC<CriteriaDragDropListProps> = ({ criteria })
     };
 
     const handleReorder = (newCategories: Record<string, DraggableCriteria[]>) => {
-        setGroupedCriteria(newCategories);
+        // Ensure the new criterion form is always at the top of UNSORTED category
+        const processedCategories = { ...newCategories };
+        if (processedCategories.UNSORTED) {
+            const unsortedItems = processedCategories.UNSORTED;
+            const newCriterionForm = unsortedItems.find(item => item._id === 'new-criterion-form');
+            const otherItems = unsortedItems.filter(item => item._id !== 'new-criterion-form');
+            
+            // Put new criterion form at the top, then other items
+            processedCategories.UNSORTED = newCriterionForm ? [newCriterionForm, ...otherItems] : otherItems;
+        }
+
+        setGroupedCriteria(processedCategories);
 
         // Track that changes have been made (for auto-save timeout)
         // We don't need to track specific changes since we save all criteria on mouse-out
@@ -164,9 +175,9 @@ const CriteriaDragDropList: React.FC<CriteriaDragDropListProps> = ({ criteria })
     };
 
     const handleCategoryChange = (item: DraggableCriteria, newCategory: string): DraggableCriteria => {
-        // Don't track changes for the new criterion form
+        // Don't allow the new criterion form to be moved to other categories
         if (item._id === 'new-criterion-form') {
-            return { ...item, priority: newCategory as 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE' };
+            return { ...item, priority: 'UNSORTED' as const };
         }
 
         // Track the change for batch saving
