@@ -175,7 +175,9 @@ const DecisionReportPage: React.FC = () => {
         >
             <Form>
                 <OptionsGrid>
-                    {data.data.map((option, index) => {
+                    {data.data
+                        .sort((a, b) => b.score - a.score) // Sort by score descending to maintain consistent order
+                        .map((option, index) => {
                         const isTopOption = index === 0;
                         return (
                             <OptionBox

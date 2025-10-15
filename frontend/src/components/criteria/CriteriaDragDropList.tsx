@@ -157,7 +157,7 @@ const CriteriaDragDropList: React.FC<CriteriaDragDropListProps> = ({ criteria })
             const unsortedItems = processedCategories.UNSORTED;
             const newCriterionForm = unsortedItems.find(item => item._id === 'new-criterion-form');
             const otherItems = unsortedItems.filter(item => item._id !== 'new-criterion-form');
-            
+
             // Put new criterion form at the top, then other items
             processedCategories.UNSORTED = newCriterionForm ? [newCriterionForm, ...otherItems] : otherItems;
         }
