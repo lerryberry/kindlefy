@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import DraggableList from '../util/DraggableList';
 import DraggableListItem from '../util/DraggableListItem';
 import CreateCriteriaListFormInput from './CreateCriteriaListFormInput';
-import Chip from '../util/Chip';
 import { useUpdateCriterion } from './useUpdateCriterion';
 import { useUpdateCriteriaRankings } from './useUpdateCriteriaRankings';
 import { useParams } from 'react-router-dom';
@@ -188,35 +187,9 @@ const CriteriaDragDropList: React.FC<CriteriaDragDropListProps> = ({ criteria })
             );
         }
 
-        // Calculate if this is the top criteria based on client-side ranking
-        // Get all criteria in their current order (excluding the new form)
-        const allCriteria: DraggableCriteria[] = [];
-        const priorityOrder = ['UNSORTED', 'MUST_HAVE', 'SHOULD_HAVE', 'COULD_HAVE', 'WONT_HAVE'];
-        priorityOrder.forEach(priority => {
-            const criteria = groupedCriteria[priority] || [];
-            criteria.forEach(criterion => {
-                if (criterion._id !== 'new-criterion-form') {
-                    allCriteria.push(criterion);
-                }
-            });
-        });
-
-        // The first criterion in the order is "Critical"
-        const isTopCriteria = allCriteria.length > 0 && allCriteria[0]._id === criterion._id;
-
         return (
             <DraggableListItem>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%' }}>
-                    {isTopCriteria && (
-                        <Chip ghost={true} style={{
-                            flexShrink: 0,
-                            backgroundColor: 'var(--color-background-secondary)',
-                            color: 'var(--color-text-secondary)',
-                            border: '1px solid var(--color-border-secondary)'
-                        }}>
-                            Critical
-                        </Chip>
-                    )}
                     <CreateCriteriaListFormInput
                         criterionId={criterion._id}
                         criterionTitle={criterion.title}
