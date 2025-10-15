@@ -204,9 +204,9 @@ const DecisionReportPage: React.FC = () => {
                     </div>
                     {option.tags && option.tags.length > 0 && (
                       <TagsContainer>
-                        {option.tags.map((tag) => (
-                          <Chip key={tag} variant="filled" size="small" type="default">{tag}</Chip>
-                        ))}
+                                            {option.tags.map((tag) => (
+                                                <Chip key={tag} variant="ghost" size="small" type="default">{tag}</Chip>
+                                            ))}
                       </TagsContainer>
                     )}
                   </div>

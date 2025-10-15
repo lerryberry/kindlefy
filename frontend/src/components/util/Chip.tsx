@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 
 export interface ChipProps extends React.HTMLAttributes<HTMLSpanElement> {
-    children: React.ReactNode;
-    variant?: 'ghost' | 'filled';
-    size?: 'small' | 'medium' | 'large';
-    type?: 'success' | 'fail' | 'default';
+  children: React.ReactNode;
+  variant?: 'ghost' | 'filled';
+  size?: 'small' | 'medium' | 'large';
+  type?: 'success' | 'fail' | 'default';
 }
 
 const StyledChip = styled.span<{ variant: string; size: string; type: string }>`
@@ -20,31 +20,31 @@ const StyledChip = styled.span<{ variant: string; size: string; type: string }>`
   
   /* Size variants */
   ${props => {
-        switch (props.size) {
-            case 'small':
-                return `
+    switch (props.size) {
+      case 'small':
+        return `
           height: 1.25rem;
           min-width: 1.5rem;
           padding: 0 0.375rem;
           font-size: 10px;
         `;
-            case 'large':
-                return `
+      case 'large':
+        return `
           height: 2rem;
           min-width: 2.5rem;
           padding: 0 0.75rem;
           font-size: 14px;
         `;
-            case 'medium':
-            default:
-                return `
+      case 'medium':
+      default:
+        return `
           height: 1.5rem;
           min-width: 2rem;
           padding: 0 0.5rem;
           font-size: 12px;
         `;
-        }
-    }}
+    }
+  }}
   
   /* Type variants */
   ${props => {
@@ -74,55 +74,55 @@ const StyledChip = styled.span<{ variant: string; size: string; type: string }>`
 
 
 const Chip = React.forwardRef<HTMLSpanElement, ChipProps>(({
-    children,
-    variant = 'filled',
-    size = 'medium',
-    type = 'default',
-    ...props
+  children,
+  variant = 'filled',
+  size = 'medium',
+  type = 'default',
+  ...props
 }, ref) => {
-    const [isHovered, setIsHovered] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
-    // Truncate text to 30 characters with ellipsis
-    const truncateText = (text: string): string => {
-        if (text.length <= 30) {
-            return text;
-        }
-        return text.substring(0, 30) + '...';
-    };
+  // Truncate text to 30 characters with ellipsis
+  const truncateText = (text: string): string => {
+    if (text.length <= 30) {
+      return text;
+    }
+    return text.substring(0, 30) + '...';
+  };
 
-    // Handle children - if it's a string, show full text on hover or truncated otherwise
-    const renderChildren = () => {
-        if (typeof children === 'string') {
-            // Show full text on hover, truncated text otherwise
-            const text = isHovered ? children : truncateText(children);
-            return text;
-        }
-        return children;
-    };
+  // Handle children - if it's a string, show full text on hover or truncated otherwise
+  const renderChildren = () => {
+    if (typeof children === 'string') {
+      // Show full text on hover, truncated text otherwise
+      const text = isHovered ? children : truncateText(children);
+      return text;
+    }
+    return children;
+  };
 
-    const handleMouseEnter = () => {
-        if (typeof children === 'string' && children.length > 30) {
-            setIsHovered(true);
-        }
-    };
+  const handleMouseEnter = () => {
+    if (typeof children === 'string' && children.length > 30) {
+      setIsHovered(true);
+    }
+  };
 
-    const handleMouseLeave = () => {
-        setIsHovered(false);
-    };
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+  };
 
-    return (
-        <StyledChip
-            ref={ref}
-            variant={variant}
-            size={size}
-            type={type}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            {...props}
-        >
-            {renderChildren()}
-        </StyledChip>
-    );
+  return (
+    <StyledChip
+      ref={ref}
+      variant={variant}
+      size={size}
+      type={type}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      {...props}
+    >
+      {renderChildren()}
+    </StyledChip>
+  );
 });
 
 Chip.displayName = 'Chip';
