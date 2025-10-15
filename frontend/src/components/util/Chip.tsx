@@ -20,31 +20,31 @@ const StyledChip = styled.span<{ variant: string; size: string; type: string }>`
   
   /* Size variants */
   ${props => {
-    switch (props.size) {
-      case 'small':
-        return `
+        switch (props.size) {
+            case 'small':
+                return `
           height: 1.25rem;
           min-width: 1.5rem;
           padding: 0 0.375rem;
           font-size: 10px;
         `;
-      case 'large':
-        return `
+            case 'large':
+                return `
           height: 2rem;
           min-width: 2.5rem;
           padding: 0 0.75rem;
           font-size: 14px;
         `;
-      case 'medium':
-      default:
-        return `
+            case 'medium':
+            default:
+                return `
           height: 1.5rem;
           min-width: 2rem;
           padding: 0 0.5rem;
           font-size: 12px;
         `;
-    }
-  }}
+        }
+    }}
   
   /* Type variants */
   ${props => {
@@ -52,13 +52,13 @@ const StyledChip = styled.span<{ variant: string; size: string; type: string }>`
       case 'success':
         return `
           background-color: ${props.variant === 'ghost' ? 'transparent' : 'var(--color-success)'};
-          color: var(--color-text-inverse);
+          color: var(--color-success);
           border-color: var(--color-success);
         `;
       case 'fail':
         return `
           background-color: ${props.variant === 'ghost' ? 'transparent' : 'var(--color-error)'};
-          color: var(--color-text-inverse);
+          color: var(--color-error);
           border-color: var(--color-error);
         `;
       case 'default':
