@@ -60,7 +60,8 @@ app.use(helmet({
             connectSrc: [
                 "'self'",
                 "https://auth.krystallise.com",
-                "https://app.krystallise.com"
+                "https://app.krystallise.com",
+                "https://*.posthog.com"
             ],
             scriptSrc: ["'self'", "'unsafe-inline'"],
             styleSrc: ["'self'", "'unsafe-inline'"],
