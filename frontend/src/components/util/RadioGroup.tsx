@@ -29,10 +29,12 @@ const RadioGroupContainer = styled.div<{ disabled?: boolean }>`
         grid-template-columns: 1fr;
     }
     
-    /* Ensure grid items have equal width */
-    > label {
-        width: 100%;
-        min-width: 0;
+    /* Ensure grid items have equal width on mobile only */
+    @media (max-width: 768px) {
+        > label {
+            width: 100%;
+            min-width: 0;
+        }
     }
 `;
 
