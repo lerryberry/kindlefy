@@ -16,8 +16,9 @@ router
     .put(
         sanitizeRequestBody,
         decisionsController.validateDecision,
-        criteriaController.updateCriteriaRankings
+        criteriaController.updateManyCriterias
     )
+
 
 router
     .route('/:id')
