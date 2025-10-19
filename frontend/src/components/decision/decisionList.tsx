@@ -15,6 +15,12 @@ const DecisionGrid = styled.div`
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
   }
+  
+  /* Ensure grid items have equal width */
+  > div {
+    width: 100%;
+    min-width: 0;
+  }
 `;
 
 const LoadMoreContainer = styled.div`

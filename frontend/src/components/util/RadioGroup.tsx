@@ -28,6 +28,12 @@ const RadioGroupContainer = styled.div<{ disabled?: boolean }>`
     @media (max-width: 768px) {
         grid-template-columns: 1fr;
     }
+    
+    /* Ensure grid items have equal width */
+    > label {
+        width: 100%;
+        min-width: 0;
+    }
 `;
 
 const RadioOption = styled.label<{ isSelected: boolean; disabled?: boolean }>`

@@ -1,20 +1,16 @@
-import { useAuthenticatedAxios } from "../../api/services/useAuthenticatedAxios";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { reportError } from "../../utils/errorReporting";
+import { useAuthenticatedAxios } from '../../api/services/useAuthenticatedAxios';
+import toast from 'react-hot-toast';
 
-interface CriteriaRanking {
+export interface CriteriaRanking {
     criterionId: string;
     priority: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE';
-    globalRank: number;
+    ranking: number;
 }
 
-interface UseUpdateCriteriaRankingsProps {
-    decisionId: string;
-}
-
-export function useUpdateCriteriaRankings({ decisionId }: UseUpdateCriteriaRankingsProps) {
-    const api = useAuthenticatedAxios();
+export function useUpdateCriteriaRankings({ decisionId }: { decisionId: string }) {
     const queryClient = useQueryClient();
+    const api = useAuthenticatedAxios();
 
     const updateCriteriaRankings = async (rankings: CriteriaRanking[]) => {
         const res = await api.put(`/decisions/${decisionId}/criteria/rankings`, rankings);
@@ -24,15 +20,14 @@ export function useUpdateCriteriaRankings({ decisionId }: UseUpdateCriteriaRanki
     const { mutate: updateCriteriaRankingsMutation, isPending: isUpdating, isSuccess, error } = useMutation({
         mutationFn: updateCriteriaRankings,
         onSuccess: () => {
-            // Invalidate criteria list to refresh the criteria list
-            queryClient.invalidateQueries({ queryKey: ["criteria", decisionId] });
-            // Invalidate decision query to update status object
-            queryClient.invalidateQueries({ queryKey: ["decision", decisionId] });
-            // Invalidate all decisions list to update status in decision tiles
-            queryClient.invalidateQueries({ queryKey: ["allDecisions"] });
+            // Invalidate and refetch criteria queries
+            queryClient.invalidateQueries({ queryKey: ['criteria', decisionId] });
+            queryClient.invalidateQueries({ queryKey: ['decision', decisionId] });
+            toast.success("Criteria rankings updated successfully");
         },
-        onError: (err: any) => {
-            reportError(err, { feature: 'criteria', action: 'updateRankings', entity: 'criteria' });
+        onError: (error: any) => {
+            console.error('Error updating criteria rankings:', error);
+            toast.error("Failed to update criteria rankings");
         }
     });
 

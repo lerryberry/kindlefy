@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import DraggableList from '../util/DraggableList';
 import DraggableListItem from '../util/DraggableListItem';
 import CreateCriteriaListFormInput from './CreateCriteriaListFormInput';
@@ -12,7 +12,7 @@ import type { CriteriaDragDropListProps, DraggableCriteria } from '../../types/c
 const CriteriaDragDropList: React.FC<CriteriaDragDropListProps> = ({ criteria }) => {
     const { decisionId } = useParams<{ decisionId: string }>();
     const { isUpdateSuccess } = useUpdateCriterion();
-    const { updateCriteriaRankingsMutation, isSuccess: isRankingsSuccess } = useUpdateCriteriaRankings({ decisionId: decisionId! });
+    const { updateCriteriaRankingsMutation } = useUpdateCriteriaRankings({ decisionId: decisionId! });
 
     const [groupedCriteria, setGroupedCriteria] = useState<Record<string, DraggableCriteria[]>>({
         "UNSORTED": [],
@@ -22,8 +22,6 @@ const CriteriaDragDropList: React.FC<CriteriaDragDropListProps> = ({ criteria })
         "WONT_HAVE": [],
     });
 
-    const [pendingChanges, setPendingChanges] = useState<Map<string, string>>(new Map());
-    const autoSaveTimeoutRef = useRef<number | null>(null);
 
     useEffect(() => {
 
@@ -80,75 +78,9 @@ const CriteriaDragDropList: React.FC<CriteriaDragDropListProps> = ({ criteria })
         }
     }, [isUpdateSuccess]);
 
-    // Show toast when rankings are successfully updated
-    useEffect(() => {
-        if (isRankingsSuccess) {
-            toast.success("Criteria rankings saved");
-            setPendingChanges(new Map()); // Clear pending changes
-        }
-    }, [isRankingsSuccess]);
 
-    // Debounced auto-save for keyboard navigation
-    useEffect(() => {
-        if (pendingChanges.size > 0) {
-            // Clear existing timeout
-            if (autoSaveTimeoutRef.current) {
-                clearTimeout(autoSaveTimeoutRef.current);
-            }
 
-            // Set new timeout for 30 seconds
-            autoSaveTimeoutRef.current = setTimeout(() => {
-                savePendingChanges();
-            }, 30000);
-        }
 
-        return () => {
-            if (autoSaveTimeoutRef.current) {
-                clearTimeout(autoSaveTimeoutRef.current);
-            }
-        };
-    }, [pendingChanges]);
-
-    const savePendingChanges = () => {
-        // Only save if there have been actual changes
-        if (pendingChanges.size === 0) return;
-
-        // Calculate global ranks across all criteria
-        const rankings: Array<{ criterionId: string, priority: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE', globalRank: number }> = [];
-
-        // Create a flat list of all criteria in their current order
-        const allCriteria: DraggableCriteria[] = [];
-
-        // Process each priority category in order
-        const priorityOrder = ['UNSORTED', 'MUST_HAVE', 'SHOULD_HAVE', 'COULD_HAVE', 'WONT_HAVE'];
-        priorityOrder.forEach(priority => {
-            const criteria = groupedCriteria[priority] || [];
-            criteria.forEach(criterion => {
-                // Skip the new criterion form
-                if (criterion._id !== 'new-criterion-form') {
-                    allCriteria.push(criterion);
-                }
-            });
-        });
-
-        // Only save if there are criteria to save
-        if (allCriteria.length === 0) return;
-
-        // Assign global ranks based on position in the flat list (starting at 1)
-        allCriteria.forEach((criterion, globalIndex) => {
-            rankings.push({
-                criterionId: criterion._id,
-                priority: criterion.priority,
-                globalRank: globalIndex + 1
-            });
-        });
-
-        updateCriteriaRankingsMutation(rankings);
-    };
-
-    const handleMouseOut = () => {
-        savePendingChanges();
-    };
 
     const handleReorder = (newCategories: Record<string, DraggableCriteria[]>) => {
         // Ensure the new criterion form is always at the top of UNSORTED category
@@ -164,14 +96,33 @@ const CriteriaDragDropList: React.FC<CriteriaDragDropListProps> = ({ criteria })
 
         setGroupedCriteria(processedCategories);
 
-        // Track that changes have been made (for auto-save timeout)
-        // We don't need to track specific changes since we save all criteria on mouse-out
-        setPendingChanges(prev => {
-            const newMap = new Map(prev);
-            // Add a dummy entry to indicate changes were made
-            newMap.set('reorder-changes', 'true');
-            return newMap;
+        // Call API to update rankings when items are dropped
+        const rankings = calculateRankings(processedCategories);
+        if (rankings.length > 0) {
+            updateCriteriaRankingsMutation(rankings);
+        }
+    };
+
+    const calculateRankings = (categories: Record<string, DraggableCriteria[]>) => {
+        const rankings: Array<{ criterionId: string, priority: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE', ranking: number }> = [];
+
+        // Process each priority category in order
+        const priorityOrder = ['UNSORTED', 'MUST_HAVE', 'SHOULD_HAVE', 'COULD_HAVE', 'WONT_HAVE'];
+        priorityOrder.forEach(priority => {
+            const criteria = categories[priority] || [];
+            criteria.forEach((criterion, index) => {
+                // Skip the new criterion form
+                if (criterion._id !== 'new-criterion-form') {
+                    rankings.push({
+                        criterionId: criterion._id,
+                        priority: criterion.priority,
+                        ranking: index + 1
+                    });
+                }
+            });
         });
+
+        return rankings;
     };
 
     const handleCategoryChange = (item: DraggableCriteria, newCategory: string): DraggableCriteria => {
@@ -179,13 +130,6 @@ const CriteriaDragDropList: React.FC<CriteriaDragDropListProps> = ({ criteria })
         if (item._id === 'new-criterion-form') {
             return { ...item, priority: 'UNSORTED' as const };
         }
-
-        // Track the change for batch saving
-        setPendingChanges(prev => {
-            const newMap = new Map(prev);
-            newMap.set(item._id, newCategory);
-            return newMap;
-        });
 
         return { ...item, priority: newCategory as 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE' };
     };
@@ -221,7 +165,7 @@ const CriteriaDragDropList: React.FC<CriteriaDragDropListProps> = ({ criteria })
     ];
 
     return (
-        <div onMouseLeave={handleMouseOut}>
+        <div>
             <DraggableList
                 initialCategories={groupedCriteria}
                 categoryConfigs={categoryConfigs}

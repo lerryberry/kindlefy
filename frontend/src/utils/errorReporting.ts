@@ -1,4 +1,5 @@
 import toast from 'react-hot-toast';
+import posthog from 'posthog-js';
 
 export interface ErrorContext {
     feature?: string;
@@ -32,11 +33,30 @@ export function normalizeError(err: any, context?: ErrorContext) {
     };
 }
 
-// TODO add 3rd party logging
+// Send errors to PostHog for tracking and analysis
 function sendToThirdParty(payload: ReturnType<typeof normalizeError>) {
-    // For now, just log to console in a structured way
+    // Log to console for debugging
     // eslint-disable-next-line no-console
     console.error('[ErrorReport]', payload);
+
+    // Send to PostHog for error tracking
+    if (typeof window !== 'undefined' && posthog.__loaded) {
+        // Create a proper Error object for captureException
+        const error = new Error(payload.message);
+        if (payload.stack) {
+            error.stack = payload.stack;
+        }
+
+        posthog.captureException(error, {
+            feature: payload.context.feature,
+            action: payload.context.action,
+            entity: payload.context.entity,
+            error_code: payload.code,
+            http_status: payload.httpStatus,
+            error_type: 'client_error',
+            ...payload.context.extras
+        });
+    }
 }
 
 export function reportError(err: any, context?: ErrorContext, opts?: ReportOptions) {
