@@ -5,17 +5,12 @@ export function usePostHog() {
     useEffect(() => {
         // Ensure PostHog is loaded
         if (typeof window !== 'undefined' && !posthog.__loaded) {
-            const posthogKey = import.meta.env.VITE_POSTHOG_KEY || 'phc_Ju4K4bBXyI79wej0tzGRdMnJTYovgalsSVigfm0clOJ';
-            const posthogHost = import.meta.env.VITE_POSTHOG_HOST || 'https://app.posthog.com';
-
-            if (posthogKey) {
-                posthog.init(posthogKey, {
-                    api_host: posthogHost,
-                    person_profiles: 'identified_only',
-                    capture_pageview: true,
-                    capture_pageleave: true,
-                });
-            }
+            posthog.init('phc_Ju4K4bBXyI79wej0tzGRdMnJTYovgalsSVigfm0clOJ', {
+                api_host: 'https://app.posthog.com',
+                person_profiles: 'identified_only',
+                capture_pageview: true,
+                capture_pageleave: true,
+            });
         }
     }, []);
 
