@@ -63,7 +63,7 @@ app.use(helmet({
                 "https://app.krystallise.com",
                 "https://*.posthog.com"
             ],
-            scriptSrc: ["'self'", "'unsafe-inline'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://*.posthog.com"],
             styleSrc: ["'self'", "'unsafe-inline'"],
             imgSrc: ["'self'", "data:", "https:"],
             fontSrc: ["'self'", "https:"],
