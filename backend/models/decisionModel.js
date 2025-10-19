@@ -9,6 +9,15 @@ const decisionSchema = new mongoose.Schema({
         minlength: [5, 'A decision title must have more than 4 characters'],
         maxlength: [201, 'A decision title must be 200 character or less']
     },
+    category: {
+        type: String,
+        enum: {
+            values: ['PRODUCT', 'SERVICE', 'STAFF', 'GENERIC'],
+            message: 'Category must be PRODUCT, SERVICE, STAFF, or GENERIC'
+        },
+        default: 'GENERIC',
+        required: true
+    },
     accessControl: [{
         userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
         permissions: [{ type: String, enum: ['READ', 'UPDATE', 'DELETE', 'RANK'] }]
