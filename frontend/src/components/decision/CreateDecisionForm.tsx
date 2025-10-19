@@ -1,6 +1,5 @@
 import Form from './../util/Form'
 import FormInput from './../util/FormInput'
-import SegmentedControl from './../util/SegmentedControl'
 import RadioGroup from './../util/RadioGroup'
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -34,10 +33,8 @@ function CreateDecisionForm() {
     const { decision } = useGetDecision(decisionId);
     const { updateDecisionMutation, isUpdating, isUpdateSuccess } = useUpdateDecision();
 
-    // State for segmented controls
-    const [category, setCategory] = useState<string>('Business');
-    const [scope, setScope] = useState<string>('Individual');
-    const [type, setType] = useState<string>('generic');
+    // State for category selection
+    const [category, setCategory] = useState<string>('GENERIC');
 
     useEffect(() => {
         if (decisionId && decision) {
@@ -62,14 +59,10 @@ function CreateDecisionForm() {
         // Sanitize all text inputs - strip ALL HTML/code, only allow plain text
         const sanitizedTitle = sanitizeText(data.title);
         const sanitizedCategory = sanitizeText(category);
-        const sanitizedScope = sanitizeText(scope);
-        const sanitizedType = sanitizeText(type);
 
         const decisionData: CreateDecisionData = {
             title: sanitizedTitle,
-            category: sanitizedCategory,
-            scope: sanitizedScope,
-            type: sanitizedType
+            category: sanitizedCategory
         };
         if (decisionId) {
             updateDecisionMutation({ id: decisionId, formData: decisionData });
@@ -129,59 +122,38 @@ function CreateDecisionForm() {
                 )}
 
                 <div style={{ marginTop: '1.5rem' }}>
-                    <SegmentedControl
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'var(--color-text-primary)' }}>
+                        Decision Category
+                    </label>
+                    <RadioGroup
+                        name="decisionCategory"
                         options={[
-                            { value: 'Business', label: 'Business' },
-                            { value: 'Personal', label: 'Personal', disabled: true }
+                            {
+                                value: 'GENERIC',
+                                label: 'Generic Decision',
+                                description: 'General decision-making for any situation'
+                            },
+                            {
+                                value: 'PRODUCT',
+                                label: 'Product Decision',
+                                description: 'Choose between different products or features'
+                            },
+                            {
+                                value: 'SERVICE',
+                                label: 'Service Decision',
+                                description: 'Select service providers or service options'
+                            },
+                            {
+                                value: 'STAFF',
+                                label: 'Staff Decision',
+                                description: 'Hiring, team selection, or personnel decisions'
+                            }
                         ]}
                         value={category}
                         onChange={setCategory}
                     />
                 </div>
 
-                <div style={{ marginTop: '1.5rem' }}>
-                    <SegmentedControl
-                        options={[
-                            { value: 'Individual', label: 'Individual' },
-                            { value: 'Group', label: 'Group', disabled: true }
-                        ]}
-                        value={scope}
-                        onChange={setScope}
-                    />
-                </div>
-
-                <div style={{ marginTop: '1.5rem' }}>
-                    <RadioGroup
-                        name="decisionType"
-                        options={[
-                            {
-                                value: 'generic',
-                                label: 'Generic Decision',
-                                description: 'General decision-making for any situation'
-                            },
-                            {
-                                value: 'hiring',
-                                label: 'Hiring Decision',
-                                description: 'Choose the best candidate for your team',
-                                disabled: true
-                            },
-                            {
-                                value: 'services',
-                                label: 'Service Selection',
-                                description: 'Evaluate and select service providers',
-                                disabled: true
-                            },
-                            {
-                                value: 'products',
-                                label: 'Product Choice',
-                                description: 'Compare and choose between products',
-                                disabled: true
-                            }
-                        ]}
-                        value={type}
-                        onChange={setType}
-                    />
-                </div>
             </Form>
         </PageLayout>
     )

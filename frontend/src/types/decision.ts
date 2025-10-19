@@ -2,6 +2,7 @@
 export interface Decision {
     _id: string;
     title: string;
+    category: 'PRODUCT' | 'SERVICE' | 'STAFF' | 'GENERIC';
     slug: string;
     isArchived: boolean;
     accessControl: Array<{
@@ -53,9 +54,7 @@ export interface DecisionReportResponse {
 // Form data for creating decisions
 export interface CreateDecisionData {
     title: string;
-    category?: string;
-    scope?: string;
-    type?: string;
+    category: string;
 }
 
 // Hook return types
