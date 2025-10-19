@@ -7,9 +7,6 @@ export function usePostHog() {
         if (typeof window !== 'undefined' && !posthog.__loaded) {
             posthog.init('phc_Ju4K4bBXyI79wej0tzGRdMnJTYovgalsSVigfm0clOJ', {
                 api_host: 'https://app.posthog.com',
-                person_profiles: 'identified_only',
-                capture_pageview: true,
-                capture_pageleave: true,
             });
         }
     }, []);
