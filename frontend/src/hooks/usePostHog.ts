@@ -5,9 +5,17 @@ export function usePostHog() {
     useEffect(() => {
         // Ensure PostHog is loaded
         if (typeof window !== 'undefined' && !posthog.__loaded) {
-            posthog.init(import.meta.env.VITE_POSTHOG_KEY || '', {
-                api_host: import.meta.env.VITE_POSTHOG_HOST || 'https://app.posthog.com',
-            });
+            const posthogKey = import.meta.env.VITE_POSTHOG_KEY || 'phc_Ju4K4bBXyI79wej0tzGRdMnJTYovgalsSVigfm0clOJ';
+            const posthogHost = import.meta.env.VITE_POSTHOG_HOST || 'https://app.posthog.com';
+
+            if (posthogKey) {
+                posthog.init(posthogKey, {
+                    api_host: posthogHost,
+                    person_profiles: 'identified_only',
+                    capture_pageview: true,
+                    capture_pageleave: true,
+                });
+            }
         }
     }, []);
 
