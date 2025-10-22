@@ -94,6 +94,11 @@ const RadioInput = styled.input`
     border-radius: 50%;
     background-color: transparent;
     
+    @media (max-width: 768px) {
+        width: auto;
+        min-width: 1.25rem;
+    }
+    
     &:checked:not(:disabled) {
         appearance: none;
         background-color: var(--color-brand-500);
