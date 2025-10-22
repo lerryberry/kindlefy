@@ -29,7 +29,7 @@ const RadioGroupContainer = styled.div<{ disabled?: boolean }>`
         grid-template-columns: 1fr;
     }
     
-    /* Ensure grid items have proper sizing on mobile only */
+    /* Ensure grid items have equal width on mobile only */
     @media (max-width: 768px) {
         > label {
             min-width: 0;
