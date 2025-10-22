@@ -3,7 +3,7 @@ export interface Criteria {
     _id: string;
     title: string;
     description?: string;
-    priority: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE';
+    priority: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE';
     globalRank: number;
     isRanked: boolean;
     isArchived: boolean;
@@ -31,7 +31,7 @@ export interface CriteriaListResponse {
 export interface CreateCriteriaData {
     title: string;
     description?: string;
-    priority: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE';
+    priority: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE';
     parentDecision: string;
 }
 

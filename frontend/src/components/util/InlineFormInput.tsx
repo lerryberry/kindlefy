@@ -57,14 +57,14 @@ export interface InlineFormInputProps {
     // Item identification
     itemId?: string;
     itemTitle?: string;
-    itemPriority?: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE';
+    itemPriority?: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE';
     isNew?: boolean;
     hidePriority?: boolean;
 
     // Form data types
     formData: {
         title: string;
-        priority?: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE';
+        priority?: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE';
     };
 
     // Placeholder text
@@ -108,7 +108,7 @@ export function InlineFormInput({
     const [isFocused, setIsFocused] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [originalTitle, setOriginalTitle] = useState<string>('');
-    const [originalPriority, setOriginalPriority] = useState<'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE'>('UNSORTED');
+    const [originalPriority, setOriginalPriority] = useState<'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE'>('UNSORTED');
 
     useEffect(() => {
         if (itemId && itemTitle) {
@@ -142,7 +142,7 @@ export function InlineFormInput({
             onUpdateSuccess(formData);
             const currentFormData = getValues();
             setOriginalTitle(currentFormData.title);
-            setOriginalPriority(currentFormData.priority! as 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE');
+            setOriginalPriority(currentFormData.priority! as 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE');
         }
     }, [onUpdateSuccess, formData, getValues]);
 
@@ -225,7 +225,6 @@ export function InlineFormInput({
                                 <option value="MUST_HAVE">Must Have</option>
                                 <option value="SHOULD_HAVE">Should Have</option>
                                 <option value="COULD_HAVE">Could Have</option>
-                                <option value="WONT_HAVE">Won't Have</option>
                             </select>
                         </PriorityContainer>
                     )}

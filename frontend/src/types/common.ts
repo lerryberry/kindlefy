@@ -3,7 +3,7 @@
 // Form interfaces
 export interface CreateCriteriaFormData {
     title: string;
-    priority?: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE';
+    priority?: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE';
 }
 
 export interface CreateOptionFormData {
@@ -33,7 +33,7 @@ export interface ValidationRules {
 export interface CreateCriteriaListFormInputProps {
     criterionId?: string;
     criterionTitle?: string;
-    criterionPriority?: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE';
+    criterionPriority?: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE';
     isNew?: boolean;
     hidePriority?: boolean;
 }
@@ -77,7 +77,7 @@ export interface CriteriaDragDropListProps {
         _id: string;
         title: string;
         description?: string;
-        priority: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE';
+        priority: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE';
         isRanked: boolean;
         isArchived: boolean;
         parentDecision: string;
@@ -91,7 +91,7 @@ export interface DraggableCriteria {
     _id: string;
     title: string;
     description?: string;
-    priority: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE';
+    priority: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE';
     isRanked: boolean;
     isArchived: boolean;
     parentDecision: string;
@@ -120,7 +120,7 @@ export interface MainMenuProps {
 export interface UpdateCriterionData {
     title?: string;
     description?: string;
-    priority?: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE';
+    priority?: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE';
 }
 
 export interface UpdateOptionData {

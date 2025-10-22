@@ -19,7 +19,6 @@ const CriteriaDragDropList: React.FC<CriteriaDragDropListProps> = ({ criteria })
         "MUST_HAVE": [],
         "SHOULD_HAVE": [],
         "COULD_HAVE": [],
-        "WONT_HAVE": [],
     });
 
 
@@ -30,7 +29,6 @@ const CriteriaDragDropList: React.FC<CriteriaDragDropListProps> = ({ criteria })
             "MUST_HAVE": [],
             "SHOULD_HAVE": [],
             "COULD_HAVE": [],
-            "WONT_HAVE": [],
         };
 
         // Sort criteria by globalRank first, then loop through and group by priority
@@ -104,10 +102,10 @@ const CriteriaDragDropList: React.FC<CriteriaDragDropListProps> = ({ criteria })
     };
 
     const calculateRankings = (categories: Record<string, DraggableCriteria[]>) => {
-        const rankings: Array<{ criterionId: string, priority: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE', ranking: number }> = [];
+        const rankings: Array<{ criterionId: string, priority: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE', ranking: number }> = [];
 
         // Process each priority category in order
-        const priorityOrder = ['UNSORTED', 'MUST_HAVE', 'SHOULD_HAVE', 'COULD_HAVE', 'WONT_HAVE'];
+        const priorityOrder = ['UNSORTED', 'MUST_HAVE', 'SHOULD_HAVE', 'COULD_HAVE'];
         priorityOrder.forEach(priority => {
             const criteria = categories[priority] || [];
             criteria.forEach((criterion, index) => {
@@ -131,7 +129,7 @@ const CriteriaDragDropList: React.FC<CriteriaDragDropListProps> = ({ criteria })
             return { ...item, priority: 'UNSORTED' as const };
         }
 
-        return { ...item, priority: newCategory as 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE' };
+        return { ...item, priority: newCategory as 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' };
     };
 
     const renderCriteria = (criterion: DraggableCriteria) => {
@@ -161,7 +159,6 @@ const CriteriaDragDropList: React.FC<CriteriaDragDropListProps> = ({ criteria })
         { id: "MUST_HAVE", title: "Must Have", items: groupedCriteria.MUST_HAVE },
         { id: "SHOULD_HAVE", title: "Should Have", items: groupedCriteria.SHOULD_HAVE },
         { id: "COULD_HAVE", title: "Could Have", items: groupedCriteria.COULD_HAVE },
-        { id: "WONT_HAVE", title: "Won't Have", items: groupedCriteria.WONT_HAVE },
     ];
 
     return (

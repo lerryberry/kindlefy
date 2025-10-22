@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 
 export interface CriteriaRanking {
     criterionId: string;
-    priority: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE';
+    priority: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE';
     ranking: number;
 }
 

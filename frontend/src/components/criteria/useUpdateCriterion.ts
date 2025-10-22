@@ -5,7 +5,7 @@ import { reportError } from "../../utils/errorReporting";
 interface UpdateCriterionData {
     title?: string;
     description?: string;
-    priority?: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE' | 'WONT_HAVE';
+    priority?: 'UNSORTED' | 'MUST_HAVE' | 'SHOULD_HAVE' | 'COULD_HAVE';
 }
 
 export function useUpdateCriterion() {
