@@ -29,10 +29,9 @@ const RadioGroupContainer = styled.div<{ disabled?: boolean }>`
         grid-template-columns: 1fr;
     }
     
-    /* Ensure grid items have equal width on mobile only */
+    /* Ensure grid items have proper sizing on mobile only */
     @media (max-width: 768px) {
         > label {
-            width: 100%;
             min-width: 0;
         }
     }
@@ -93,11 +92,6 @@ const RadioInput = styled.input`
     border: 2px solid white;
     border-radius: 50%;
     background-color: transparent;
-    
-    @media (max-width: 768px) {
-        width: auto;
-        min-width: 1.25rem;
-    }
     
     &:checked:not(:disabled) {
         appearance: none;
