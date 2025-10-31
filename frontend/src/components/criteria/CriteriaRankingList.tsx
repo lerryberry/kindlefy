@@ -2,7 +2,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useGetCriteriaList } from "./useGetCriteria";
 import Accordion, { type AccordionRef } from "../util/Accordion";
 import PageLayout from "../layouts/PageLayout";
-import OptionsList from "../options/OptionsList";
+import OptionsList, { type OptionsListRef } from "../options/OptionsList";
 import StatusIndicator from "../util/StatusIndicator";
 import EmptyState from "../util/EmptyState";
 import styled from "styled-components";
@@ -19,6 +19,7 @@ export default function CriteriaRankingList() {
     const location = useLocation();
     const { data, isLoading, error }: UseGetCriteriaListReturn = useGetCriteriaList(decisionId!);
     const accordionRefs = useRef<{ [key: number]: AccordionRef }>({});
+    const optionsListRefs = useRef<{ [key: number]: OptionsListRef }>({});
     const [openAccordion, setOpenAccordion] = useState<number | null>(null);
 
     // Determine if we're on the ranking page
@@ -30,15 +31,22 @@ export default function CriteriaRankingList() {
     // Function to handle accordion toggle - only one can be open at a time
     const handleAccordionToggle = (accordionNumber: number, isOpen: boolean) => {
         if (isOpen) {
-            // Close all other accordions
-            Object.keys(accordionRefs.current).forEach(key => {
-                const num = parseInt(key);
-                if (num !== accordionNumber) {
-                    accordionRefs.current[num]?.close();
+            // Only save the previously open accordion (if any) before closing it
+            if (openAccordion !== null && openAccordion !== accordionNumber) {
+                const previousOptionsRef = optionsListRefs.current[openAccordion];
+                if (previousOptionsRef) {
+                    previousOptionsRef.saveRankings();
                 }
-            });
+                // Programmatically close the previously open accordion
+                accordionRefs.current[openAccordion]?.close();
+            }
             setOpenAccordion(accordionNumber);
         } else {
+            // On user-initiated close, trigger save on the corresponding options list
+            const optionsRef = optionsListRefs.current[accordionNumber];
+            if (optionsRef) {
+                optionsRef.saveRankings();
+            }
             setOpenAccordion(null);
         }
     };
@@ -112,6 +120,13 @@ export default function CriteriaRankingList() {
                                 onToggle={(isOpen) => handleAccordionToggle(accordionNumber, isOpen)}
                             >
                                 <OptionsList
+                                    ref={(ref) => {
+                                        if (ref) {
+                                            optionsListRefs.current[accordionNumber] = ref;
+                                        } else {
+                                            delete optionsListRefs.current[accordionNumber];
+                                        }
+                                    }}
                                     criterionId={criteria._id}
                                     onRankingSaved={() => handleRankingSaved(accordionNumber)}
                                     isAccordionOpen={openAccordion === accordionNumber}

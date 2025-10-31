@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useGetRankedOptions } from './useGetRankedOptions';
 import type { MatchLevel, GroupedOption, RankingFormData, UseGetRankedOptionListReturn } from '../../types/options';
@@ -15,7 +15,11 @@ interface OptionsListProps {
     isAccordionOpen?: boolean;
 }
 
-const OptionsList: React.FC<OptionsListProps> = ({ criterionId: propCriterionId, onRankingSaved, isAccordionOpen = true }) => {
+export interface OptionsListRef {
+    saveRankings: () => void;
+}
+
+const OptionsList = forwardRef<OptionsListRef, OptionsListProps>(({ criterionId: propCriterionId, onRankingSaved, isAccordionOpen = true }, ref) => {
     const { decisionId, criterionId: urlCriterionId } = useParams<{ decisionId: string; criterionId: string }>();
 
     // Use prop criterionId if provided, otherwise fall back to URL param
@@ -91,6 +95,11 @@ const OptionsList: React.FC<OptionsListProps> = ({ criterionId: propCriterionId,
         });
     };
 
+    // Expose save function to parent via ref
+    useImperativeHandle(ref, () => ({
+        saveRankings: handleSaveRankings
+    }));
+
     if (isLoading) return <div>Loading options...</div>;
     if (error) return <div>Error: {error.message}</div>;
 
@@ -104,7 +113,7 @@ const OptionsList: React.FC<OptionsListProps> = ({ criterionId: propCriterionId,
     }
 
     const categoryConfigs: CategoryConfig<GroupedOption>[] = [
-        { id: "UNSORTED", title: "Unsorted", items: groupedOptions.UNSORTED },
+        { id: "UNSORTED", title: "", items: groupedOptions.UNSORTED },
         { id: "BEST", title: "Best Choice", items: groupedOptions.BEST },
         { id: "IMPARTIAL", title: "Impartial", items: groupedOptions.IMPARTIAL },
         { id: "WORST", title: "Worst Choice", items: groupedOptions.WORST },
@@ -131,6 +140,8 @@ const OptionsList: React.FC<OptionsListProps> = ({ criterionId: propCriterionId,
             />
         </>
     );
-};
+});
+
+OptionsList.displayName = 'OptionsList';
 
 export default OptionsList;

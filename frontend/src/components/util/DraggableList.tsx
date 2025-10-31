@@ -38,7 +38,9 @@ const DefaultCategoryRenderer = <T extends DragAndDropItem>({
     renderItem: (item: T, index: number) => React.ReactNode;
 }) => (
     <CategoryContainer isUnsorted={config.id === 'UNSORTED'} style={config.style}>
-        <CategoryTitle>{config.title}</CategoryTitle>
+        {config.title ? (
+            <CategoryTitle>{config.title}</CategoryTitle>
+        ) : null}
         <Droppable droppableId={config.id}>
             {(provided) => (
                 <DroppableArea

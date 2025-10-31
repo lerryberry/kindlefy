@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Loading from "../util/Loading";
 import PageLayout from "../layouts/PageLayout";
+import { useEffect } from "react";
 
 const DecisionGrid = styled.div`
   display: grid;
@@ -42,29 +43,18 @@ export default function DecisionList() {
         isFetchingNextPage
     } = useGetDecisions();
 
-    if (isLoading) return <Loading />;
-    if (error) return <div>Error: {error.message}</div>;
-
     // Flatten all pages of decisions
     const allDecisions = data?.pages?.flatMap((page: any) => page.data) || [];
 
-    // Show empty state if no decisions
-    if (allDecisions.length === 0) {
-        return (
-            <PageLayout title="Decisions">
-                <div style={{ textAlign: 'center', padding: '2rem' }}>
-                    <p style={{ marginBottom: '1rem', color: 'var(--color-text-secondary)' }}>
-                        Create your first decision to get started.
-                    </p>
-                    <Button
-                        text="Create Decision"
-                        onClick={() => navigate("/decisions/new")}
-                        size="medium"
-                    />
-                </div>
-            </PageLayout>
-        );
-    }
+    // Redirect to /decisions/new if no decisions exist
+    useEffect(() => {
+        if (!isLoading && !error && allDecisions.length === 0) {
+            navigate("/decisions/new", { replace: true });
+        }
+    }, [isLoading, error, allDecisions.length, navigate]);
+
+    if (isLoading) return <Loading />;
+    if (error) return <div>Error: {error.message}</div>;
 
     return (
         <PageLayout

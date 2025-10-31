@@ -100,7 +100,7 @@ function CreateDecisionForm() {
         >
             <Form onSubmit={handleSubmit(onSubmit, onError)}>
                 <FormInput
-                    label="Decision title"
+                    label="What do you want to decide on?"
                     type="text"
                     required
                     {...register("title", {
@@ -122,15 +122,15 @@ function CreateDecisionForm() {
                 )}
 
                 <div style={{ marginTop: '1.5rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: 'var(--color-text-primary)' }}>
-                        Decision Category
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>
+                        What type of decision is it?
                     </label>
                     <RadioGroup
                         name="decisionCategory"
                         options={[
                             {
                                 value: 'GENERIC',
-                                label: 'Generic Decision',
+                                label: 'Other Decision',
                                 description: 'General decision-making for any situation'
                             },
                             {

@@ -23,8 +23,8 @@ const criteriaSchema = new mongoose.Schema({
         type: String,
         default: "UNSORTED",
         enum: {
-            values: ['UNSORTED', 'MUST_HAVE', 'SHOULD_HAVE', 'COULD_HAVE', 'WONT_HAVE'],
-            message: "must be UNSORTED, MUST_HAVE, SHOULD_HAVE, COULD_HAVE, or WONT_HAVE"
+            values: ['UNSORTED', 'MUST_HAVE', 'SHOULD_HAVE', 'COULD_HAVE'],
+            message: "must be UNSORTED, MUST_HAVE, SHOULD_HAVE, or COULD_HAVE"
         },
         required: true,
     },

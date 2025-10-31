@@ -67,17 +67,16 @@ const Accordion = forwardRef<AccordionRef, AccordionProps>(({ title, children, d
 
     useImperativeHandle(ref, () => ({
         open: () => {
+            // Programmatic open should not trigger onToggle
             setIsOpen(true);
-            onToggle?.(true);
         },
         close: () => {
+            // Programmatic close should not trigger onToggle
             setIsOpen(false);
-            onToggle?.(false);
         },
         toggle: () => {
-            const newIsOpen = !isOpen;
-            setIsOpen(newIsOpen);
-            onToggle?.(newIsOpen);
+            // Programmatic toggle should not trigger onToggle
+            setIsOpen(prev => !prev);
         }
     }));
 

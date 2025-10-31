@@ -155,7 +155,7 @@ const CriteriaDragDropList: React.FC<CriteriaDragDropListProps> = ({ criteria })
     };
 
     const categoryConfigs: CategoryConfig<DraggableCriteria>[] = [
-        { id: "UNSORTED", title: "Unsorted", items: groupedCriteria.UNSORTED },
+        { id: "UNSORTED", title: "", items: groupedCriteria.UNSORTED },
         { id: "MUST_HAVE", title: "Must Have", items: groupedCriteria.MUST_HAVE },
         { id: "SHOULD_HAVE", title: "Should Have", items: groupedCriteria.SHOULD_HAVE },
         { id: "COULD_HAVE", title: "Could Have", items: groupedCriteria.COULD_HAVE },

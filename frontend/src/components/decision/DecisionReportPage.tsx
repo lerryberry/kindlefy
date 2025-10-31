@@ -3,9 +3,11 @@ import styled, { css } from 'styled-components';
 import { useParams, useNavigate } from 'react-router-dom';
 import PageLayout from '../layouts/PageLayout';
 import { useGetDecisionReport } from './useGetDecisionReport';
+import { useGetDecision } from './useGetDecision';
 import { useSelectWinner } from './useSelectWinner';
 import Chip from '../util/Chip';
 import EmptyState from '../util/EmptyState';
+import Loading from '../util/Loading';
 
 const OptionsGrid = styled.div`
   display: flex; /* Use flexbox for a single column */
@@ -135,12 +137,64 @@ const Form = styled.form`
   max-width: 600px;
 `;
 
+const IncompleteStepsContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1rem;
+  padding: 2rem;
+`;
+
+const IncompleteStepsText = styled.p`
+  color: var(--color-text-primary);
+  margin: 0;
+`;
+
+const StepLinksContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 0.5rem;
+`;
+
+const StepLink = styled.button`
+  background: none;
+  border: none;
+  color: var(--color-brand-500);
+  padding: 0;
+  cursor: pointer;
+  font-size: 0.875rem;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+  
+  &:hover {
+    color: var(--color-brand-600);
+    text-decoration: underline;
+  }
+  
+  &:focus {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+`;
+
 
 
 const DecisionReportPage: React.FC = () => {
   const { decisionId } = useParams<{ decisionId: string }>();
   const navigate = useNavigate();
-  const { data, isLoading, error } = useGetDecisionReport(decisionId || '');
+  const { decision, isLoading: isLoadingDecision } = useGetDecision(decisionId);
+  const status = decision?.data?.status;
+
+  // Check if all prerequisites are met
+  const allStepsComplete = status?.hasOptions && status?.hasCriteria && status?.isFullyRanked;
+
+  // Only fetch report if all steps are complete
+  const { data, isLoading: isLoadingReport, error } = useGetDecisionReport(decisionId || '', !!allStepsComplete);
   const selectWinnerMutation = useSelectWinner(decisionId || '');
 
   const handleOptionChange = (optionId: string) => {
@@ -151,8 +205,77 @@ const DecisionReportPage: React.FC = () => {
     return <PageLayout title="Error"><div>Decision ID is required</div></PageLayout>;
   }
 
-  if (isLoading) return <PageLayout title="Loading Report..."><div>Loading decision report...</div></PageLayout>;
-  if (error) return <PageLayout title="Error"><div>Error: {error.message}</div></PageLayout>;
+  // Loading decision status
+  if (isLoadingDecision) {
+    return (
+      <PageLayout title="Select Winner" showBackButton={true} onBackClick={() => navigate(`/decisions/${decisionId}`)}>
+        <Loading />
+      </PageLayout>
+    );
+  }
+
+  // Check if decision exists
+  if (!decision?.data) {
+    return (
+      <PageLayout title="Error" showBackButton={true} onBackClick={() => navigate(`/decisions/${decisionId}`)}>
+        <div>Decision not found</div>
+      </PageLayout>
+    );
+  }
+
+  // Show message if prerequisites not met
+  if (!allStepsComplete) {
+    const incompleteSteps: Array<{ label: string; path: string }> = [];
+    if (!status?.hasOptions) incompleteSteps.push({ label: 'Add Options', path: `/decisions/${decisionId}/options` });
+    if (!status?.hasCriteria) incompleteSteps.push({ label: 'Add Criteria', path: `/decisions/${decisionId}/criteria` });
+    if (!status?.isFullyRanked) incompleteSteps.push({ label: 'Rank Options', path: `/decisions/${decisionId}/ranking` });
+
+    return (
+      <PageLayout
+        title="Select Winner"
+        showBackButton={true}
+        onBackClick={() => navigate(`/decisions/${decisionId}`)}
+      >
+        <IncompleteStepsContainer>
+          <IncompleteStepsText>
+            Please complete all previous steps before making a decision.
+          </IncompleteStepsText>
+          <div>
+            <IncompleteStepsText style={{ marginBottom: '1rem' }}>
+              Missing steps:
+            </IncompleteStepsText>
+            <StepLinksContainer>
+              {incompleteSteps.map((step) => (
+                <StepLink
+                  key={step.path}
+                  onClick={() => navigate(step.path)}
+                >
+                  {step.label}
+                </StepLink>
+              ))}
+            </StepLinksContainer>
+          </div>
+        </IncompleteStepsContainer>
+      </PageLayout>
+    );
+  }
+
+  // Loading report
+  if (isLoadingReport) {
+    return (
+      <PageLayout title="Select Winner" showBackButton={true} onBackClick={() => navigate(`/decisions/${decisionId}`)}>
+        <Loading />
+      </PageLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <PageLayout title="Error" showBackButton={true} onBackClick={() => navigate(`/decisions/${decisionId}`)}>
+        <div>Error: {error.message}</div>
+      </PageLayout>
+    );
+  }
 
   // Show empty state if no options to decide between
   if (!data?.data || data.data.length === 0) {

@@ -2,7 +2,7 @@ import { useAuthenticatedAxios } from "../../api/services/useAuthenticatedAxios"
 import { useQuery } from '@tanstack/react-query';
 import type { UseGetDecisionReportReturn } from '../../types/decision';
 
-export function useGetDecisionReport(decisionId: string): UseGetDecisionReportReturn {
+export function useGetDecisionReport(decisionId: string, enabled: boolean = true): UseGetDecisionReportReturn {
     const api = useAuthenticatedAxios();
 
     const { data, isLoading, error, isSuccess, isError, isFetching } = useQuery({
@@ -11,7 +11,7 @@ export function useGetDecisionReport(decisionId: string): UseGetDecisionReportRe
             const res = await api.get(`/decisions/${decisionId}/report`);
             return res.data;
         },
-        enabled: !!decisionId
+        enabled: !!decisionId && enabled
     });
 
     return { data, isLoading, error, isSuccess, isError, isFetching };
