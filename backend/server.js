@@ -3,11 +3,11 @@ const mongoose = require('mongoose');
 const app = require('./app');
 const DB = process.env.DATABASE;
 
-mongoose.connect(DB).then(() => {});
+mongoose.connect(DB).then(() => { });
 
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () => {
-    
+
 });
 
 function handleCrash(err, eventName) {
@@ -28,12 +28,12 @@ process.on('unhandledRejection', (err) => handleCrash(err, 'Unhandled Rejection:
 
 // Handle SIGTERM signal (e.g., from Docker stop command)
 process.on('SIGTERM', () => {
-    
+
     if (server) {
         server.close(() => {
-            
+
             mongoose.connection.close(() => {
-                
+
                 process.exit(0);
             });
         });

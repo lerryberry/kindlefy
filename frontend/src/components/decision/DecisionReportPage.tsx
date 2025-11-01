@@ -9,6 +9,7 @@ import { useSelectWinner } from './useSelectWinner';
 import Chip from '../util/Chip';
 import EmptyState from '../util/EmptyState';
 import Loading from '../util/Loading';
+import { MarkdownRenderer } from '../../utils/markdown';
 
 const OptionsGrid = styled.div`
   display: flex; /* Use flexbox for a single column */
@@ -183,6 +184,118 @@ const StepLink = styled.button`
   }
 `;
 
+const WrittenSummaryContainer = styled.div`
+  max-width: 600px;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background-color: var(--color-background-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--color-border-primary);
+`;
+
+const SectionTitle = styled.h1`
+  color: var(--color-text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+`;
+
+const WrittenSummaryContent = styled.div`
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  
+  /* Markdown styling */
+  p {
+    margin: 0 0 1rem 0;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--color-text-primary);
+    margin: 1.5rem 0 1rem 0;
+    font-weight: 600;
+    
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+  
+  strong {
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+  
+  em {
+    font-style: italic;
+  }
+  
+  code {
+    background-color: var(--color-background-tertiary);
+    padding: 0.125rem 0.25rem;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.875em;
+  }
+  
+  pre {
+    background-color: var(--color-background-tertiary);
+    padding: 1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    
+    code {
+      background: none;
+      padding: 0;
+    }
+  }
+  
+  ul, ol {
+    margin: 0 0 1rem 1.5rem;
+    padding-left: 1.5rem;
+  }
+  
+  li {
+    margin: 0.25rem 0;
+  }
+  
+  blockquote {
+    border-left: 3px solid var(--color-brand-500);
+    padding-left: 1rem;
+    margin: 1rem 0;
+    color: var(--color-text-secondary);
+    font-style: italic;
+  }
+  
+  a {
+    color: var(--color-brand-500);
+    text-decoration: underline;
+    
+    &:hover {
+      color: var(--color-brand-400);
+    }
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    
+    th, td {
+      border: 1px solid var(--color-border-primary);
+      padding: 0.5rem;
+      text-align: left;
+    }
+    
+    th {
+      background-color: var(--color-background-tertiary);
+      font-weight: 600;
+    }
+  }
+`;
+
 
 
 const DecisionReportPage: React.FC = () => {
@@ -295,11 +408,22 @@ const DecisionReportPage: React.FC = () => {
 
   return (
     <PageLayout
-      title="Select Winner"
+      title=""
       showBackButton={true}
       onBackClick={() => navigate(`/decisions/${decisionId}`)}
     >
       <Form>
+        {data.data.writtenSummary && (
+          <>
+            <SectionTitle>Executive Summary</SectionTitle>
+            <WrittenSummaryContainer>
+              <WrittenSummaryContent>
+                <MarkdownRenderer markdown={data.data.writtenSummary} />
+              </WrittenSummaryContent>
+            </WrittenSummaryContainer>
+          </>
+        )}
+        <SectionTitle>Select Winner</SectionTitle>
         <OptionsGrid>
           {data.data.options
             .map((option, index) => {

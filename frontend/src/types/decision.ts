@@ -61,6 +61,7 @@ export interface DecisionDetails {
 export interface DecisionReportData {
     decisionDetails: DecisionDetails;
     options: ReportOption[];
+    writtenSummary?: string;
 }
 
 export interface DecisionReportResponse {

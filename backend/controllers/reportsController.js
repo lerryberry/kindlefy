@@ -5,6 +5,7 @@ const Criteria = require('../models/criteriaModel');
 const Ranking = require('../models/rankingsModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const { getCompletion } = require('../utils/openai');
 
 exports.createReport = catchAsync(async (req, res, next) => {
     const decisionId = req.params.decisionId;
@@ -216,7 +217,7 @@ exports.getReport = catchAsync(async (req, res, next) => {
     data.sort((a, b) => b._doc.grandTotalCriteriaScore - a._doc.grandTotalCriteriaScore);
 
     // Add isWinner flag and remove parentDecision from each option
-    const winnerOptionId = activeReport ? activeReport.winningOptionId.toString() : null;
+    const winnerOptionId = activeReport ? activeReport.winningOptionId?.toString() : null;
     data.forEach((option) => {
         option._doc.isWinner = option._id.toString() === winnerOptionId;
         // Remove parentDecision from option response
@@ -229,7 +230,8 @@ exports.getReport = catchAsync(async (req, res, next) => {
         }
     });
 
-    res.status(200).json({
+    // Prepare the response object
+    const responseData = {
         status: "success",
         data: {
             decisionDetails: {
@@ -238,5 +240,28 @@ exports.getReport = catchAsync(async (req, res, next) => {
             },
             options: data
         }
-    });
+    };
+
+    // If there's no winning decision selected, call OpenAI to generate a summary
+    if (!activeReport || !activeReport.winningOptionId) {
+        try {
+            // Create a prompt that includes the entire response object
+            const prompt = `Please write a short report about this decision-making analysis. Here is the complete data:\n\n${JSON.stringify(responseData.data, null, 2)}\n\nWrite a concise summary of approximately 150 words that explains the decision context, highlights the top options, and provides insights about the analysis. End your response with a clear recommendation based on the analysis.`;
+
+            const writtenSummary = await getCompletion(prompt, {
+                model: 'gpt-4o-mini',
+                temperature: 0.7,
+                max_tokens: 250
+            });
+
+            // Add the written summary to the response
+            responseData.data.writtenSummary = writtenSummary;
+        } catch (error) {
+            // If OpenAI fails, log the error but don't fail the entire request
+            console.error('Error generating OpenAI summary:', error.message);
+            // Continue without writtenSummary - don't add it to response
+        }
+    }
+
+    res.status(200).json(responseData);
 });
