@@ -37,8 +37,12 @@ function CreateDecisionForm() {
     const [category, setCategory] = useState<string>('GENERIC');
 
     useEffect(() => {
-        if (decisionId && decision) {
+        if (decisionId && decision?.data) {
             reset({ title: decision.data.title });
+            // Set the category from the decision data
+            if (decision.data.category) {
+                setCategory(decision.data.category);
+            }
         }
     }, [decisionId, decision, reset]);
 

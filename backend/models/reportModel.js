@@ -24,6 +24,10 @@ const reportSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+// Indexes for common query patterns
+reportSchema.index({ parentDecision: 1, isArchived: 1 });
+reportSchema.index({ winningOptionId: 1, isArchived: 1 });
+
 const Report = mongoose.model('Report', reportSchema);
 
 module.exports = Report;

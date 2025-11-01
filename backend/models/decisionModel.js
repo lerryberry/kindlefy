@@ -36,6 +36,9 @@ const decisionSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+// Indexes for common query patterns
+decisionSchema.index({ 'accessControl.userId': 1, isArchived: 1 });
+
 decisionSchema.pre('save', async function (next) {
 
     // run this function if name was actually modified (or is new)

@@ -1,6 +1,7 @@
 import React from 'react';
 import styled, { css } from 'styled-components';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Tooltip } from 'react-tooltip';
 import PageLayout from '../layouts/PageLayout';
 import { useGetDecisionReport } from './useGetDecisionReport';
 import { useGetDecision } from './useGetDecision';
@@ -278,7 +279,7 @@ const DecisionReportPage: React.FC = () => {
   }
 
   // Show empty state if no options to decide between
-  if (!data?.data || data.data.length === 0) {
+  if (!data?.data?.options || data.data.options.length === 0) {
     return (
       <PageLayout
         title="Select Winner"
@@ -300,8 +301,8 @@ const DecisionReportPage: React.FC = () => {
     >
       <Form>
         <OptionsGrid>
-          {data.data
-            .sort((a, b) => b.score - a.score) // Sort by score descending to maintain consistent order
+          {data.data.options
+            .sort((a, b) => b.grandTotalCriteriaScore - a.grandTotalCriteriaScore) // Sort by score descending to maintain consistent order
             .map((option, index) => {
               const isTopOption = index === 0;
               return (
@@ -321,11 +322,31 @@ const DecisionReportPage: React.FC = () => {
                     disabled={selectWinnerMutation.isPending}
                   />
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      {isTopOption && <span style={{ marginTop: 0 }}>🏆</span>}
-                      <h2 style={{ margin: 0, fontWeight: 600, fontSize: '1rem', color: 'var(--color-text-primary)' }}>
-                        {option.title}
-                      </h2>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'space-between', width: '100%' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        {isTopOption && <span style={{ marginTop: 0 }}>🏆</span>}
+                        <h2 style={{ margin: 0, fontWeight: 600, fontSize: '1rem', color: 'var(--color-text-primary)' }}>
+                          {option.title}
+                        </h2>
+                      </div>
+                      {option.similarityToBestTheoreticallyPossibleScore !== undefined && (
+                        <>
+                          <span
+                            data-tooltip-id={`similarity-tooltip-${option._id}`}
+                            data-tooltip-content="similarity to best possible option"
+                            style={{
+                              fontSize: '0.875rem',
+                              fontWeight: 600,
+                              color: 'var(--color-text-secondary)',
+                              marginLeft: 'auto',
+                              cursor: 'help'
+                            }}
+                          >
+                            {option.similarityToBestTheoreticallyPossibleScore.toFixed(0)}%
+                          </span>
+                          <Tooltip id={`similarity-tooltip-${option._id}`} />
+                        </>
+                      )}
                     </div>
                     {option.tags && option.tags.length > 0 && (
                       <TagsContainer>

@@ -32,6 +32,14 @@ export interface DecisionsResponse {
     data: Decision[];
 }
 
+export interface CriteriaRankingAnalysis {
+    _id: string;
+    title: string;
+    priority: string;
+    finalScoreCalculation: string;
+    naturalLanguageDescription: string;
+}
+
 export interface ReportOption {
     _id: string;
     title: string;
@@ -41,14 +49,26 @@ export interface ReportOption {
     isArchived: boolean;
     createdAt: string;
     updatedAt: string;
-    score: number;
+    grandTotalCriteriaScore: number;
     tags?: string[];
     isWinner: boolean;
+    similarityToBestTheoreticallyPossibleScore?: number;
+    criteriaRankingAnalysis?: CriteriaRankingAnalysis[];
+}
+
+export interface DecisionDetails {
+    _id: string;
+    title: string;
+}
+
+export interface DecisionReportData {
+    decisionDetails: DecisionDetails;
+    options: ReportOption[];
 }
 
 export interface DecisionReportResponse {
     status: 'success' | 'error';
-    data: ReportOption[];
+    data: DecisionReportData;
 }
 
 // Form data for creating decisions

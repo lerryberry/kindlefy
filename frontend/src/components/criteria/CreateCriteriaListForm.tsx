@@ -19,7 +19,7 @@ function CreateCriteriaListForm() {
 
     return (
         <PageLayout
-            title="What are the criteria?"
+            title="What qualities are you looking for?"
             showBackButton={true}
             onBackClick={() => navigate(`/decisions/${decisionId}/options`)}
             showNextButton={true}

@@ -21,7 +21,7 @@ export interface OptionListResponse {
     lastPage: boolean;
 }
 
-export type MatchLevel = "UNSORTED" | "BEST" | "IMPARTIAL" | "WORST";
+export type MatchLevel = "UNSORTED" | "BEST_CHOICE" | "IMPARTIAL" | "WORST_CHOICE";
 
 export interface GroupedOption extends Option {
     matchLevel: MatchLevel;

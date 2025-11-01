@@ -47,6 +47,9 @@ const criteriaSchema = new mongoose.Schema({
     }
 }, { timestamps: true })
 
+// Indexes for common query patterns
+criteriaSchema.index({ parentDecision: 1, isArchived: 1 });
+
 criteriaSchema.pre('save', async function (next) {
 
     // ONLY run this function if name was actually modified (or is new)

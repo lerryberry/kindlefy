@@ -79,7 +79,7 @@ function CreateCriteriaListFormInput({ criterionId, criterionTitle, criterionPri
             isNew={isNew}
             hidePriority={hidePriority}
             formData={{ title: criterionTitle || '', priority: criterionPriority || 'UNSORTED' }}
-            placeholder="Create a criterion"
+            placeholder="Add a positive quality"
             onSubmit={onSubmit}
             onDelete={handleDelete}
             isSubmitWorking={isSubmitWorking}

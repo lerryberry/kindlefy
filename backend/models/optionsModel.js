@@ -10,9 +10,9 @@ const optionsSchema = new mongoose.Schema({
         maxlength: [201, 'An option title must be 200 character or less']
     },
     parentDecision: {
-        type: Schema.Types.ObjectId, 
-        ref: 'Decision', 
-        required: true 
+        type: Schema.Types.ObjectId,
+        ref: 'Decision',
+        required: true
     },
     description: {
         type: String,
@@ -21,8 +21,8 @@ const optionsSchema = new mongoose.Schema({
     },
     slug: {
         type: String,
-        unique: true, 
-        lowercase: true, 
+        unique: true,
+        lowercase: true,
         trim: true,
         index: true
     },
@@ -33,8 +33,11 @@ const optionsSchema = new mongoose.Schema({
     }
 }, { timestamps: true })
 
+// Indexes for common query patterns
+optionsSchema.index({ parentDecision: 1, isArchived: 1 });
+
 optionsSchema.pre('save', async function (next) {
-    
+
     // ONLY run this function if name was actually modified (or is new)
     if (!this.isModified('title') && !this.isNew) {
         return next();
@@ -50,7 +53,7 @@ optionsSchema.pre('save', async function (next) {
 
     // Loop while a document with the current candidate slug exists
     // Make sure to exclude the current document if it's an update (`this._id`)
-    while (await Model.findOne({ slug: uniqueSlug})) {
+    while (await Model.findOne({ slug: uniqueSlug })) {
         // If it exists, append a counter
         uniqueSlug = `${this.slug}-${counter}`;
         counter++;

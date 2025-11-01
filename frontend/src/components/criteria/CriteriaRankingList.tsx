@@ -60,10 +60,14 @@ export default function CriteriaRankingList() {
         }
         setOpenAccordion(null);
 
-        // Auto-open next accordion if it exists
+        // Auto-open next accordion if it exists and is not ranked
         const nextAccordionNumber = accordionNumber + 1;
+        const nextAccordionIndex = nextAccordionNumber - 1; // Convert to 0-based index
+        const nextCriterion = data?.output?.[nextAccordionIndex];
         const nextAccordionRef = accordionRefs.current[nextAccordionNumber];
-        if (nextAccordionRef) {
+
+        // Only open if next criterion exists, is not ranked, and accordion ref exists
+        if (nextCriterion && !nextCriterion.isRanked && nextAccordionRef) {
             // Small delay for smooth UX - wait for close animation to complete
             setTimeout(() => {
                 nextAccordionRef.open();
@@ -79,7 +83,7 @@ export default function CriteriaRankingList() {
     if (!data?.output || data.output.length === 0) {
         return (
             <PageLayout
-                title="How do the options rank per criteria?"
+                title="How do the options score for each quality?"
                 showBackButton={true}
                 onBackClick={() => navigate(`/decisions/${decisionId}/criteria`)}
                 showNextButton={true}
@@ -94,7 +98,7 @@ export default function CriteriaRankingList() {
 
     return (
         <PageLayout
-            title="How do the options rank per criteria?"
+            title="How do the options score for each quality?"
             showBackButton={true}
             onBackClick={() => navigate(`/decisions/${decisionId}/criteria`)}
             showNextButton={true}

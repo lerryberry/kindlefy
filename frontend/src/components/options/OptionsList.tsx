@@ -28,9 +28,9 @@ const OptionsList = forwardRef<OptionsListRef, OptionsListProps>(({ criterionId:
     const { data: rankedOptionsData, isLoading, error, refetch }: UseGetRankedOptionListReturn = useGetRankedOptions(criterionId!, isAccordionOpen);
     const [groupedOptions, setGroupedOptions] = useState<Record<MatchLevel, GroupedOption[]>>({
         "UNSORTED": [],
-        "BEST": [],
+        "BEST_CHOICE": [],
         "IMPARTIAL": [],
-        "WORST": [],
+        "WORST_CHOICE": [],
     });
     const { mutate: updateRankings, isPending: isUpdatingRankings } = useUpdateRankings({
         decisionId: decisionId!,
@@ -41,9 +41,9 @@ const OptionsList = forwardRef<OptionsListRef, OptionsListProps>(({ criterionId:
         if (rankedOptionsData?.data) {
             const newGroupedOptions: Record<MatchLevel, GroupedOption[]> = {
                 "UNSORTED": [],
-                "BEST": [],
+                "BEST_CHOICE": [],
                 "IMPARTIAL": [],
-                "WORST": [],
+                "WORST_CHOICE": [],
             };
 
             rankedOptionsData.data.forEach(option => {
@@ -73,9 +73,9 @@ const OptionsList = forwardRef<OptionsListRef, OptionsListProps>(({ criterionId:
         const rankingsToSubmit: RankingFormData[] = [];
         let globalRank = 1;
 
-        // Process "BEST", "IMPARTIAL", "WORST" categories for submission
-        // Process in order: BEST -> IMPARTIAL -> WORST
-        ["BEST", "IMPARTIAL", "WORST"].forEach(level => {
+        // Process "BEST_CHOICE", "IMPARTIAL", "WORST_CHOICE" categories for submission
+        // Process in order: BEST_CHOICE -> IMPARTIAL -> WORST_CHOICE
+        ["BEST_CHOICE", "IMPARTIAL", "WORST_CHOICE"].forEach(level => {
             groupedOptions[level as Exclude<MatchLevel, "UNSORTED">].forEach((option) => {
                 rankingsToSubmit.push({
                     optionId: option._id,
@@ -114,9 +114,9 @@ const OptionsList = forwardRef<OptionsListRef, OptionsListProps>(({ criterionId:
 
     const categoryConfigs: CategoryConfig<GroupedOption>[] = [
         { id: "UNSORTED", title: "", items: groupedOptions.UNSORTED },
-        { id: "BEST", title: "Best Choice", items: groupedOptions.BEST },
+        { id: "BEST_CHOICE", title: "Best Choice", items: groupedOptions.BEST_CHOICE },
         { id: "IMPARTIAL", title: "Impartial", items: groupedOptions.IMPARTIAL },
-        { id: "WORST", title: "Worst Choice", items: groupedOptions.WORST },
+        { id: "WORST_CHOICE", title: "Worst Choice", items: groupedOptions.WORST_CHOICE },
     ];
 
     const renderOption = (option: GroupedOption) => (
