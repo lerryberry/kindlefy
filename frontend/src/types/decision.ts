@@ -35,9 +35,7 @@ export interface DecisionsResponse {
 export interface CriteriaRankingAnalysis {
     _id: string;
     title: string;
-    priority: string;
-    finalScoreCalculation: string;
-    naturalLanguageDescription: string;
+    rankingSummary: string;
 }
 
 export interface ReportOption {
@@ -49,10 +47,9 @@ export interface ReportOption {
     isArchived: boolean;
     createdAt: string;
     updatedAt: string;
-    grandTotalCriteriaScore: number;
     tags?: string[];
     isWinner: boolean;
-    similarityToBestTheoreticallyPossibleScore?: number;
+    percentageSimilarToBestTheoreticallyPossibleScore?: number;
     criteriaRankingAnalysis?: CriteriaRankingAnalysis[];
 }
 

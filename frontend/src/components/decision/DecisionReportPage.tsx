@@ -302,7 +302,6 @@ const DecisionReportPage: React.FC = () => {
       <Form>
         <OptionsGrid>
           {data.data.options
-            .sort((a, b) => b.grandTotalCriteriaScore - a.grandTotalCriteriaScore) // Sort by score descending to maintain consistent order
             .map((option, index) => {
               const isTopOption = index === 0;
               return (
@@ -329,7 +328,7 @@ const DecisionReportPage: React.FC = () => {
                           {option.title}
                         </h2>
                       </div>
-                      {option.similarityToBestTheoreticallyPossibleScore !== undefined && (
+                      {option.percentageSimilarToBestTheoreticallyPossibleScore !== undefined && (
                         <>
                           <span
                             data-tooltip-id={`similarity-tooltip-${option._id}`}
@@ -342,7 +341,7 @@ const DecisionReportPage: React.FC = () => {
                               cursor: 'help'
                             }}
                           >
-                            {option.similarityToBestTheoreticallyPossibleScore.toFixed(0)}%
+                            {option.percentageSimilarToBestTheoreticallyPossibleScore.toFixed(0)}%
                           </span>
                           <Tooltip id={`similarity-tooltip-${option._id}`} />
                         </>

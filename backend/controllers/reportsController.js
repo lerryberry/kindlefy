@@ -168,13 +168,20 @@ exports.getReport = catchAsync(async (req, res, next) => {
 
                     // Add details of this score change to the criteriaRankingAnalysis array
                     const criterion = criteria.find(obj => obj._id.toString() === rank.criterionId.toString());
-                    const naturalLanguageDescription = `This option was ranked as number ${rank.rank} against all options. It was determined to be one of the ${rank.matchLevel} for this criterion.`;
+                    const matchLevelNatural = rank.matchLevel === 'BEST_CHOICE' ? 'best choices' :
+                        rank.matchLevel === 'IMPARTIAL' ? 'impartial options' :
+                            'worst choices';
+                    const priorityNatural = criterion ? (
+                        criterion.priority === 'MUST_HAVE' ? 'must-have' :
+                            criterion.priority === 'SHOULD_HAVE' ? 'should-have' :
+                                criterion.priority === 'COULD_HAVE' ? 'could-have' :
+                                    'unsorted'
+                    ) : 'unsorted';
+                    const rankingSummary = `This option was ranked as number ${rank.rank} against all options. It was determined to be one of the ${matchLevelNatural} for this criterion (${priorityNatural} priority).`;
                     option._doc.criteriaRankingAnalysis.push({
                         _id: rank.criterionId,
                         title: criterion ? criterion.title : 'Unknown Criterion',
-                        priority: criterion ? criterion.priority : 'UNSORTED',
-                        finalScoreCalculation: `(${score}(${rank.matchLevel}) * ${multiple}(${criterionPriorityName})) - ${criterionRanking}(ranking) = ${scoreContribution}`,
-                        naturalLanguageDescription: naturalLanguageDescription,
+                        rankingSummary: rankingSummary,
                         // Add any other relevant info here
                     });
 
@@ -194,7 +201,7 @@ exports.getReport = catchAsync(async (req, res, next) => {
             // Aggregate the scores
             option._doc.grandTotalCriteriaScore = scoreUpdates.reduce((sum, score) => sum + score, 0);
             const highestPossibleScore = await returnHighestPossibleScore();
-            option._doc.similarityToBestTheoreticallyPossibleScore = (option._doc.grandTotalCriteriaScore / highestPossibleScore) * 100;
+            option._doc.percentageSimilarToBestTheoreticallyPossibleScore = (option._doc.grandTotalCriteriaScore / highestPossibleScore) * 100;
 
             return option;
         })
@@ -215,6 +222,10 @@ exports.getReport = catchAsync(async (req, res, next) => {
         // Remove parentDecision from option response
         if (option._doc.parentDecision) {
             delete option._doc.parentDecision;
+        }
+        // Remove grandTotalCriteriaScore from response
+        if (option._doc.grandTotalCriteriaScore) {
+            delete option._doc.grandTotalCriteriaScore;
         }
     });
 
