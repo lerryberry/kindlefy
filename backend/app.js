@@ -23,8 +23,13 @@ const app = express();
 app.set('trust proxy', 1);
 
 // Enable CORS for frontend - must be before auth middleware
+// Support multiple origins (comma-separated string or array)
+const corsOrigins = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+    : process.env.CORS_ORIGIN;
+
 app.use(cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: corsOrigins,
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
@@ -61,6 +66,7 @@ app.use(helmet({
                 "'self'",
                 "https://auth.krystallise.com",
                 "https://app.krystallise.com",
+                "https://app.krystallize.ai",
                 "https://*.posthog.com"
             ],
             scriptSrc: ["'self'", "'unsafe-inline'", "https://*.posthog.com"],
