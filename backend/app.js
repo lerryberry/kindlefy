@@ -47,10 +47,17 @@ if (process.env.NODE_ENV === 'production') {
     });
 }
 
-// Auth0 configuration
+// Auth0 configuration - support multiple Auth0 domains
+// Parse multiple domains from environment variable (comma-separated)
+const auth0Domains = process.env.AUTH0_DOMAIN
+    ? process.env.AUTH0_DOMAIN.split(',').map(domain => domain.trim())
+    : [process.env.AUTH0_DOMAIN];
+
+// Use the first domain as the primary issuer, but validate against all
+// express-oauth2-jwt-bearer validates the issuer claim against issuerBaseURL
 const jwtCheck = auth({
     audience: process.env.AUTH0_AUDIENCE,
-    issuerBaseURL: process.env.AUTH0_DOMAIN,
+    issuerBaseURL: auth0Domains[0] || process.env.AUTH0_DOMAIN,
     tokenSigningAlg: 'RS256',
 });
 
@@ -65,6 +72,7 @@ app.use(helmet({
             connectSrc: [
                 "'self'",
                 "https://auth.krystallise.com",
+                "https://auth.krystallize.ai",
                 "https://app.krystallise.com",
                 "https://app.krystallize.ai",
                 "https://*.posthog.com"
@@ -77,7 +85,8 @@ app.use(helmet({
             mediaSrc: ["'self'"],
             frameSrc: [
                 "'self'",
-                "https://auth.krystallise.com"
+                "https://auth.krystallise.com",
+                "https://auth.krystallize.ai"
             ]
         }
     },

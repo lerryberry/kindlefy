@@ -43,9 +43,19 @@ export function RouteProtectProvider({ children }: { children: React.ReactNode }
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+    // Dynamically determine Auth0 domain based on current origin
+    const getAuth0Domain = () => {
+        const hostname = window.location.hostname;
+        if (hostname === 'app.krystallize.ai' || hostname.includes('krystallize.ai')) {
+            return 'auth.krystallize.ai';
+        }
+        // Default to krystallise.com domain
+        return 'auth.krystallise.com';
+    };
+
     return (
         <Auth0Provider
-            domain="auth.krystallise.com"
+            domain={getAuth0Domain()}
             clientId="sZ2ckim3v3suG8XLZCPoF24ueQCIl3co"
             authorizationParams={{
                 redirect_uri: window.location.origin,
