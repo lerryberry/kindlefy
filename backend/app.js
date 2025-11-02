@@ -71,7 +71,6 @@ app.use(helmet({
             defaultSrc: ["'self'"],
             connectSrc: [
                 "'self'",
-                "https://auth.krystallise.com",
                 "https://auth.krystallize.ai",
                 "https://app.krystallise.com",
                 "https://app.krystallize.ai",
@@ -85,7 +84,6 @@ app.use(helmet({
             mediaSrc: ["'self'"],
             frameSrc: [
                 "'self'",
-                "https://auth.krystallise.com",
                 "https://auth.krystallize.ai"
             ]
         }

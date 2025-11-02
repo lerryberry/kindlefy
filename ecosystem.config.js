@@ -10,7 +10,7 @@ module.exports = {
                 NODE_ENV: "development",
                 PORT: 3000,
                 AUTH0_AUDIENCE: "auth0-m2m-endpoint",
-                AUTH0_DOMAIN: "https://auth.krystallise.com,https://auth.krystallize.ai",
+                AUTH0_DOMAIN: "https://auth.krystallize.ai",
                 CORS_ORIGIN: "http://localhost:3000",
                 ...secrets.backendDev
             }
@@ -24,7 +24,7 @@ module.exports = {
                 PORT: 3000,
                 CORS_ORIGIN: "https://app.krystallise.com,https://app.krystallize.ai",
                 AUTH0_AUDIENCE: "auth0-m2m-endpoint",
-                AUTH0_DOMAIN: "https://auth.krystallise.com,https://auth.krystallize.ai",
+                AUTH0_DOMAIN: "https://auth.krystallize.ai",
                 ...secrets.backendProd
             }
         }
