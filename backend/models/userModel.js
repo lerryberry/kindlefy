@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
     preferences: {
         aiSuggestions: {
             type: Boolean,
-            default: false
+            default: true
         }
     }
 }, { timestamps: true });
