@@ -1,9 +1,11 @@
 import { useAuthenticatedAxios } from "../../api/services/useAuthenticatedAxios";
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import type { UseGetCriteriaReturn, UseGetCriteriaListReturn } from '../../types/criteria';
 
 export function useGetCriteriaList(decisionId: string): UseGetCriteriaListReturn {
     const api = useAuthenticatedAxios();
+    const queryClient = useQueryClient();
 
     const { data, isLoading, error, isSuccess, isError, isFetching } = useQuery({
         queryKey: ["criteria", decisionId],
@@ -13,6 +15,14 @@ export function useGetCriteriaList(decisionId: string): UseGetCriteriaListReturn
         },
         enabled: !!decisionId
     });
+
+    // Invalidate decision query when criteria are fetched to update stepper
+    useEffect(() => {
+        if (isSuccess && data) {
+            queryClient.invalidateQueries({ queryKey: ["decision", decisionId] });
+            queryClient.invalidateQueries({ queryKey: ["allDecisions"] });
+        }
+    }, [isSuccess, data, decisionId, queryClient]);
 
     return { data, isLoading, error, isSuccess, isError, isFetching };
 }

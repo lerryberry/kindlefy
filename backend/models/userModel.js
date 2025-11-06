@@ -17,7 +17,13 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, 'A user must have a name']
     },
-    profilePic: String
+    profilePic: String,
+    preferences: {
+        aiSuggestions: {
+            type: Boolean,
+            default: false
+        }
+    }
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema)

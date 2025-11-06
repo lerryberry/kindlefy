@@ -2,6 +2,7 @@ import { useState } from 'react';
 import styled from 'styled-components';
 import { Outlet, useNavigate } from 'react-router-dom';
 import MainMenu from './MainMenu';
+import { useGetUserPreferences, useUpdateUserPreferences } from '../../hooks/useUserPreferences';
 import logo from '../../assets/logo.svg';
 
 const TopBarContainer = styled.div`
@@ -75,6 +76,14 @@ const Overlay = styled.div<{ isOpen: boolean }>`
 export default function TopBar() {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { preferences, isLoading } = useGetUserPreferences();
+  const updatePreferences = useUpdateUserPreferences();
+
+  const aiSuggestionsEnabled = preferences?.aiSuggestions ?? false;
+
+  const handleToggleChange = (checked: boolean) => {
+    updatePreferences.mutate({ aiSuggestions: checked });
+  };
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -105,7 +114,12 @@ export default function TopBar() {
 
       <Overlay isOpen={isMenuOpen} onClick={closeMenu} />
       <MenuOverlay isOpen={isMenuOpen}>
-        <MainMenu onClose={closeMenu} />
+        <MainMenu
+          onClose={closeMenu}
+          aiSuggestionsEnabled={aiSuggestionsEnabled}
+          onToggleChange={handleToggleChange}
+          isLoading={isLoading}
+        />
       </MenuOverlay>
 
       <Outlet />

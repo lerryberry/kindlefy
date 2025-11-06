@@ -15,6 +15,7 @@ const path = require('path');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const decisionRouter = require('./routes/decisionRoutes');
+const userRouter = require('./routes/userRoutes');
 
 //middleware to start express
 const app = express();
@@ -129,6 +130,7 @@ app.use(express.json());
 
 // Apply routes
 app.use('/api/v1/decisions', decisionRouter);
+app.use('/api/v1/users', userRouter);
 
 
 // Serve static files from the frontend build
