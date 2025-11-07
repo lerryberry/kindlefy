@@ -2,56 +2,48 @@ const factory = require('./handlerFactory.js');
 const Option = require('../models/optionsModel.js')
 const Ranking = require('../models/rankingsModel.js');
 const Report = require('../models/reportModel.js');
-const Decision = require('../models/decisionModel.js');
+const Criteria = require('../models/criteriaModel.js');
 const catchAsync = require('../utils/catchAsync.js');
 const AppError = require('../utils/appError.js');
 const mongoose = require('mongoose');
 const { getCompletion } = require('../utils/openai');
 
 exports.updateOption = factory.updateOne(Option);
+exports.getAllOptions = factory.getAll(Option);
 exports.addManyOptions = factory.addMany(Option);
 exports.getOption = factory.getOne(Option);
 exports.validateChildOption = factory.validateChild(Option);
 
-exports.getAllOptions = catchAsync(async (req, res) => {
-    //set pagination filters
-    const count = await Option.countDocuments();
-    const page = req.query.page * 1 || 1;
-    const limit = req.query.limit * 1 || count;
-    const skip = (page - 1) * limit;
-    const lastPage = (count <= (skip + limit)) ? true : false;
+exports.generateAIOptionsForDecision = async (decision, userPreferences) => {
+    if (!decision || !userPreferences?.aiSuggestions) {
+        return [];
+    }
 
-    //validate that the child is of the parents decision, and only do that for child documents
-    const query = req.params.decisionId ? { parentDecision: { $in: req.params.decisionId }, isArchived: false } : { 'accessControl.userId': req.userId, isArchived: false };
+    if (decision.category === 'STAFF') {
+        return [];
+    }
 
-    //use pagination filters
-    let data = await Option.find(query)
-        .sort({ createdAt: 1 })
-        .skip(skip)
-        .limit(limit);
+    const existingOptionsCount = await Option.countDocuments({
+        parentDecision: decision._id,
+        isArchived: false
+    });
 
-    // If AI suggestions are enabled, we have a decisionId, there are no existing options, and decision is not STAFF
-    if (req.userPreferences?.aiSuggestions === true && req.params.decisionId && data.length === 0) {
-        try {
-            const decision = await Decision.findById(req.params.decisionId);
+    if (existingOptionsCount > 0) {
+        return [];
+    }
 
-            // Only suggest options if decision type is NOT STAFF
-            if (decision && decision.category !== 'STAFF') {
-                const suggestionsNeeded = 3;
+    const suggestionsNeeded = 3;
 
-                // Fetch criteria if any exist
-                const Criteria = require('../models/criteriaModel');
-                const criteria = await Criteria.find({
-                    parentDecision: req.params.decisionId,
-                    isArchived: false
-                }).select('title');
+    const criteria = await Criteria.find({
+        parentDecision: decision._id,
+        isArchived: false
+    }).select('title');
 
-                // Build prompt for OpenAI
-                const criteriaText = criteria.length > 0
-                    ? criteria.map(c => `- ${c.title}`).join('\n')
-                    : 'No criteria have been added yet.';
+    const criteriaText = criteria.length > 0
+        ? criteria.map(c => `- ${c.title}`).join('\n')
+        : 'No criteria have been added yet.';
 
-                const prompt = `You are helping someone make a decision. 
+    const prompt = `You are helping someone make a decision. 
 
 Decision Title: ${decision.title}
 Decision Type: ${decision.category || 'GENERIC'}
@@ -59,73 +51,62 @@ Decision Type: ${decision.category || 'GENERIC'}
 Criteria so far:
 ${criteriaText}
 
-The user needs options (alternatives/choices) to evaluate for this decision. Please suggest ${suggestionsNeeded} options that would be relevant for this decision type and criteria.
+Please suggest ${suggestionsNeeded} distinct options (choices/alternatives) that someone should consider for this decision. Each option should be concise (a few words) and actionable.
 
 Return ONLY a JSON array of strings, where each string is an option title. Do not include any other text, explanations, or formatting. Example format:
 ["option 1", "option 2", "option 3"]`;
 
-                const aiResponse = await getCompletion(prompt, {
-                    model: 'gpt-4o-mini',
-                    temperature: 0.7,
-                    max_tokens: 200
-                });
+    try {
+        const aiResponse = await getCompletion(prompt, {
+            model: 'gpt-4o-mini',
+            temperature: 0.7,
+            max_tokens: 200
+        });
 
-                // Parse the JSON response
-                let suggestedOptionTitles = [];
-                try {
-                    // Try to extract JSON array from the response
-                    const jsonMatch = aiResponse.match(/\[.*\]/s);
-                    if (jsonMatch) {
-                        suggestedOptionTitles = JSON.parse(jsonMatch[0]);
-                    } else {
-                        // Fallback: try parsing the whole response
-                        suggestedOptionTitles = JSON.parse(aiResponse);
-                    }
-                } catch (parseError) {
-                    // If parsing fails, try to extract options from lines
-                    const lines = aiResponse.split('\n').filter(line => line.trim());
-                    suggestedOptionTitles = lines
-                        .map(line => line.replace(/^[-*•]\s*/, '').replace(/"/g, '').trim())
-                        .filter(line => line.length > 0)
-                        .slice(0, suggestionsNeeded);
-                }
-
-                // Ensure we have an array and limit to suggestionsNeeded
-                if (!Array.isArray(suggestedOptionTitles)) {
-                    suggestedOptionTitles = [];
-                }
-                suggestedOptionTitles = suggestedOptionTitles.slice(0, suggestionsNeeded);
-
-                // Create options in the database
-                const documentsToCreate = suggestedOptionTitles.map((title) => ({
-                    title: title.trim(),
-                    parentDecision: req.params.decisionId
-                }));
-
-                // Create options in database (slug will be auto-generated by pre-save hook)
-                await Promise.all(
-                    documentsToCreate.map(doc => Option.create(doc))
-                );
-
-                // Refetch all options including the newly created ones
-                data = await Option.find(query)
-                    .sort({ createdAt: 1 })
-                    .skip(skip)
-                    .limit(limit);
+        let suggestedOptionTitles = [];
+        try {
+            const jsonMatch = aiResponse.match(/\[.*\]/s);
+            if (jsonMatch) {
+                suggestedOptionTitles = JSON.parse(jsonMatch[0]);
+            } else {
+                suggestedOptionTitles = JSON.parse(aiResponse);
             }
-        } catch (error) {
-            // Log error but don't fail the request
-            console.error('Error generating AI option suggestions:', error.message);
+        } catch (parseError) {
+            const lines = aiResponse.split('\n').filter(line => line.trim());
+            suggestedOptionTitles = lines
+                .map(line => line.replace(/^[-*•]\s*/, '').replace(/"/g, '').trim())
+                .filter(line => line.length > 0)
+                .slice(0, suggestionsNeeded);
         }
-    }
 
-    res.status(200).json({
-        status: "success",
-        results: data.length,
-        data,
-        lastPage: lastPage
-    });
-});
+        if (!Array.isArray(suggestedOptionTitles)) {
+            suggestedOptionTitles = [];
+        }
+
+        suggestedOptionTitles = suggestedOptionTitles
+            .map(title => title.trim())
+            .filter(title => title.length > 0)
+            .slice(0, suggestionsNeeded);
+
+        if (suggestedOptionTitles.length === 0) {
+            return [];
+        }
+
+        const documentsToCreate = suggestedOptionTitles.map((title) => ({
+            title,
+            parentDecision: decision._id
+        }));
+
+        const createdOptions = await Promise.all(
+            documentsToCreate.map(doc => Option.create(doc))
+        );
+
+        return createdOptions;
+    } catch (error) {
+        console.error('Error generating AI option suggestions:', error.message);
+        return [];
+    }
+};
 
 exports.deleteOption = catchAsync(async (req, res, next) => {
     const decisionId = req.params.decisionId;

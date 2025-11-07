@@ -7,6 +7,7 @@ const Report = require('../models/reportModel');
 const catchAsync = require('../utils/catchAsync');
 const factory = require('./handlerFactory');
 const AppError = require('../utils/appError');
+const optionsController = require('./optionsController');
 
 exports.updateDecision = factory.updateOne(Decision);
 exports.deleteDecision = factory.archiveOne(Decision);
@@ -57,7 +58,35 @@ exports.getAllDecisions = catchAsync(async (req, res, next) => {
         lastPage: lastPage
     });
 });
-exports.addDecision = factory.addOne(Decision);
+exports.addDecision = catchAsync(async (req, res, next) => {
+    // Validate duplicate decision titles for the same user (non-archived)
+    const existingDecision = await Decision.countDocuments({
+        title: req.body.title,
+        'accessControl.userId': req.userId,
+        isArchived: false
+    });
+
+    if (existingDecision) {
+        return next(new AppError(`Decision with that name already exists`, 400));
+    }
+
+    const decisionPayload = {
+        ...req.body,
+        accessControl: [{
+            userId: req.userId,
+            permissions: ['READ', 'UPDATE', 'DELETE', 'RANK']
+        }]
+    };
+
+    const decision = await Decision.create(decisionPayload);
+
+    await optionsController.generateAIOptionsForDecision(decision, req.userPreferences);
+
+    res.status(201).json({
+        status: "success",
+        data: decision
+    });
+});
 
 exports.validateDecision = catchAsync(async (req, res, next) => {
     // make this function work for all routes, parent or child
