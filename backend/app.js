@@ -14,8 +14,10 @@ const path = require('path');
 //import controllers
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
-const decisionRouter = require('./routes/decisionRoutes');
 const userRouter = require('./routes/userRoutes');
+const deliveryTargetRouter = require('./routes/deliveryTargetRoutes');
+const contentRouter = require('./routes/contentRoutes');
+const deliveryPlanRouter = require('./routes/deliveryPlanRoutes');
 
 //middleware to start express
 const app = express();
@@ -129,8 +131,10 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' })); // limit to 10kb
 app.use(express.json());
 
 // Apply routes
-app.use('/api/v1/decisions', decisionRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/delivery-targets', deliveryTargetRouter);
+app.use('/api/v1/content', contentRouter);
+app.use('/api/v1/delivery-plans', deliveryPlanRouter);
 
 
 // Serve static files from the frontend build

@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const axios = require('axios');
 
 const userSchema = new mongoose.Schema({
     externalId: {
@@ -18,12 +17,6 @@ const userSchema = new mongoose.Schema({
         required: [true, 'A user must have a name']
     },
     profilePic: String,
-    preferences: {
-        aiSuggestions: {
-            type: Boolean,
-            default: true
-        }
-    }
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema)

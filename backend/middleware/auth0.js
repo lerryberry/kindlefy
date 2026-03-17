@@ -2,10 +2,17 @@ const catchAsync = require('../utils/catchAsync.js')
 const axios = require('axios');
 
 const getManagementToken = async () => {
-    const response = await axios.post('https://dev-d85syd7wejqy2nrm.us.auth0.com/oauth/token', {
+    const domain = process.env.AUTH0_MGMT_DOMAIN || process.env.AUTH0_DOMAIN;
+    const audience = process.env.AUTH0_MGMT_AUDIENCE || `https://${domain}/api/v2/`;
+
+    if (!domain) {
+        throw new Error('AUTH0_DOMAIN (or AUTH0_MGMT_DOMAIN) is required');
+    }
+
+    const response = await axios.post(`https://${domain}/oauth/token`, {
         client_id: process.env.AUTH0_CLIENT_ID,
         client_secret: process.env.AUTH0_CLIENT_SECRET,
-        audience: 'https://dev-d85syd7wejqy2nrm.us.auth0.com/api/v2/',
+        audience,
         grant_type: 'client_credentials',
         scope: 'read:users'
     });
@@ -14,8 +21,12 @@ const getManagementToken = async () => {
 
 const buildUserFromAuth0 = async (externalId) => {
     const token = await getManagementToken();
+    const domain = process.env.AUTH0_MGMT_DOMAIN || process.env.AUTH0_DOMAIN;
+    if (!domain) {
+        throw new Error('AUTH0_DOMAIN (or AUTH0_MGMT_DOMAIN) is required');
+    }
     const response = await axios.get(
-        `https://dev-d85syd7wejqy2nrm.us.auth0.com/api/v2/users/${externalId}`,
+        `https://${domain}/api/v2/users/${externalId}`,
         {
             headers: {
                 Authorization: `Bearer ${token}`
