@@ -3,7 +3,7 @@ const secrets = require('./ecosystem.secrets.js');
 module.exports = {
     apps: [
         {
-            name: "krystallise-backend-dev",
+            name: "kindelfy-backend-dev",
             script: "./backend/server.js",
             watch: true,
             env: {
@@ -16,7 +16,7 @@ module.exports = {
             }
         },
         {
-            name: "krystallise-backend-prod",
+            name: "kindelfy-backend-prod",
             script: "./backend/server.js",
             watch: false,
             env: {

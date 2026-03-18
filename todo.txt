@@ -1,25 +1,3 @@
-Handy stuff
-- reducer for advanced state management between familes of components
-- add key to maintain state and change it to reload the component automatically
-- can pass entire components as props with children prop thingy. 
-- try, catch and finally stage of comp lifecycle
-- custom hooks are good for non-visual reused logic - like api calls
-- standard <navLink to='url'> component auto-adds an active css class when visiting that link
-
-Backend
-- strip special characters or caps from slugs
-- critical alerts for things like tokens running out, space running out, server usage etc.
-
-Mid-term
-- decision ceiling / freemium point
-- social logins with account linking action
-- add posthog
-
-One day *sigh*
-- reCAPTCHA
-- posthog server-side events?
-- AI?
-
 Start the app
 npm run pm2:dev
 

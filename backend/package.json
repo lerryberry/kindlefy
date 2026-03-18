@@ -1,5 +1,5 @@
 {
-  "name": "krystallise-backend",
+  "name": "kindelfy-backend",
   "version": "1.0.0",
   "description": "API for collaborative decision-making tool",
   "main": "app.js",

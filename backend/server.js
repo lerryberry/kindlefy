@@ -32,10 +32,13 @@ process.on('SIGTERM', () => {
     if (server) {
         server.close(() => {
 
-            mongoose.connection.close(() => {
-
-                process.exit(0);
-            });
+            // Mongoose 8+ returns a promise for close(); it no longer accepts callbacks.
+            mongoose.connection.close()
+                .then(() => process.exit(0))
+                .catch(err => {
+                    console.error('Error closing mongoose connection on SIGTERM', err);
+                    process.exit(1);
+                });
         });
     } else {
         process.exit(0);
