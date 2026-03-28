@@ -45,10 +45,10 @@ export function RouteProtectProvider({ children }: { children: React.ReactNode }
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     return (
         <Auth0Provider
-            domain="auth.krystallize.ai"
-            clientId="sZ2ckim3v3suG8XLZCPoF24ueQCIl3co"
+            domain="https://dev-itmdwxuj71eew7hh.us.auth0.com"
+            clientId="eUMhUBuJl8brZ6LDgD2cXrXPb65d7G90"
             authorizationParams={{
-                redirect_uri: window.location.origin,
+                redirect_uri: 'http://localhost:3000/',
                 audience: 'auth0-m2m-endpoint',
                 scope: 'openid profile email'
             }}

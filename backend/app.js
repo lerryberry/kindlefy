@@ -74,9 +74,9 @@ app.use(helmet({
             defaultSrc: ["'self'"],
             connectSrc: [
                 "'self'",
-                "https://auth.krystallize.ai",
-                "https://app.krystallise.com",
-                "https://app.krystallize.ai",
+                // Allow the Auth0 tenant for token/iframe calls (silent auth, etc.)
+                ...auth0Domains,
+                // Allow your analytics endpoint
                 "https://*.posthog.com"
             ],
             scriptSrc: ["'self'", "'unsafe-inline'", "https://*.posthog.com"],
@@ -87,7 +87,8 @@ app.use(helmet({
             mediaSrc: ["'self'"],
             frameSrc: [
                 "'self'",
-                "https://auth.krystallize.ai"
+                // Allow Auth0 tenant in hidden iframes for silent auth
+                ...auth0Domains
             ]
         }
     },
