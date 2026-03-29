@@ -22,10 +22,6 @@ const targetSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    enabled: {
-      type: Boolean,
-      default: true,
-    },
     isArchived: {
       type: Boolean,
       default: false,
@@ -40,4 +36,4 @@ targetSchema.index(
   { unique: true, partialFilterExpression: { isArchived: { $ne: true } } }
 );
 
-module.exports = mongoose.model('Target', targetSchema, 'deliverytargets');
+module.exports = mongoose.model('Target', targetSchema, 'targets');

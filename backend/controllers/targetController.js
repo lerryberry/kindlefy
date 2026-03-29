@@ -18,7 +18,6 @@ function targetUpdatePatchFromBody(body) {
   if (Object.prototype.hasOwnProperty.call(b, 'kindleEmail')) patch.kindleEmail = b.kindleEmail;
   else if (Object.prototype.hasOwnProperty.call(b, 'kindle_email')) patch.kindleEmail = b.kindle_email;
   if (Object.prototype.hasOwnProperty.call(b, 'label')) patch.label = b.label;
-  if (Object.prototype.hasOwnProperty.call(b, 'enabled')) patch.enabled = b.enabled;
   return patch;
 }
 
@@ -57,7 +56,7 @@ exports.getAllTargets = catchAsync(async (req, res) => {
 });
 
 exports.createTarget = catchAsync(async (req, res, next) => {
-  const { kindleEmail, label, enabled } = req.body || {};
+  const { kindleEmail, label } = req.body || {};
 
   if (!kindleEmail || typeof kindleEmail !== 'string') {
     return next(new AppError('kindleEmail is required', 400));
@@ -67,7 +66,6 @@ exports.createTarget = catchAsync(async (req, res, next) => {
     user: req.userId,
     kindleEmail: kindleEmail.trim().toLowerCase(),
     label,
-    enabled,
   });
 
   res.status(201).json({ status: 'success', data });
@@ -135,7 +133,7 @@ exports.getTargetsForTiming = catchAsync(async (req, res, next) => {
 });
 
 exports.linkTargetToTiming = catchAsync(async (req, res, next) => {
-  const { targetId, kindleEmail, label, enabled } = req.body || {};
+  const { targetId, kindleEmail, label } = req.body || {};
 
   const ok = await timingOwnedAndActive(req.userId, req.params.timingId);
   if (!ok) return next(new AppError('Timing not found', 404));
@@ -149,7 +147,6 @@ exports.linkTargetToTiming = catchAsync(async (req, res, next) => {
       user: req.userId,
       kindleEmail: kindleEmail.trim().toLowerCase(),
       label,
-      enabled,
     });
     tid = created._id;
   } else {

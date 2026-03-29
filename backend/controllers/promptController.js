@@ -4,6 +4,7 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 
 const promptScope = req => ({ user: req.userId, isArchived: { $ne: true } });
+const ALLOWED_LENGTHS = ['short', 'medium', 'long'];
 
 exports.getAllPrompts = catchAsync(async (req, res) => {
   const filter = promptScope(req);
@@ -31,10 +32,10 @@ exports.getAllPrompts = catchAsync(async (req, res) => {
 });
 
 exports.createPrompt = catchAsync(async (req, res, next) => {
-  const { type, name, topics, params, enabled } = req.body || {};
+  const { topics, length } = req.body || {};
 
-  if (!type || typeof type !== 'string' || !type.trim()) {
-    return next(new AppError('type is required', 400));
+  if (!length || typeof length !== 'string' || !ALLOWED_LENGTHS.includes(length)) {
+    return next(new AppError('length must be short, medium, or long', 400));
   }
 
   if (topics !== undefined && !Array.isArray(topics)) {
@@ -43,11 +44,8 @@ exports.createPrompt = catchAsync(async (req, res, next) => {
 
   const data = await Prompt.create({
     user: req.userId,
-    type,
-    name,
-    topics,
-    params,
-    enabled,
+    length,
+    topics: topics || [],
   });
 
   res.status(201).json({ status: 'success', data });
@@ -61,7 +59,7 @@ exports.getPrompt = catchAsync(async (req, res, next) => {
 });
 
 exports.updatePrompt = catchAsync(async (req, res, next) => {
-  const allowed = ['type', 'name', 'topics', 'params', 'enabled'];
+  const allowed = ['topics', 'length'];
   const patch = {};
   allowed.forEach(k => {
     if (Object.prototype.hasOwnProperty.call(req.body || {}, k)) patch[k] = req.body[k];
@@ -69,6 +67,12 @@ exports.updatePrompt = catchAsync(async (req, res, next) => {
 
   if (patch.topics !== undefined && !Array.isArray(patch.topics)) {
     return next(new AppError('topics must be an array of strings', 400));
+  }
+
+  if (patch.length !== undefined) {
+    if (typeof patch.length !== 'string' || !ALLOWED_LENGTHS.includes(patch.length)) {
+      return next(new AppError('length must be short, medium, or long', 400));
+    }
   }
 
   const data = await Prompt.findOneAndUpdate(

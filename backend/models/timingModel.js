@@ -38,7 +38,6 @@ const timingSchema = new mongoose.Schema(
       type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Target' }],
       default: [],
     },
-    enabled: { type: Boolean, default: true },
     isArchived: {
       type: Boolean,
       default: false,
@@ -52,4 +51,4 @@ timingSchema.index({ user: 1, isArchived: 1 });
 timingSchema.index({ user: 1, prompt: 1 });
 timingSchema.index({ user: 1, content: 1 });
 
-module.exports = mongoose.model('Timing', timingSchema, 'deliveryplans');
+module.exports = mongoose.model('Timing', timingSchema, 'timings');

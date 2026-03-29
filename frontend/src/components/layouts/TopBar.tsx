@@ -92,7 +92,7 @@ export default function TopBar() {
     <>
       <TopBarContainer>
         <Logo onClick={handleLogoClick}>
-          <LogoImage src={logo} alt="Krystallise Logo" />
+          <LogoImage src={logo} alt="Kindle-ify" />
         </Logo>
         <BurgerMenu onClick={toggleMenu}>
           <BurgerLine />

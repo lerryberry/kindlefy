@@ -9,6 +9,8 @@ interface DialogProps {
     description: string;
     confirmText: string;
     onConfirm: () => void;
+    confirmDisabled?: boolean;
+    cancelDisabled?: boolean;
 }
 
 const Overlay = styled.div`
@@ -67,6 +69,11 @@ const CloseButton = styled.button`
     &:hover {
         color: var(--color-text-secondary);
     }
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
 `;
 
 const DialogContent = styled.div`
@@ -80,7 +87,16 @@ const DialogFooter = styled.div`
   margin-top: 1.5rem;
 `;
 
-const Dialog: React.FC<DialogProps> = ({ isOpen, onClose, title, description, confirmText, onConfirm }) => {
+const Dialog: React.FC<DialogProps> = ({
+    isOpen,
+    onClose,
+    title,
+    description,
+    confirmText,
+    onConfirm,
+    confirmDisabled = false,
+    cancelDisabled = false,
+}) => {
     if (!isOpen) return null;
 
     // Capitalize the first letter of the title
@@ -97,14 +113,16 @@ const Dialog: React.FC<DialogProps> = ({ isOpen, onClose, title, description, co
             <DialogContainer>
                 <DialogHeader>
                     {title && <DialogTitle>{capitalizedTitle}</DialogTitle>}
-                    <CloseButton onClick={onClose}>&times;</CloseButton>
+                    <CloseButton type="button" onClick={onClose} disabled={cancelDisabled} aria-disabled={cancelDisabled}>
+                        &times;
+                    </CloseButton>
                 </DialogHeader>
                 <DialogContent>
                     {description}
                 </DialogContent>
                 <DialogFooter>
-                    <Button text="Cancel" onClick={onClose} size="small" />
-                    <Button text={confirmText} onClick={onConfirm} size="small" />
+                    <Button text="Cancel" onClick={onClose} size="small" disabled={cancelDisabled} />
+                    <Button text={confirmText} onClick={onConfirm} size="small" disabled={confirmDisabled} />
                 </DialogFooter>
             </DialogContainer>
         </Overlay>

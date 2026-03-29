@@ -68,7 +68,7 @@ exports.getAllTimings = catchAsync(async (req, res) => {
 });
 
 exports.createTiming = catchAsync(async (req, res, next) => {
-  const { prompt, schedule, enabled, targets } = req.body || {};
+  const { prompt, schedule, targets } = req.body || {};
 
   if (!prompt) {
     return next(new AppError('prompt is required', 400));
@@ -93,7 +93,6 @@ exports.createTiming = catchAsync(async (req, res, next) => {
     user: req.userId,
     prompt,
     schedule,
-    enabled,
     targets: targetList,
   });
 
@@ -115,7 +114,7 @@ exports.getTiming = catchAsync(async (req, res, next) => {
 });
 
 exports.updateTiming = catchAsync(async (req, res, next) => {
-  const allowed = ['prompt', 'schedule', 'enabled', 'targets'];
+  const allowed = ['prompt', 'schedule', 'targets'];
   const patch = {};
   allowed.forEach(k => {
     if (Object.prototype.hasOwnProperty.call(req.body || {}, k)) patch[k] = req.body[k];

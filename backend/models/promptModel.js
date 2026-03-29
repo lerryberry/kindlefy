@@ -8,27 +8,14 @@ const promptSchema = new mongoose.Schema(
       required: [true, 'A prompt must belong to a user'],
       index: true,
     },
-    type: {
+    length: {
       type: String,
-      required: [true, 'A prompt must have a type'],
-      trim: true,
-    },
-    name: {
-      type: String,
-      trim: true,
-      maxlength: [120, 'Name must be 120 characters or less'],
+      required: [true, 'A prompt must have a length'],
+      enum: ['short', 'medium', 'long'],
     },
     topics: {
       type: [String],
       default: [],
-    },
-    params: {
-      type: mongoose.Schema.Types.Mixed,
-      default: {},
-    },
-    enabled: {
-      type: Boolean,
-      default: true,
     },
     isArchived: {
       type: Boolean,
@@ -39,6 +26,6 @@ const promptSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-promptSchema.index({ user: 1, type: 1 });
+promptSchema.index({ user: 1, createdAt: 1 });
 
-module.exports = mongoose.model('Prompt', promptSchema, 'contents');
+module.exports = mongoose.model('Prompt', promptSchema, 'prompts');

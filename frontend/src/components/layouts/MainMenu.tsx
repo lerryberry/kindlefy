@@ -50,7 +50,7 @@ export default function MainMenu({ onClose }: MainMenuProps) {
         <MenuContainer>
             <CloseButton onClick={onClose}>×</CloseButton>
             <MenuItem>
-                <MenuLink to="/" onClick={onClose}>Dashboard</MenuLink>
+                <MenuLink to="/" onClick={onClose}>Setup</MenuLink>
             </MenuItem>
             <MenuItem>
                 <MenuLink to="/profile" onClick={onClose}>Profile</MenuLink>

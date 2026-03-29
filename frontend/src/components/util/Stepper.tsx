@@ -3,104 +3,135 @@ import styled from 'styled-components';
 import StatusIndicator from './StatusIndicator';
 
 interface StepperStep {
-    id: string;
-    label: string;
-    isComplete: boolean;
-    onClick?: () => void;
+  id: string;
+  label: string;
+  isComplete: boolean;
+  onClick?: () => void;
 }
 
 interface StepperProps {
-    steps: StepperStep[];
-    className?: string;
+  steps: StepperStep[];
+  /** Which step is active; its nested panel shows `children`. */
+  activeStepId: string;
+  /** Form / route outlet rendered inside the active step. */
+  children: React.ReactNode;
+  className?: string;
 }
 
 const StepperContainer = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    padding: 0 0.5rem 0 0.5rem;
-    position: relative;
-    min-height: 80px;
-    overflow-x: auto;
-    
-    @media (max-width: 480px) {
-        padding: 0 0.25rem 0 0.25rem;
-        min-height: 70px;
-    }
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 `;
 
-const StepContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    cursor: ${props => props.onClick ? 'pointer' : 'default'};
-    min-width: 80px;
-    position: relative;
-    z-index: 2;
-    flex-shrink: 0;
-    
-    @media (max-width: 480px) {
-        min-width: 50px;
-    }
+const StepBlock = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0.75rem;
+  min-width: 0;
 `;
 
-const ConnectingLine = styled.div`
-    flex: 1;
+const TrackCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 28px;
+  flex-shrink: 0;
+  align-self: stretch;
+`;
 
-    height: 1px;
-    background-color: var(--color-text-secondary);
-    margin: 0 0.5rem;
-    align-self: center;
-    margin-bottom: -29px;
-    min-width: 20px;
-    
-    @media (max-width: 480px) {
-        margin: 0 0.125rem;
-        margin-bottom: -19px;
-    }
+const IndicatorWrap = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding-top: 2px;
+`;
+
+const TrackLine = styled.div`
+  flex: 1;
+  width: 2px;
+  min-height: 0.5rem;
+  margin-top: 4px;
+  background-color: var(--color-border-primary);
+  border-radius: 1px;
+`;
+
+const BodyCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  padding-bottom: 1.25rem;
+`;
+
+const StepHeader = styled.div<{ $clickable: boolean }>`
+  display: flex;
+  align-items: center;
+  padding: 2px 0 0.5rem 0;
+  cursor: ${(p) => (p.$clickable ? 'pointer' : 'default')};
+  user-select: none;
 `;
 
 const StepLabel = styled.div`
-    color: var(--color-text-primary);
-    font-size: 0.75rem;
-    font-weight: 500;
-    text-align: center;
-    margin-bottom: 0.75rem;
-    cursor: ${props => props.onClick ? 'pointer' : 'default'};
-    max-width: 120px;
-    line-height: 1.2;
-    
-    @media (max-width: 480px) {
-        font-size: 0.5rem;
-        margin-bottom: 0.375rem;
-        max-width: 100px;
-    }
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.3;
 `;
 
+const NestedForm = styled.div`
+  padding-left: 0;
+  padding-top: 0.25rem;
+  min-width: 0;
+`;
 
-const Stepper: React.FC<StepperProps> = ({ steps, className }) => {
-    const handleStepClick = (step: StepperStep) => {
-        if (step.onClick) {
-            step.onClick();
-        }
-    };
+const Stepper: React.FC<StepperProps> = ({ steps, activeStepId, children, className }) => {
+  const handleStepClick = (step: StepperStep) => {
+    if (step.onClick) {
+      step.onClick();
+    }
+  };
 
-    return (
-        <StepperContainer className={className}>
-            {steps.map((step, index) => (
-                <>
-                    <StepContainer key={step.id} onClick={() => handleStepClick(step)}>
-                        <StepLabel onClick={() => handleStepClick(step)}>
-                            {step.label}
-                        </StepLabel>
-                        <StatusIndicator isComplete={step.isComplete} size="medium" />
-                    </StepContainer>
-                    {index < steps.length - 1 && <ConnectingLine key={`line-${step.id}`} />}
-                </>
-            ))}
-        </StepperContainer>
-    );
+  return (
+    <StepperContainer className={className} role="navigation" aria-label="Setup steps">
+      {steps.map((step, index) => {
+        const clickable = Boolean(step.onClick);
+        const isActive = activeStepId === step.id;
+        const showLine = index < steps.length - 1;
+
+        return (
+          <StepBlock key={step.id}>
+            <TrackCol>
+              <IndicatorWrap>
+                <StatusIndicator isComplete={step.isComplete} size="medium" />
+              </IndicatorWrap>
+              {showLine ? <TrackLine aria-hidden /> : null}
+            </TrackCol>
+            <BodyCol>
+              <StepHeader
+                $clickable={clickable}
+                onClick={() => handleStepClick(step)}
+                onKeyDown={(e) => {
+                  if (clickable && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault();
+                    handleStepClick(step);
+                  }
+                }}
+                tabIndex={clickable ? 0 : undefined}
+                role={clickable ? 'button' : undefined}
+                aria-current={isActive ? 'step' : undefined}
+              >
+                <StepLabel>{step.label}</StepLabel>
+              </StepHeader>
+              {isActive ? <NestedForm>{children}</NestedForm> : null}
+            </BodyCol>
+          </StepBlock>
+        );
+      })}
+    </StepperContainer>
+  );
 };
 
 export default Stepper;
