@@ -1,0 +1,265 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-kindlefy-backend-v2",
+    "name": "Kindlefy Backend",
+    "description": "API under `/api` requires Auth0 JWT.\n\nVariables: `baseUrl`, `access_token` (raw JWT). Use `promptId`, `timingId`, `targetId` from create/list responses.\n\nPaths: `/prompts`, `/targets`, `/timings`, nested `/timings/:timingId/targets`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "access_token", "value": "" },
+    { "key": "promptId", "value": "REPLACE_WITH_OBJECT_ID" },
+    { "key": "timingId", "value": "REPLACE_WITH_OBJECT_ID" },
+    { "key": "targetId", "value": "REPLACE_WITH_OBJECT_ID" }
+  ],
+  "item": [
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get current user (me)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/users/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Prompts",
+      "item": [
+        {
+          "name": "List prompts (paginated)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/prompts?page=1&limit=20"
+          }
+        },
+        {
+          "name": "Create prompt",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"news_topics\",\n  \"name\": \"Morning digest\",\n  \"topics\": [\"technology\", \"science\"],\n  \"params\": {},\n  \"enabled\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/prompts"
+          }
+        },
+        {
+          "name": "Get prompt",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/prompts/{{promptId}}"
+          }
+        },
+        {
+          "name": "Update prompt",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Evening digest\",\n  \"topics\": [\"world news\"]\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/prompts/{{promptId}}"
+          }
+        },
+        {
+          "name": "Delete prompt (soft)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/prompts/{{promptId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Targets",
+      "item": [
+        {
+          "name": "List targets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/targets"
+          }
+        },
+        {
+          "name": "Create target",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kindleEmail\": \"you@kindle.com\",\n  \"label\": \"My Kindle\",\n  \"enabled\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/targets"
+          }
+        },
+        {
+          "name": "Get target",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/targets/{{targetId}}"
+          }
+        },
+        {
+          "name": "Update target",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Updated label\",\n  \"enabled\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/targets/{{targetId}}"
+          }
+        },
+        {
+          "name": "Delete target (soft)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/targets/{{targetId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Timings",
+      "item": [
+        {
+          "name": "List timings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/timings"
+          }
+        },
+        {
+          "name": "Create timing (no targets OK)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"{{promptId}}\",\n  \"schedule\": {\n    \"timezone\": \"America/New_York\",\n    \"timeOfDay\": \"07:30\",\n    \"frequency\": \"daily\"\n  },\n  \"enabled\": true,\n  \"targets\": []\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/timings"
+          }
+        },
+        {
+          "name": "Create timing with targets",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"{{promptId}}\",\n  \"schedule\": {\n    \"timezone\": \"America/New_York\",\n    \"timeOfDay\": \"18:00\",\n    \"frequency\": \"daily\"\n  },\n  \"enabled\": true,\n  \"targets\": [\"{{targetId}}\"]\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/timings"
+          }
+        },
+        {
+          "name": "Get timing",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/timings/{{timingId}}"
+          }
+        },
+        {
+          "name": "Update timing",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": false\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/timings/{{timingId}}"
+          }
+        },
+        {
+          "name": "Delete timing (soft)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/timings/{{timingId}}"
+          }
+        },
+        {
+          "name": "List targets on timing",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/timings/{{timingId}}/targets"
+          }
+        },
+        {
+          "name": "Link existing target to timing",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetId\": \"{{targetId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/timings/{{timingId}}/targets"
+          }
+        },
+        {
+          "name": "Create target and link to timing",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kindleEmail\": \"partner@kindle.com\",\n  \"label\": \"Partner device\",\n  \"enabled\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/timings/{{timingId}}/targets"
+          }
+        },
+        {
+          "name": "Get target on timing",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/timings/{{timingId}}/targets/{{targetId}}"
+          }
+        },
+        {
+          "name": "Update target (shared doc)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Renamed device\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/timings/{{timingId}}/targets/{{targetId}}"
+          }
+        },
+        {
+          "name": "Unlink target from timing",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/timings/{{timingId}}/targets/{{targetId}}"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,18 +1,17 @@
 const mongoose = require('mongoose');
 
-const contentSchema = new mongoose.Schema(
+const promptSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: [true, 'Content must belong to a user'],
+      required: [true, 'A prompt must belong to a user'],
       index: true,
     },
     type: {
       type: String,
-      required: [true, 'Content must have a type'],
+      required: [true, 'A prompt must have a type'],
       trim: true,
-      default: 'news_topics',
     },
     name: {
       type: String,
@@ -31,11 +30,15 @@ const contentSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    isArchived: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   { timestamps: true }
 );
 
-contentSchema.index({ user: 1, type: 1 });
+promptSchema.index({ user: 1, type: 1 });
 
-module.exports = mongoose.model('Content', contentSchema);
-
+module.exports = mongoose.model('Prompt', promptSchema, 'contents');

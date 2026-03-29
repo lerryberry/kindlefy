@@ -1,6 +1,6 @@
 const express = require('express');
 const userController = require('../controllers/userController');
-const contentController = require('../controllers/contentController');
+const promptController = require('../controllers/promptController');
 const { sanitizeRequestBody } = require('../middleware/sanitize');
 
 const router = express.Router();
@@ -9,14 +9,13 @@ router.use(userController.getCurrentUser);
 
 router
   .route('/')
-  .get(contentController.getAllContent)
-  .post(sanitizeRequestBody, contentController.createContent);
+  .get(promptController.getAllPrompts)
+  .post(sanitizeRequestBody, promptController.createPrompt);
 
 router
   .route('/:id')
-  .get(contentController.getContent)
-  .put(sanitizeRequestBody, contentController.updateContent)
-  .delete(contentController.deleteContent);
+  .get(promptController.getPrompt)
+  .put(sanitizeRequestBody, promptController.updatePrompt)
+  .delete(promptController.deletePrompt);
 
 module.exports = router;
-

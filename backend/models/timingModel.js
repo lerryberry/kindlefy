@@ -14,36 +14,42 @@ const scheduleSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const deliveryPlanSchema = new mongoose.Schema(
+const timingSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: [true, 'A delivery plan must belong to a user'],
+      required: [true, 'A timing must belong to a user'],
       index: true,
     },
-    deliveryTarget: {
+    prompt: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'DeliveryTarget',
-      required: [true, 'A delivery plan must have a delivery target'],
+      ref: 'Prompt',
       index: true,
     },
+    /** Legacy documents may only have this ref to the same collection as `prompt`. */
     content: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Content',
-      required: [true, 'A delivery plan must have content'],
+      ref: 'Prompt',
       index: true,
     },
     schedule: { type: scheduleSchema, required: true },
+    targets: {
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Target' }],
+      default: [],
+    },
     enabled: { type: Boolean, default: true },
+    isArchived: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   { timestamps: true }
 );
 
-deliveryPlanSchema.index(
-  { user: 1, deliveryTarget: 1, content: 1, 'schedule.timeOfDay': 1, 'schedule.frequency': 1 },
-  { unique: true }
-);
+timingSchema.index({ user: 1, isArchived: 1 });
+timingSchema.index({ user: 1, prompt: 1 });
+timingSchema.index({ user: 1, content: 1 });
 
-module.exports = mongoose.model('DeliveryPlan', deliveryPlanSchema);
-
+module.exports = mongoose.model('Timing', timingSchema, 'deliveryplans');

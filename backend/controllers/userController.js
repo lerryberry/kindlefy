@@ -5,15 +5,17 @@ const auth0 = require('../middleware/auth0');
 
 exports.getCurrentUser = catchAsync(async (req, res, next) => {
     const externalId = req.auth.payload.sub;
-    //find user id and attach to request
-    const curUser = await User.findOne({ externalId: externalId });
-    if (!curUser) {
-        const newUser = await createUser(externalId);
-        req.userId = newUser._id;
+    const curUser = await User.findOne({ externalId });
+    if (curUser) {
+        if (curUser.isArchived) {
+            return next(new AppError('This account has been deactivated', 403));
+        }
+        req.userId = curUser._id;
         return next();
     }
-    req.userId = curUser._id;
-    next();
+    const newUser = await createUser(externalId);
+    req.userId = newUser._id;
+    return next();
 });
 
 const createUser = async (externalId) => {
@@ -32,7 +34,7 @@ const createUser = async (externalId) => {
 exports.getMe = catchAsync(async (req, res, next) => {
     const userId = req.userId;
 
-    const user = await User.findById(userId);
+    const user = await User.findOne({ _id: userId, isArchived: { $ne: true } });
     if (!user) {
         return next(new AppError('User not found', 404));
     }

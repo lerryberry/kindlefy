@@ -15,9 +15,9 @@ const path = require('path');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const userRouter = require('./routes/userRoutes');
-const deliveryTargetRouter = require('./routes/deliveryTargetRoutes');
-const contentRouter = require('./routes/contentRoutes');
-const deliveryPlanRouter = require('./routes/deliveryPlanRoutes');
+const promptRouter = require('./routes/promptRoutes');
+const targetRouter = require('./routes/targetRoutes');
+const timingRouter = require('./routes/timingRoutes');
 
 //middleware to start express
 const app = express();
@@ -133,9 +133,9 @@ app.use(express.json());
 
 // Apply routes
 app.use('/api/v1/users', userRouter);
-app.use('/api/v1/delivery-targets', deliveryTargetRouter);
-app.use('/api/v1/content', contentRouter);
-app.use('/api/v1/delivery-plans', deliveryPlanRouter);
+app.use('/api/v1/prompts', promptRouter);
+app.use('/api/v1/targets', targetRouter);
+app.use('/api/v1/timings', timingRouter);
 
 
 // Serve static files from the frontend build
