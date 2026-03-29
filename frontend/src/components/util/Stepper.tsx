@@ -76,9 +76,10 @@ const StepHeader = styled.div<{ $clickable: boolean }>`
 
 const StepLabel = styled.div`
   color: var(--color-text-primary);
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 1.125rem;
+  font-weight: 600;
   line-height: 1.3;
+  letter-spacing: -0.01em;
 `;
 
 const NestedForm = styled.div`
@@ -105,7 +106,7 @@ const Stepper: React.FC<StepperProps> = ({ steps, activeStepId, children, classN
           <StepBlock key={step.id}>
             <TrackCol>
               <IndicatorWrap>
-                <StatusIndicator isComplete={step.isComplete} size="medium" />
+                <StatusIndicator isComplete={step.isComplete} size="large" />
               </IndicatorWrap>
               {showLine ? <TrackLine aria-hidden /> : null}
             </TrackCol>

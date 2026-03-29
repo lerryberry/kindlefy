@@ -2,6 +2,7 @@ const Prompt = require('../models/promptModel');
 const Timing = require('../models/timingModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const { normalizePromptTopics } = require('../utils/normalizePromptTopics');
 
 const promptScope = req => ({ user: req.userId, isArchived: { $ne: true } });
 const ALLOWED_LENGTHS = ['short', 'medium', 'long'];
@@ -38,14 +39,12 @@ exports.createPrompt = catchAsync(async (req, res, next) => {
     return next(new AppError('length must be short, medium, or long', 400));
   }
 
-  if (topics !== undefined && !Array.isArray(topics)) {
-    return next(new AppError('topics must be an array of strings', 400));
-  }
+  const normalizedTopics = normalizePromptTopics(topics ?? [], { minSelected: 1 });
 
   const data = await Prompt.create({
     user: req.userId,
     length,
-    topics: topics || [],
+    topics: normalizedTopics,
   });
 
   res.status(201).json({ status: 'success', data });
@@ -65,8 +64,8 @@ exports.updatePrompt = catchAsync(async (req, res, next) => {
     if (Object.prototype.hasOwnProperty.call(req.body || {}, k)) patch[k] = req.body[k];
   });
 
-  if (patch.topics !== undefined && !Array.isArray(patch.topics)) {
-    return next(new AppError('topics must be an array of strings', 400));
+  if (Object.prototype.hasOwnProperty.call(req.body || {}, 'topics')) {
+    patch.topics = normalizePromptTopics(req.body.topics, { minSelected: 0 });
   }
 
   if (patch.length !== undefined) {

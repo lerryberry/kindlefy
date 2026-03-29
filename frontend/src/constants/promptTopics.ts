@@ -1,4 +1,7 @@
-/** Preset digest topic tags (stored as prompt `topics` strings). */
+/**
+ * Preset digest topic chips — exact labels persisted on Prompt `topics`.
+ * Keep in sync with backend `constants/promptTopics.js`.
+ */
 export const PROMPT_TOPIC_OPTIONS = [
   'Global News',
   'Science',

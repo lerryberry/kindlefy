@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import toast from 'react-hot-toast';
 import Form from '../util/Form';
-import Button from '../util/Button';
+import SetupFormSubmit from '../util/SetupFormSubmit';
 import SegmentedControl from '../util/SegmentedControl';
-import { useCreatePromptMutation } from '../../hooks/usePrompts';
+import { useCreatePromptMutation, usePromptsQuery, useUpdatePromptMutation } from '../../hooks/usePrompts';
 import {
   PROMPT_LENGTH_SEGMENT_OPTIONS,
   type PromptLength,
@@ -48,6 +48,7 @@ const TopicChip = styled.button<{ $selected: boolean }>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.35rem;
   border-radius: 9999px;
   padding: 0.5rem 0.875rem;
   font-size: 0.875rem;
@@ -82,18 +83,65 @@ const TopicChip = styled.button<{ $selected: boolean }>`
   }
 `;
 
-const Actions = styled.div`
-  margin-top: 0.5rem;
+const LoadingLine = styled.p`
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
 `;
 
 interface CreatePromptFormProps {
+  /** When set, form loads topics/length from this prompt and updates on save. */
+  activePromptId: string | null;
   onCreated: (promptId: string) => void;
 }
 
-export default function CreatePromptForm({ onCreated }: CreatePromptFormProps) {
-  const { mutateAsync, isPending } = useCreatePromptMutation();
+export default function CreatePromptForm({ activePromptId, onCreated }: CreatePromptFormProps) {
+  const { data: promptsRes, isLoading: promptsLoading } = usePromptsQuery();
+  const { mutateAsync: createPrompt, isPending: isCreating } = useCreatePromptMutation();
+  const { mutateAsync: updatePrompt, isPending: isUpdating } = useUpdatePromptMutation();
+
+  const existing = useMemo(
+    () =>
+      activePromptId && promptsRes?.data?.find((p) => p._id === activePromptId),
+    [activePromptId, promptsRes?.data]
+  );
+
+  /** Stable across refetches so we don’t reset local edits when only the query cache object identity changes. */
+  const syncSignature = useMemo(() => {
+    if (!activePromptId || !existing || existing._id !== activePromptId) return '';
+    const topicsKey = [...(existing.topics || [])].sort().join('\0');
+    return `${existing._id}|${existing.length}|${topicsKey}`;
+  }, [activePromptId, existing]);
+
   const [length, setLength] = useState<PromptLength>('medium');
   const [selectedTopics, setSelectedTopics] = useState<Set<string>>(() => new Set());
+  const lastHydratedSig = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!activePromptId) {
+      lastHydratedSig.current = null;
+      setLength('medium');
+      setSelectedTopics(new Set());
+      return;
+    }
+    if (!syncSignature || !existing || existing._id !== activePromptId) {
+      if (!promptsLoading) {
+        lastHydratedSig.current = null;
+        setLength('medium');
+        setSelectedTopics(new Set());
+      }
+      return;
+    }
+    if (lastHydratedSig.current === syncSignature) return;
+    lastHydratedSig.current = syncSignature;
+    setLength(existing.length);
+    setSelectedTopics(
+      new Set(PROMPT_TOPIC_OPTIONS.filter((t) => (existing.topics || []).includes(t)))
+    );
+  }, [activePromptId, syncSignature, promptsLoading, existing]);
+
+  const isPending = isCreating || isUpdating;
+  const waitingForPrompt = Boolean(activePromptId && promptsLoading && !promptsRes);
 
   function toggleTopic(topic: string) {
     setSelectedTopics((prev) => {
@@ -106,21 +154,30 @@ export default function CreatePromptForm({ onCreated }: CreatePromptFormProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const topics = Array.from(selectedTopics);
+    const topics = PROMPT_TOPIC_OPTIONS.filter((t) => selectedTopics.has(t));
     if (topics.length === 0) {
       toast.error('Select at least one topic');
       return;
     }
     try {
-      const created = await mutateAsync({
-        length,
-        topics,
-      });
-      toast.success('Prompt saved');
-      onCreated(created._id);
+      const editing =
+        Boolean(activePromptId && existing && existing._id === activePromptId);
+      if (editing) {
+        await updatePrompt({ id: activePromptId, body: { length, topics } });
+        toast.success('Prompt saved');
+        onCreated(activePromptId);
+      } else {
+        const created = await createPrompt({ length, topics });
+        toast.success('Prompt saved');
+        onCreated(created._id);
+      }
     } catch {
       toast.error('Could not save prompt');
     }
+  }
+
+  if (waitingForPrompt) {
+    return <LoadingLine>Loading prompt…</LoadingLine>;
   }
 
   return (
@@ -150,15 +207,16 @@ export default function CreatePromptForm({ onCreated }: CreatePromptFormProps) {
                   aria-pressed={selected}
                   onClick={() => toggleTopic(topic)}
                 >
+                  {selected ? (
+                    <span aria-hidden="true">✔️</span>
+                  ) : null}
                   {topic}
                 </TopicChip>
               );
             })}
           </ChipGrid>
         </FieldBlock>
-        <Actions>
-          <Button type="submit" text={isPending ? 'Saving…' : 'Save prompt'} disabled={isPending} isResponsive />
-        </Actions>
+        <SetupFormSubmit pending={isPending} label="Save prompt" />
       </Row>
     </Form>
   );
