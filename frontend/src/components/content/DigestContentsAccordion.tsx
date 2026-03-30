@@ -151,6 +151,13 @@ export default function DigestContentsAccordion({ digestId, onCreatedDigest }: D
     setOpenItemId(next);
   };
 
+  function handleStartAddContent() {
+    manuallyClosedRef.current = true;
+    setOpenItemId(null);
+    setDraftOpen(true);
+    setIsAdding(true);
+  }
+
   const headerRenderer = useMemo(() => {
     return (content: DigestContentItem) => contentSummaryHeader(content);
   }, []);
@@ -264,7 +271,7 @@ export default function DigestContentsAccordion({ digestId, onCreatedDigest }: D
           type="button"
           text="Add content"
           variant="ghost"
-          onClick={() => setIsAdding(true)}
+          onClick={handleStartAddContent}
           disabled={isAdding}
         />
         <Button

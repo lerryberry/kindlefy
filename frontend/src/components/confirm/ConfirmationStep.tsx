@@ -67,7 +67,7 @@ export default function ConfirmationStep() {
     <Wrap>
       <Title aria-hidden="true">{'\u{1F44D}'}</Title>
       <Summary>
-        You're all set to receive a digest {cadence} and {time}, about; {topicsText}
+        You're all set to receive a digest {cadence} at {time}, about; {topicsText}
       </Summary>
       <Button
         type="button"

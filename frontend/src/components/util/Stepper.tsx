@@ -83,7 +83,7 @@ const StepLabel = styled.div`
   font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.01em;
-  margin-top: -3px;
+  margin-top: -0.34em;
 `;
 
 const ScreenReaderOnly = styled.span`
