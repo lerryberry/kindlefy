@@ -1,13 +1,16 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import toast from 'react-hot-toast';
 import Form from '../util/Form';
 import FormInput from '../util/FormInput';
-import SetupFormSubmit from '../util/SetupFormSubmit';
-import { useCreateTargetMutation, useTargetsQuery, targetIdsFromTiming } from '../../hooks/useTargets';
-import { useUpdateTimingMutation, useTimingsQuery, findTimingForPrompt } from '../../hooks/useTimings';
-import { useSetupWizard } from '../../hooks/useSetupWizard';
+import Button from '../util/Button';
+import { useCreateTargetMutation, useDeleteTargetMutation, useTargetsQuery } from '../../hooks/useTargets';
+import { useDigestWizard } from '../../hooks/useDigestWizard';
+import {
+  useDigestTimingTargetsQuery,
+  useDigestTimingsQuery,
+  useUpdateDigestTimingTargetsMutation,
+} from '../../hooks/useDigests';
 import type { Target } from '../../types/target';
 
 const Row = styled.div`
@@ -21,6 +24,28 @@ const Hint = styled.p`
   font-size: 0.875rem;
   color: var(--color-text-secondary);
   margin: 0;
+`;
+
+const AddOptionButton = styled.button`
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px dashed var(--color-border-primary);
+  background: transparent;
+  padding: 0.75rem 0.875rem;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: var(--color-background-tertiary);
+    border-style: solid;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
 `;
 
 const SectionTitle = styled.h3`
@@ -50,6 +75,8 @@ const TargetList = styled.ul`
 
 const TargetRow = styled.li`
   border-bottom: 1px solid var(--color-border-primary);
+  display: flex;
+  align-items: stretch;
 
   &:last-child {
     border-bottom: none;
@@ -58,6 +85,7 @@ const TargetRow = styled.li`
 
 const TargetLabel = styled.label<{ $disabled?: boolean }>`
   display: flex;
+  flex: 1;
   align-items: flex-start;
   gap: 0.75rem;
   padding: 0.75rem 0.875rem;
@@ -99,6 +127,55 @@ const TargetSecondary = styled.span`
   word-break: break-all;
 `;
 
+const TargetActions = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.625rem 0.5rem 0;
+`;
+
+const DeleteTargetButton = styled.button`
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border-primary);
+  background: transparent;
+  color: var(--color-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-error);
+    color: var(--color-error);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+const SubmitRow = styled.div`
+  margin-top: 1rem;
+  width: 100%;
+`;
+
+function DeleteIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M18 6L6 18M6 6l12 12"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function targetPrimaryLine(t: Target): string {
   const label = t.label?.trim();
   return label || t.kindleEmail;
@@ -110,43 +187,56 @@ function targetSecondaryLine(t: Target): string | null {
 }
 
 export default function TargetForm() {
-  const navigate = useNavigate();
-  const { promptId, timingId } = useSetupWizard();
-  const { data: timingsRes } = useTimingsQuery();
-  const timings = timingsRes?.data ?? [];
-  const timing =
-    (timingId ? timings.find((t) => t._id === timingId) : undefined) ||
-    findTimingForPrompt(timings, promptId);
+  const { digestId, selectedTimingId, setSelectedTimingId } = useDigestWizard();
+  const { data: timings, isLoading: timingsLoading } = useDigestTimingsQuery(digestId);
+  const resolvedTimingId = selectedTimingId || timings?.[0]?.timingId || null;
+
+  const { data: timingTargets, isLoading: timingTargetsLoading } = useDigestTimingTargetsQuery(digestId, resolvedTimingId);
 
   const { mutateAsync: createTarget, isPending: isCreating } = useCreateTargetMutation();
-  const { mutateAsync: updateTiming, isPending: isUpdating } = useUpdateTimingMutation();
+  const { mutateAsync: deleteTarget, isPending: isDeletingTarget } = useDeleteTargetMutation();
+  const { mutateAsync: updateDigestTargets, isPending: isUpdating } = useUpdateDigestTimingTargetsMutation(digestId, resolvedTimingId);
   const { data: targetsRes } = useTargetsQuery();
 
   const [kindleEmail, setKindleEmail] = useState('');
-  const [label, setLabel] = useState('');
+  const [showAddForm, setShowAddForm] = useState(false);
+  const didInitModeRef = useRef(false);
+
+  // Ensure selection is stable when arriving on `/.../targets` with no persisted timing selection.
+  useEffect(() => {
+    if (resolvedTimingId && !selectedTimingId) setSelectedTimingId(resolvedTimingId);
+  }, [resolvedTimingId, selectedTimingId, setSelectedTimingId]);
 
   const allTargets = targetsRes?.data ?? [];
+  const hasAnySavedTargets = allTargets.length > 0;
   const sortedTargets = useMemo(
     () => [...allTargets].sort((a, b) => a.kindleEmail.localeCompare(b.kindleEmail)),
     [allTargets]
   );
 
-  const linkedIdsKey = useMemo(
-    () => targetIdsFromTiming(timing?.targets).sort().join('\0'),
-    [timing?.targets]
-  );
-  const linkedIdSet = useMemo(() => new Set(linkedIdsKey.split('\0').filter(Boolean)), [linkedIdsKey]);
+  const linkedIdSet = useMemo(() => {
+    const ids = (timingTargets || []).map((t) => t._id);
+    return new Set(ids);
+  }, [timingTargets]);
 
-  const busy = isCreating || isUpdating;
+  const busy = isCreating || isUpdating || isDeletingTarget || timingsLoading || timingTargetsLoading;
+
+  // Initialize mode once query data is available:
+  // - If there are no saved targets, always show the add-new form.
+  // - Otherwise start on the list view (and offer an "Add" option at the bottom).
+  useEffect(() => {
+    if (didInitModeRef.current) return;
+    if (!targetsRes) return;
+    setShowAddForm(!hasAnySavedTargets);
+    didInitModeRef.current = true;
+  }, [targetsRes, hasAnySavedTargets]);
 
   async function handleToggleLinked(targetId: string, checked: boolean) {
-    if (!timing?._id) return;
-    const current = targetIdsFromTiming(timing.targets);
-    const next = checked
-      ? [...new Set([...current, targetId])]
-      : current.filter((id) => id !== targetId);
+    if (!resolvedTimingId) return;
+    const current = (timingTargets || []).map((t) => t._id);
+    const next = checked ? [...new Set([...current, targetId])] : current.filter((id) => id !== targetId);
     try {
-      await updateTiming({ id: timing._id, body: { targets: next } });
+      await updateDigestTargets({ targets: next });
       toast.success(checked ? 'Added to this schedule' : 'Removed from this schedule');
     } catch {
       toast.error('Could not update schedule');
@@ -160,10 +250,6 @@ export default function TargetForm() {
       toast.error('Kindle email is required');
       return;
     }
-    if (!timing?._id) {
-      toast.error('Save a schedule first (Schedule step)');
-      return;
-    }
     try {
       const match = allTargets.find((t) => t.kindleEmail === email);
       let targetId: string;
@@ -172,99 +258,152 @@ export default function TargetForm() {
       } else {
         const created = await createTarget({
           kindleEmail: email,
-          label: label.trim() || undefined,
         });
         targetId = created._id;
       }
-      const current = targetIdsFromTiming(timing.targets);
-      if (current.includes(targetId)) {
-        toast.success('That address is already linked to this schedule');
+      if (!resolvedTimingId) {
+        toast.success(match ? 'Device already exists' : 'Device added');
       } else {
-        await updateTiming({
-          id: timing._id,
-          body: { targets: [...current, targetId] },
-        });
-        toast.success(match ? 'Saved address linked to this schedule' : 'Target added and linked');
+        const current = (timingTargets || []).map((t) => t._id);
+        if (current.includes(targetId)) {
+          toast.success('That address is already linked to this schedule');
+        } else {
+          await updateDigestTargets({ targets: [...current, targetId] });
+          toast.success(match ? 'Saved address linked to this schedule' : 'Target added and linked');
+        }
       }
       setKindleEmail('');
-      setLabel('');
-      navigate('/');
+      setShowAddForm(false);
+      // Keep the user on the targets screen so they can keep selecting.
     } catch {
       toast.error('Could not add target');
     }
   }
 
-  if (!promptId) {
-    return <p>Complete the Content step first.</p>;
+  async function handleDeleteTarget(targetId: string) {
+    try {
+      await deleteTarget(targetId);
+      toast.success('Target deleted');
+    } catch {
+      toast.error('Could not delete target');
+    }
   }
 
-  if (!timing?._id) {
-    return <p>Save a schedule for this prompt before adding Kindle destinations.</p>;
-  }
+  if (!digestId) return <p>Missing digest.</p>;
 
   return (
     <>
-      <Hint style={{ marginBottom: '1rem' }}>
-        Choose saved Kindle addresses for this digest, or add a new one. You can link several destinations.
-      </Hint>
+      {showAddForm ? (
+        <>
+          <Hint style={{ marginBottom: '1rem' }}>
+            To get your Kindle “Send-to-Kindle” email address:
+            <div style={{ marginTop: '0.5rem' }}>
+              Go to:{' '}
+              <a
+                href="https://www.amazon.com/mycd"
+                target="_blank"
+                rel="noreferrer"
+                style={{ color: 'var(--color-text-primary)', textDecoration: 'underline' }}
+              >
+                https://www.amazon.com/mycd
+              </a>
+            </div>
+            <div style={{ marginTop: '0.5rem' }}>
+              Steps:
+              <ol style={{ margin: '0.5rem 0 0 1.25rem', padding: 0 }}>
+                <li>Sign in</li>
+                <li>Click Devices</li>
+                <li>Select your Kindle or Kindle app</li>
+                <li>Find Send-to-Kindle Email Address (e.g. name_123@kindle.com)</li>
+              </ol>
+            </div>
+          </Hint>
+          <Section aria-labelledby="new-target-heading">
+            <SectionTitle id="new-target-heading">Add a new address</SectionTitle>
+            <Form onSubmit={handleAddNew}>
+              <Row>
+                <FormInput
+                  label="Kindle email"
+                  name="kindleEmail"
+                  type="email"
+                  value={kindleEmail}
+                  onChange={(e) => setKindleEmail(e.target.value)}
+                  required
+                  placeholder="you@kindle.com"
+                  disabled={busy}
+                />
+                <SubmitRow>
+                  <Button
+                    type="submit"
+                    text={busy ? 'Saving…' : 'Add device'}
+                    size="medium"
+                    isResponsive
+                    variant="ghost"
+                    disabled={busy}
+                  />
+                </SubmitRow>
+              </Row>
+            </Form>
+          </Section>
+        </>
+      ) : (
+        <>
+          <Hint style={{ marginBottom: '1rem' }}>
+            {resolvedTimingId
+              ? 'Choose saved Kindle addresses for this digest. You can link several destinations.'
+              : 'Manage your saved Kindle devices. Add or delete devices now, then link them after saving a schedule.'}
+          </Hint>
 
-      <Section aria-labelledby="saved-targets-heading">
-        <SectionTitle id="saved-targets-heading">Your Kindle addresses</SectionTitle>
-        {sortedTargets.length === 0 ? (
-          <Hint>You don’t have any saved addresses yet. Add one below.</Hint>
-        ) : (
-          <TargetList role="group" aria-label="Link targets to this schedule">
-            {sortedTargets.map((t) => {
-              const checked = linkedIdSet.has(t._id);
-              const secondary = targetSecondaryLine(t);
-              return (
-                <TargetRow key={t._id}>
-                  <TargetLabel $disabled={busy}>
-                    <Checkbox
-                      type="checkbox"
-                      checked={checked}
-                      disabled={busy}
-                      onChange={(e) => handleToggleLinked(t._id, e.target.checked)}
-                    />
-                    <TargetText>
-                      <TargetPrimary>{targetPrimaryLine(t)}</TargetPrimary>
-                      {secondary ? <TargetSecondary>{secondary}</TargetSecondary> : null}
-                    </TargetText>
-                  </TargetLabel>
-                </TargetRow>
-              );
-            })}
-          </TargetList>
-        )}
-      </Section>
+          <Section aria-labelledby="saved-targets-heading">
+            <SectionTitle id="saved-targets-heading">Your Kindle addresses</SectionTitle>
+            <TargetList role="group" aria-label="Link targets to this schedule">
+              {sortedTargets.map((t) => {
+                const checked = linkedIdSet.has(t._id);
+                const secondary = targetSecondaryLine(t);
+                return (
+                  <TargetRow key={t._id}>
+                    <TargetLabel $disabled={busy}>
+                      <Checkbox
+                        type="checkbox"
+                        checked={checked}
+                        disabled={busy || !resolvedTimingId}
+                        onChange={(e) => {
+                          if (!resolvedTimingId) {
+                            toast.error('Save a schedule to link devices');
+                            return;
+                          }
+                          handleToggleLinked(t._id, e.target.checked);
+                        }}
+                      />
+                      <TargetText>
+                        <TargetPrimary>{targetPrimaryLine(t)}</TargetPrimary>
+                        {secondary ? <TargetSecondary>{secondary}</TargetSecondary> : null}
+                      </TargetText>
+                    </TargetLabel>
+                    <TargetActions>
+                      <DeleteTargetButton
+                        type="button"
+                        onClick={() => handleDeleteTarget(t._id)}
+                        disabled={busy}
+                        aria-label="Delete target"
+                        title="Delete target"
+                      >
+                        <DeleteIcon />
+                      </DeleteTargetButton>
+                    </TargetActions>
+                  </TargetRow>
+                );
+              })}
+            </TargetList>
+          </Section>
 
-      <Section aria-labelledby="new-target-heading">
-        <SectionTitle id="new-target-heading">Add a new address</SectionTitle>
-        <Hint>Creates a saved destination and links it to this schedule (if the email already exists, it is only linked).</Hint>
-        <Form onSubmit={handleAddNew}>
-          <Row>
-            <FormInput
-              label="Kindle email"
-              name="kindleEmail"
-              type="email"
-              value={kindleEmail}
-              onChange={(e) => setKindleEmail(e.target.value)}
-              required
-              placeholder="you@kindle.com"
-              disabled={busy}
-            />
-            <FormInput
-              label="Label"
-              name="label"
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              placeholder="Optional name"
-              disabled={busy}
-            />
-            <SetupFormSubmit pending={busy} label="Add & link" />
-          </Row>
-        </Form>
-      </Section>
+          {sortedTargets.length > 0 ? (
+            <AddOptionButton type="button" onClick={() => setShowAddForm(true)}>
+              Add new address
+            </AddOptionButton>
+          ) : null}
+        </>
+      )}
     </>
   );
 }

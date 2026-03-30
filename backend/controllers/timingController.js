@@ -6,15 +6,11 @@ const AppError = require('../utils/appError');
 
 const notArchived = { isArchived: { $ne: true } };
 const timingScope = req => ({ user: req.userId, isArchived: { $ne: true } });
-const populateActivePrompt = { path: 'prompt', match: notArchived };
-const populateLegacyContent = { path: 'content', match: notArchived };
 const populateActiveTargets = { path: 'targets', match: notArchived };
 
 function normalizeTimingDoc(raw) {
   if (!raw) return raw;
   const t = { ...raw };
-  if (!t.prompt && t.content) t.prompt = t.content;
-  delete t.content;
   return t;
 }
 
@@ -37,8 +33,6 @@ function compactPopulatedTargets(timingDoc) {
 
 async function loadTimingWithRefs(timingId, userId) {
   const raw = await Timing.findOne({ _id: timingId, user: userId, ...notArchived })
-    .populate(populateActivePrompt)
-    .populate(populateLegacyContent)
     .populate(populateActiveTargets)
     .lean();
   return normalizeTimingDoc(raw);
@@ -47,14 +41,11 @@ async function loadTimingWithRefs(timingId, userId) {
 exports.getAllTimings = catchAsync(async (req, res) => {
   const rows = await Timing.find(timingScope(req))
     .sort({ createdAt: 1 })
-    .populate(populateActivePrompt)
-    .populate(populateLegacyContent)
     .populate(populateActiveTargets)
     .lean();
 
   const data = rows
     .map(normalizeTimingDoc)
-    .filter(t => t.prompt)
     .map(t => ({
       ...t,
       targets: (t.targets || []).filter(Boolean),
@@ -91,7 +82,6 @@ exports.createTiming = catchAsync(async (req, res, next) => {
 
   const data = await Timing.create({
     user: req.userId,
-    prompt,
     schedule,
     targets: targetList,
   });

@@ -2,7 +2,6 @@
 
 // Form components
 export interface FormProps extends React.FormHTMLAttributes<HTMLFormElement> {
-    title?: string;
     children: React.ReactNode;
     onSubmit?: React.FormEventHandler<HTMLFormElement>;
     method?: 'get' | 'post' | 'put' | 'delete' | 'patch';

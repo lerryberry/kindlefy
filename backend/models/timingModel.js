@@ -16,22 +16,11 @@ const scheduleSchema = new mongoose.Schema(
 
 const timingSchema = new mongoose.Schema(
   {
-    user: {
+    digest: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: [true, 'A timing must belong to a user'],
-      index: true,
-    },
-    prompt: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Prompt',
-      index: true,
-    },
-    /** Legacy documents may only have this ref to the same collection as `prompt`. */
-    content: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Prompt',
-      index: true,
+      ref: 'Digest',
+      required: [true, 'A timing must belong to a digest'],
+      // Indexed via `timingSchema.index({ digest: 1, ... })` to avoid duplicate index warnings.
     },
     schedule: { type: scheduleSchema, required: true },
     targets: {
@@ -47,8 +36,6 @@ const timingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-timingSchema.index({ user: 1, isArchived: 1 });
-timingSchema.index({ user: 1, prompt: 1 });
-timingSchema.index({ user: 1, content: 1 });
+timingSchema.index({ digest: 1, isArchived: 1 });
 
 module.exports = mongoose.model('Timing', timingSchema, 'timings');

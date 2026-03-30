@@ -20,8 +20,8 @@ const SegmentedControlContainer = styled.div<{ disabled?: boolean }>`
     display: flex;
     border-radius: 8px;
     overflow: hidden;
-    border: 1px solid var(--color-border-primary);
-    background-color: var(--color-background-secondary);
+    border: 2px solid var(--color-border-primary);
+    background-color: var(--color-background-tertiary);
     opacity: ${props => props.disabled ? 0.6 : 1};
     pointer-events: ${props => props.disabled ? 'none' : 'auto'};
 `;
@@ -30,37 +30,23 @@ const SegmentedControlOption = styled.button<{
     isSelected: boolean;
     disabled?: boolean;
     isFirst?: boolean;
-    isLast?: boolean;
+    leftPurple?: boolean;
 }>`
     flex: 1;
     padding: 0.75rem 1rem;
     border: none;
-    background-color: ${props =>
-        props.isSelected
-            ? 'var(--color-brand-500)'
-            : 'transparent'
-    };
-    color: ${props =>
-        props.isSelected
-            ? 'white'
-            : 'var(--color-text-primary)'
-    };
+    background-color: ${props => (props.isSelected ? 'var(--color-background-secondary)' : 'var(--color-background-tertiary)')};
+    color: ${props => (props.isSelected ? 'var(--color-brand-500)' : 'var(--color-text-primary)')};
     font-weight: ${props => props.isSelected ? '600' : '500'};
     font-size: 0.875rem;
     cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
     transition: all 0.2s ease;
-    border-right: ${props =>
-        props.isLast ? 'none' : '1px solid var(--color-border-primary)'
-    };
     opacity: ${props => props.disabled ? 0.5 : 1};
     position: relative;
+    border-left: ${props => (props.isFirst ? 'none' : `2px solid ${props.leftPurple ? 'var(--color-brand-500)' : 'var(--color-border-primary)'}`)};
     
     &:hover:not(:disabled) {
-        background-color: ${props =>
-        props.isSelected
-            ? 'var(--color-brand-600)'
-            : 'var(--color-background-tertiary)'
-    };
+        background-color: var(--color-background-secondary);
     }
     
     &:focus {
@@ -99,7 +85,9 @@ const SegmentedControl: React.FC<SegmentedControlProps> = ({
                     isSelected={value === option.value}
                     disabled={option.disabled || disabled}
                     isFirst={index === 0}
-                    isLast={index === options.length - 1}
+                    leftPurple={
+                      index > 0 ? value === option.value || value === options[index - 1]?.value : false
+                    }
                     onClick={() => handleOptionClick(option.value, option.disabled)}
                     data-tooltip-id={option.disabled ? `tooltip-${option.value}` : undefined}
                     data-tooltip-content={option.disabled ? "Coming soon" : undefined}

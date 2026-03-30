@@ -27,6 +27,23 @@ export function useCreateTargetMutation() {
   });
 }
 
+export function useDeleteTargetMutation() {
+  const api = useAuthenticatedAxios();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (targetId: string) => {
+      await api.delete(`/targets/${targetId}`);
+      return targetId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['targets'] });
+      queryClient.invalidateQueries({ queryKey: ['digestTimingTargets'] });
+      queryClient.invalidateQueries({ queryKey: ['digestTimings'] });
+      queryClient.invalidateQueries({ queryKey: ['digests'] });
+    },
+  });
+}
+
 export function targetIdsFromTiming(targets: (Target | string)[] | undefined): string[] {
   if (!targets?.length) return [];
   return targets.map((t) => (typeof t === 'object' && t && '_id' in t ? t._id : String(t)));

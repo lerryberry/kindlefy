@@ -5,6 +5,7 @@
 export const PROMPT_TOPIC_OPTIONS = [
   'Global News',
   'Science',
+  'Astronomy',
   'Technology',
   'Business & Finance',
   'Sports',

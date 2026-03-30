@@ -5,7 +5,7 @@ export type PromptLength = PromptLengthType;
 export const PROMPT_LENGTH_SEGMENT_OPTIONS: { value: PromptLength; label: string }[] = [
   { value: 'short', label: '<500 words' },
   { value: 'medium', label: '500-1500 words' },
-  { value: 'long', label: '2000 words+' },
+  { value: 'long', label: '2000+ words' },
 ];
 
 export function lengthLabel(length: PromptLength | string | undefined): string {

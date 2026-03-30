@@ -2,10 +2,16 @@ const mongoose = require('mongoose');
 
 const promptSchema = new mongoose.Schema(
   {
-    user: {
+    digest: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: [true, 'A prompt must belong to a user'],
+      ref: 'Digest',
+      required: [true, 'A prompt must belong to a digest'],
+      index: true,
+    },
+    order: {
+      type: Number,
+      required: [true, 'A prompt must have an order'],
+      min: [0, 'Order must be >= 0'],
       index: true,
     },
     length: {
@@ -26,6 +32,6 @@ const promptSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-promptSchema.index({ user: 1, createdAt: 1 });
+promptSchema.index({ digest: 1, order: 1, isArchived: 1 });
 
 module.exports = mongoose.model('Prompt', promptSchema, 'prompts');

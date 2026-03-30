@@ -18,6 +18,7 @@ const userRouter = require('./routes/userRoutes');
 const promptRouter = require('./routes/promptRoutes');
 const targetRouter = require('./routes/targetRoutes');
 const timingRouter = require('./routes/timingRoutes');
+const digestRouter = require('./routes/digestRoutes');
 
 //middleware to start express
 const app = express();
@@ -136,6 +137,7 @@ app.use('/api/v1/users', userRouter);
 app.use('/api/v1/prompts', promptRouter);
 app.use('/api/v1/targets', targetRouter);
 app.use('/api/v1/timings', timingRouter);
+app.use('/api/v1/digests', digestRouter);
 
 
 // Serve static files from the frontend build

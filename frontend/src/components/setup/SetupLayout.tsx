@@ -1,9 +1,8 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import Stepper from '../util/Stepper';
-import { useSetupWizard } from '../../hooks/useSetupWizard';
-import { useTimingsQuery, findTimingForPrompt } from '../../hooks/useTimings';
-import { targetIdsFromTiming } from '../../hooks/useTargets';
+import { useDigestWizard } from '../../hooks/useDigestWizard';
+import { useDigestTimingsQuery } from '../../hooks/useDigests';
 
 const Wrap = styled.div`
   padding: 1rem;
@@ -19,23 +18,22 @@ const Main = styled.div`
 function activeStepIdFromPath(pathname: string): string {
   if (pathname.endsWith('/targets')) return 'targets';
   if (pathname.endsWith('/schedule')) return 'schedule';
+  if (pathname.endsWith('/confirm')) return 'confirm';
   return 'content';
 }
 
 export default function SetupLayout() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { promptId, timingId } = useSetupWizard();
-  const { data: timingsRes } = useTimingsQuery();
-  const timings = timingsRes?.data ?? [];
+  const { digestId, selectedTimingId } = useDigestWizard();
+  const { data: timings } = useDigestTimingsQuery(digestId);
 
-  const timingForPrompt = findTimingForPrompt(timings, promptId);
-  const effectiveTimingId = timingId || timingForPrompt?._id || null;
-  const targetCount = timingForPrompt ? targetIdsFromTiming(timingForPrompt.targets).length : 0;
+  const resolvedTimingId = selectedTimingId || (timings?.[0]?.timingId ?? null);
+  const selectedTiming = resolvedTimingId ? timings?.find((t) => t.timingId === resolvedTimingId) : null;
 
-  const stepContentComplete = !!promptId;
-  const stepScheduleComplete = !!promptId && !!effectiveTimingId;
-  const stepTargetsComplete = stepScheduleComplete && targetCount > 0;
+  const stepContentComplete = !!digestId;
+  const stepScheduleComplete = !!digestId && (timings?.length ?? 0) > 0;
+  const stepTargetsComplete = !!digestId && !!selectedTiming && (selectedTiming.targetsCount ?? 0) > 0;
 
   const go = (path: string) => () => navigate(path);
   const activeStepId = activeStepIdFromPath(pathname);
@@ -51,19 +49,25 @@ export default function SetupLayout() {
                 id: 'content',
                 label: 'Content',
                 isComplete: stepContentComplete,
-                onClick: go('/content'),
+                onClick: digestId ? go(`/${digestId}/content`) : go('/new/content'),
               },
               {
                 id: 'schedule',
                 label: 'Schedule',
                 isComplete: stepScheduleComplete,
-                onClick: go('/schedule'),
+                onClick: digestId ? go(`/${digestId}/schedule`) : undefined,
               },
               {
                 id: 'targets',
                 label: 'Targets',
                 isComplete: stepTargetsComplete,
-                onClick: go('/targets'),
+                onClick: digestId ? go(`/${digestId}/targets`) : undefined,
+              },
+              {
+                id: 'confirm',
+                label: 'Confirm',
+                isComplete: stepTargetsComplete,
+                onClick: digestId ? go(`/${digestId}/confirm`) : undefined,
               },
             ]}
           >

@@ -5,6 +5,7 @@
 module.exports = [
   'Global News',
   'Science',
+  'Astronomy',
   'Technology',
   'Business & Finance',
   'Sports',

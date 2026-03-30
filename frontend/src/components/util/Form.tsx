@@ -16,13 +16,6 @@ const StyledForm = styled.form`
   }
 `;
 
-const FormTitle = styled.h2`
-  margin: 0 0 1rem 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  text-align: center;
-`;
-
 const FormContent = styled.div`
   display: flex;
   flex-direction: column;
@@ -31,7 +24,6 @@ const FormContent = styled.div`
 `;
 
 const Form: React.FC<FormProps> = ({
-  title,
   children,
   onSubmit,
   method = 'post',
@@ -43,9 +35,6 @@ const Form: React.FC<FormProps> = ({
   style,
   ...rest
 }) => {
-  // Capitalize the first letter of the title
-  const capitalizedTitle = title && typeof title === 'string' ? title.charAt(0).toUpperCase() + title.slice(1) : title || '';
-
   return (
     <StyledForm
       onSubmit={onSubmit}
@@ -58,7 +47,6 @@ const Form: React.FC<FormProps> = ({
       style={style}
       {...rest}
     >
-      {title && <FormTitle>{capitalizedTitle}</FormTitle>}
       <FormContent>
         {children}
       </FormContent>

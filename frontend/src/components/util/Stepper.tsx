@@ -7,6 +7,8 @@ interface StepperStep {
   label: string;
   isComplete: boolean;
   onClick?: () => void;
+  /** Hide the visible label when this step is active (content provides the heading). */
+  hideLabelWhenActive?: boolean;
 }
 
 interface StepperProps {
@@ -46,7 +48,7 @@ const IndicatorWrap = styled.div`
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  padding-top: 2px;
+  padding-top: 0;
 `;
 
 const TrackLine = styled.div`
@@ -69,17 +71,31 @@ const BodyCol = styled.div`
 const StepHeader = styled.div<{ $clickable: boolean }>`
   display: flex;
   align-items: center;
-  padding: 2px 0 0.5rem 0;
+  padding: 0;
+  min-height: 1.75rem;
   cursor: ${(p) => (p.$clickable ? 'pointer' : 'default')};
   user-select: none;
 `;
 
 const StepLabel = styled.div`
   color: var(--color-text-primary);
-  font-size: 1.125rem;
+  font-size: 1.6rem;
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.1;
   letter-spacing: -0.01em;
+  margin-top: -3px;
+`;
+
+const ScreenReaderOnly = styled.span`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 `;
 
 const NestedForm = styled.div`
@@ -100,6 +116,7 @@ const Stepper: React.FC<StepperProps> = ({ steps, activeStepId, children, classN
       {steps.map((step, index) => {
         const clickable = Boolean(step.onClick);
         const isActive = activeStepId === step.id;
+        const hideHeaderLabel = Boolean(isActive && step.hideLabelWhenActive);
         const showLine = index < steps.length - 1;
 
         return (
@@ -124,7 +141,11 @@ const Stepper: React.FC<StepperProps> = ({ steps, activeStepId, children, classN
                 role={clickable ? 'button' : undefined}
                 aria-current={isActive ? 'step' : undefined}
               >
-                <StepLabel>{step.label}</StepLabel>
+                {hideHeaderLabel ? (
+                  <ScreenReaderOnly aria-current={isActive ? 'step' : undefined}>{step.label}</ScreenReaderOnly>
+                ) : (
+                  <StepLabel>{step.label}</StepLabel>
+                )}
               </StepHeader>
               {isActive ? <NestedForm>{children}</NestedForm> : null}
             </BodyCol>
