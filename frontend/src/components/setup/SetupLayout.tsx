@@ -17,6 +17,7 @@ const Main = styled.div`
 
 function activeStepIdFromPath(pathname: string): string {
   if (pathname.endsWith('/targets')) return 'targets';
+  if (pathname.endsWith('/approve-sender')) return 'approve-sender';
   if (pathname.endsWith('/schedule')) return 'schedule';
   if (pathname.endsWith('/confirm')) return 'confirm';
   return 'content';
@@ -34,6 +35,8 @@ export default function SetupLayout() {
   const stepContentComplete = !!digestId;
   const stepScheduleComplete = !!digestId && (timings?.length ?? 0) > 0;
   const stepTargetsComplete = !!digestId && !!selectedTiming && (selectedTiming.targetsCount ?? 0) > 0;
+  const stepApproveSenderComplete = stepTargetsComplete && pathname.endsWith('/confirm');
+  const stepConfirmComplete = stepTargetsComplete && pathname.endsWith('/confirm');
 
   const go = (path: string) => () => navigate(path);
   const activeStepId = activeStepIdFromPath(pathname);
@@ -64,9 +67,15 @@ export default function SetupLayout() {
                 onClick: digestId ? go(`/${digestId}/targets`) : undefined,
               },
               {
+                id: 'approve-sender',
+                label: 'Approve sender',
+                isComplete: stepApproveSenderComplete,
+                onClick: digestId ? go(`/${digestId}/approve-sender`) : undefined,
+              },
+              {
                 id: 'confirm',
                 label: 'Confirm',
-                isComplete: stepTargetsComplete,
+                isComplete: stepConfirmComplete,
                 onClick: digestId ? go(`/${digestId}/confirm`) : undefined,
               },
             ]}

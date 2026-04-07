@@ -37,7 +37,7 @@ export default function TargetsStep() {
           size="medium"
           isResponsive
           disabled={!canGoNext}
-          onClick={() => navigate(`/${digestId}/confirm`)}
+          onClick={() => navigate(`/${digestId}/approve-sender`)}
         />
       </NextRow>
     </>

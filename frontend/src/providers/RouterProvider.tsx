@@ -6,6 +6,7 @@ import SetupLayout from '../components/setup/SetupLayout';
 import ContentStep from '../components/content/ContentStep';
 import ScheduleStep from '../components/schedule/ScheduleStep';
 import TargetsStep from '../components/targets/TargetsStep';
+import ApproveSenderStep from '../components/setup/ApproveSenderStep';
 import ConfirmationStep from '../components/confirm/ConfirmationStep';
 import DigestListPage from '../components/digests/DigestListPage';
 
@@ -27,6 +28,7 @@ const router = createBrowserRouter([
           { path: 'content', element: <ContentStep /> },
           { path: 'schedule', element: <ScheduleStep /> },
           { path: 'targets', element: <TargetsStep /> },
+          { path: 'approve-sender', element: <ApproveSenderStep /> },
           { path: 'confirm', element: <ConfirmationStep /> },
         ],
       },

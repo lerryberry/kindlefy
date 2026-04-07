@@ -300,21 +300,20 @@ export default function TargetForm() {
             <div style={{ marginTop: '0.5rem' }}>
               Go to:{' '}
               <a
-                href="https://www.amazon.com/mycd"
+                href="https://www.amazon.com.au/hz/mycd/digital-console/alldevices"
                 target="_blank"
                 rel="noreferrer"
                 style={{ color: 'var(--color-text-primary)', textDecoration: 'underline' }}
               >
-                https://www.amazon.com/mycd
+                https://www.amazon.com.au/hz/mycd/digital-console/alldevices
               </a>
             </div>
             <div style={{ marginTop: '0.5rem' }}>
-              Steps:
-              <ol style={{ margin: '0.5rem 0 0 1.25rem', padding: 0 }}>
-                <li>Sign in</li>
-                <li>Click Devices</li>
-                <li>Select your Kindle or Kindle app</li>
-                <li>Find Send-to-Kindle Email Address (e.g. name_123@kindle.com)</li>
+              <ol style={{ margin: 0, paddingLeft: '1.25rem' }}>
+                <li>
+                  Click the device you want digests sent to and copy its Send-to-Kindle email (e.g.
+                  name_123@kindle.com).
+                </li>
               </ol>
             </div>
           </Hint>
