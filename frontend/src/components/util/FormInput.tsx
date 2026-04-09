@@ -11,9 +11,10 @@ interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     onChange?: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     onBlur?: (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     onFocus?: (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+    onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     disabled?: boolean;
     readOnly?: boolean;
-    autoComplete?: 'on' | 'off' | 'name' | 'email' | 'username' | 'current-password' | 'new-password' | 'one-time-code' | 'tel' | 'url' | 'street-address' | 'postal-code' | 'country' | 'language' | 'bday' | 'sex' | 'organization' | 'organization-title' | 'cc-name' | 'cc-given-name' | 'cc-family-name' | 'cc-number' | 'cc-exp' | 'cc-exp-month' | 'cc-exp-year' | 'cc-csc' | 'cc-type' | 'transaction-amount' | 'transaction-currency';
+    autoComplete?: string;
     autoFocus?: boolean;
     maxLength?: number;
     minLength?: number;
@@ -143,6 +144,7 @@ const FormInput: React.FC<FormInputProps> = ({
     onChange,
     onBlur,
     onFocus,
+    onKeyDown,
     disabled = false,
     readOnly = false,
     autoComplete,
@@ -181,6 +183,7 @@ const FormInput: React.FC<FormInputProps> = ({
         onChange,
         onBlur,
         onFocus,
+        onKeyDown,
         disabled,
         readOnly,
         autoComplete,
@@ -221,6 +224,7 @@ const FormInput: React.FC<FormInputProps> = ({
                 <StyledTextarea
                     rows={rows}
                     {...commonProps}
+                    {...(rest as React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
                 />
             </FormInputContainer>
         );

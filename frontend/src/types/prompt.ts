@@ -1,9 +1,8 @@
-export type PromptLength = 'short' | 'medium' | 'long';
-
 export interface Prompt {
   _id: string;
   user: string;
-  length: PromptLength;
+  /** Target word count (500–5000). */
+  length: number;
   topics: string[];
   isArchived?: boolean;
   createdAt: string;
@@ -26,11 +25,11 @@ export interface PromptResponse {
 }
 
 export interface CreatePromptBody {
-  length: PromptLength;
+  length: number;
   topics?: string[];
 }
 
 export interface UpdatePromptBody {
-  length?: PromptLength;
+  length?: number;
   topics?: string[];
 }

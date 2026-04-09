@@ -19,6 +19,7 @@ const promptRouter = require('./routes/promptRoutes');
 const targetRouter = require('./routes/targetRoutes');
 const timingRouter = require('./routes/timingRoutes');
 const digestRouter = require('./routes/digestRoutes');
+const placesRouter = require('./routes/placesRoutes');
 
 //middleware to start express
 const app = express();
@@ -138,6 +139,7 @@ app.use('/api/v1/prompts', promptRouter);
 app.use('/api/v1/targets', targetRouter);
 app.use('/api/v1/timings', timingRouter);
 app.use('/api/v1/digests', digestRouter);
+app.use('/api/v1/places', placesRouter);
 
 
 // Serve static files from the frontend build

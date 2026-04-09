@@ -3,7 +3,6 @@
  * Prompt `topics` in the DB must be these strings only.
  */
 module.exports = [
-  'Global News',
   'Science',
   'Astronomy',
   'Technology',

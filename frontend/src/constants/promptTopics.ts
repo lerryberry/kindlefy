@@ -3,7 +3,6 @@
  * Keep in sync with backend `constants/promptTopics.js`.
  */
 export const PROMPT_TOPIC_OPTIONS = [
-  'Global News',
   'Science',
   'Astronomy',
   'Technology',

@@ -4,17 +4,21 @@ import styled from 'styled-components';
 import Form from '../util/Form';
 import Button from '../util/Button';
 import SegmentedControl from '../util/SegmentedControl';
+import WordCountSlider from './WordCountSlider';
+import LocationPlacesField from './LocationPlacesField';
 import {
   useCreateDigestAndFirstContentItemMutation,
   useCreateDigestContentItemMutation,
   useUpdateDigestContentItemMutation,
   useDeleteDigestContentItemMutation,
 } from '../../hooks/useDigests';
-import { PROMPT_TOPIC_OPTIONS } from '../../constants/promptTopics';
 import {
-  PROMPT_LENGTH_SEGMENT_OPTIONS,
-  type PromptLength,
-} from '../../utils/promptLength';
+  DEFAULT_NEWS_SCOPE,
+  NEWS_SCOPE_SEGMENT_OPTIONS,
+  type NewsScope,
+} from '../../constants/newsScope';
+import { PROMPT_TOPIC_OPTIONS } from '../../constants/promptTopics';
+import { clampWordCount, DEFAULT_WORD_COUNT } from '../../utils/promptLength';
 import type { DigestContentItem } from '../../types/digest';
 
 const Row = styled.div`
@@ -31,16 +35,10 @@ const FieldBlock = styled.div`
   width: 100%;
 `;
 
-const FieldLabel = styled.span`
+const FieldCaption = styled.span`
   font-weight: 500;
   font-size: 0.875rem;
   color: var(--color-text-secondary);
-`;
-
-const FieldHint = styled.span`
-  font-size: 0.8125rem;
-  color: var(--color-text-tertiary);
-  line-height: 1.35;
 `;
 
 const ChipGrid = styled.div`
@@ -84,6 +82,17 @@ const TopicChip = styled.button<{ $selected: boolean }>`
   &:disabled {
     opacity: 0.55;
     cursor: not-allowed;
+  }
+`;
+
+/** Wraps segmented control so three labels fit on small screens. */
+const NewsScopeSegmentWrap = styled.div`
+  width: 100%;
+  & > div > button {
+    font-size: 0.8125rem;
+    padding: 0.6rem 0.45rem;
+    line-height: 1.25;
+    min-width: 0;
   }
 `;
 
@@ -133,7 +142,7 @@ function TrashIcon() {
   );
 }
 
-type DraftFields = { length: PromptLength; topics: string[] };
+type DraftFields = { length: number; topics: string[]; newsScope: NewsScope; locationText: string };
 
 type EditModeProps = {
   mode: 'edit';
@@ -160,6 +169,25 @@ function validateTopics(topics: string[]) {
   return topics.length > 0;
 }
 
+function validateLocationForScope(newsScope: NewsScope, locationText: string) {
+  if (newsScope === 'global') return true;
+  return locationText.trim().length >= 2;
+}
+
+function buildContentPayload(
+  wordCount: number,
+  topics: string[],
+  newsScope: NewsScope,
+  locationText: string
+) {
+  return {
+    length: wordCount,
+    topics,
+    newsScope,
+    locationText: newsScope === 'global' ? '' : locationText.trim(),
+  };
+}
+
 function buildTopicsFromSet(selectedTopics: Set<string>) {
   // Keep backend-normalized order stable (follow the preset option order).
   return PROMPT_TOPIC_OPTIONS.filter((t) => selectedTopics.has(t));
@@ -170,7 +198,9 @@ export default function ContentItemForm(props: ContentItemFormProps) {
   const onCreateDraftChange = props.mode === 'create' ? props.onDraftChange : undefined;
 
   const [selectedTopics, setSelectedTopics] = useState<Set<string>>(() => new Set());
-  const [length, setLength] = useState<PromptLength>('medium');
+  const [wordCount, setWordCount] = useState(DEFAULT_WORD_COUNT);
+  const [newsScope, setNewsScope] = useState<NewsScope>(DEFAULT_NEWS_SCOPE);
+  const [locationText, setLocationText] = useState('');
 
   const editContentId = isEdit ? props.content.contentId : null;
   const editContent = isEdit ? props.content : null;
@@ -193,18 +223,25 @@ export default function ContentItemForm(props: ContentItemFormProps) {
 
   const isPending = Boolean(updateMutation.isPending || deleteMutation.isPending || isCreatingDigest || isCreatingContent);
 
-  // Hydrate edit mode fields from props.content.
+  // Hydrate edit mode fields when switching items (avoid resetting on unrelated parent re-renders).
   useEffect(() => {
     if (!isEdit || !editContent) return;
-    setLength(editContent.length);
+    setWordCount(clampWordCount(editContent.length));
     setSelectedTopics(new Set(editContent.topics || []));
+    setNewsScope(editContent.newsScope ?? DEFAULT_NEWS_SCOPE);
+    setLocationText(editContent.locationText ?? '');
   }, [isEdit, editContentId]);
 
   // draft change callback (create mode only)
   useEffect(() => {
     if (props.mode !== 'create') return;
-    onCreateDraftChange?.({ length, topics: buildTopicsFromSet(selectedTopics) });
-  }, [props.mode, onCreateDraftChange, length, selectedTopics]);
+    onCreateDraftChange?.({
+      length: wordCount,
+      topics: buildTopicsFromSet(selectedTopics),
+      newsScope,
+      locationText,
+    });
+  }, [props.mode, onCreateDraftChange, wordCount, selectedTopics, newsScope, locationText]);
 
   const selectedTopicsArray = useMemo(() => buildTopicsFromSet(selectedTopics), [selectedTopics]);
   // NOTE: we intentionally do NOT persist edits on change.
@@ -226,17 +263,23 @@ export default function ContentItemForm(props: ContentItemFormProps) {
       toast.error('Select at least one topic');
       return;
     }
+    if (!validateLocationForScope(newsScope, locationText)) {
+      toast.error('Enter your address down to at least town or city level');
+      return;
+    }
+
+    const payload = buildContentPayload(wordCount, topics, newsScope, locationText);
 
     try {
       if (props.mode === 'create') {
         if (!props.digestId) {
-          const created = await createDigestAndFirst({ length, topics });
+          const created = await createDigestAndFirst(payload);
           props.onCreated({ digestId: created.digestId, content: created.content });
           toast.success('Content saved');
           return;
         }
 
-        const created = await createContentItem({ length, topics });
+        const created = await createContentItem(payload);
         props.onCreated({ digestId: props.digestId, content: created });
         toast.success('Content saved');
         return;
@@ -245,7 +288,7 @@ export default function ContentItemForm(props: ContentItemFormProps) {
       // edit mode
       props.onSavingStart?.();
       updateMutation
-        .mutateAsync({ length, topics })
+        .mutateAsync(payload)
         .then((saved) => {
           onEditSaved?.(saved);
           toast.success('Content saved');
@@ -280,27 +323,62 @@ export default function ContentItemForm(props: ContentItemFormProps) {
     if (!isEdit) return;
     const nextTopics = selectedTopicsArray;
     if (!editContent || !onEditChange) return;
-    onEditChange({ ...editContent, length, topics: nextTopics });
-  }, [isEdit, length, selectedTopicsArray]);
+    onEditChange({
+      ...editContent,
+      ...buildContentPayload(wordCount, nextTopics, newsScope, locationText),
+    });
+  }, [isEdit, wordCount, selectedTopicsArray, newsScope, locationText]);
 
-  const canSubmit = validateTopics(selectedTopicsArray);
+  const showLocationField = newsScope === 'country' || newsScope === 'local';
+
+  const canSubmit =
+    validateTopics(selectedTopicsArray) && validateLocationForScope(newsScope, locationText);
 
   return (
     <Form onSubmit={handleSubmit}>
       <Row>
         <FieldBlock>
-          <FieldLabel>Length</FieldLabel>
-          <SegmentedControl
-            options={PROMPT_LENGTH_SEGMENT_OPTIONS}
-            value={length}
-            onChange={(v) => setLength(v as PromptLength)}
+          <FieldCaption>News scope</FieldCaption>
+          <NewsScopeSegmentWrap>
+            <SegmentedControl
+              options={NEWS_SCOPE_SEGMENT_OPTIONS}
+              value={newsScope}
+              onChange={(v) => {
+                setNewsScope(v as NewsScope);
+                if (v === 'global') setLocationText('');
+              }}
+              disabled={isPending}
+            />
+          </NewsScopeSegmentWrap>
+        </FieldBlock>
+
+        {showLocationField ? (
+          <FieldBlock>
+            <FieldCaption as="label" htmlFor="content-location-text">
+              Location
+            </FieldCaption>
+            <LocationPlacesField
+              locationText={locationText}
+              onLocationTextChange={setLocationText}
+              disabled={isPending}
+            />
+          </FieldBlock>
+        ) : null}
+
+        <FieldBlock>
+          <FieldCaption as="label" htmlFor="content-word-count">
+            Word count
+          </FieldCaption>
+          <WordCountSlider
+            id="content-word-count"
+            value={wordCount}
+            onChange={setWordCount}
             disabled={isPending}
           />
         </FieldBlock>
 
         <FieldBlock>
-          <FieldLabel>Topics</FieldLabel>
-          <FieldHint>Select one or more areas to include in your digest.</FieldHint>
+          <FieldCaption>Topics</FieldCaption>
           <ChipGrid role="group" aria-label="Topics">
             {PROMPT_TOPIC_OPTIONS.map((topic) => {
               const selected = selectedTopics.has(topic);

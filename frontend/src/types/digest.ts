@@ -1,24 +1,30 @@
-import type { PromptLength } from './prompt';
+import type { NewsScope } from '../constants/newsScope';
 import type { Schedule } from './timing';
 import type { Target } from './target';
 
 export interface DigestPrompt {
-  length: PromptLength;
+  length: number;
   topics: string[];
+  newsScope: NewsScope;
+  locationText: string;
 }
 
 export interface DigestContentItem {
   contentId: string;
   order: number;
-  length: PromptLength;
+  length: number;
   topics: string[];
+  newsScope: NewsScope;
+  locationText: string;
 }
 
 export interface DigestListItem {
   _id: string;
   prompt: {
-    length?: PromptLength;
+    length?: number;
     topics: string[];
+    newsScope?: NewsScope;
+    locationText?: string;
   };
   defaultTiming: {
     timingId: string;
@@ -28,8 +34,10 @@ export interface DigestListItem {
 }
 
 export interface DigestContent {
-  length: PromptLength;
+  length: number;
   topics: string[];
+  newsScope: NewsScope;
+  locationText: string;
 }
 
 export interface DigestTimingListItem {
@@ -42,4 +50,3 @@ export interface DigestTimingTargetsResponse {
   timingId: string;
   targets: Target[];
 }
-

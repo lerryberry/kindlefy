@@ -6,7 +6,8 @@ import Dialog from '../util/Dialog';
 import toast from 'react-hot-toast';
 import { useDigestsQuery } from '../../hooks/useDigests';
 import type { DigestListItem } from '../../types/digest';
-import { lengthLabel } from '../../utils/promptLength';
+import { formatNewsScopeSummary } from '../../constants/newsScope';
+import { formatWordCount } from '../../utils/promptLength';
 import { useDeleteDigestMutation } from '../../hooks/useDigests';
 import { useState } from 'react';
 
@@ -133,14 +134,17 @@ const ErrorText = styled.p`
 function digestTitle(digest: DigestListItem): string {
   const first = (digest.prompt.topics || []).find(Boolean);
   if (first) return first.length > 48 ? `${first.slice(0, 45)}…` : first;
-  if (digest.prompt.length) return lengthLabel(digest.prompt.length);
+  if (digest.prompt.length != null && digest.prompt.length > 0) return formatWordCount(digest.prompt.length);
   return 'Digest';
 }
 
 function digestLengthLine(digest: DigestListItem): string | null {
-  if (!digest.prompt.length) return null;
-  const label = lengthLabel(digest.prompt.length);
-  return label || null;
+  const parts: string[] = [];
+  if (digest.prompt.length != null && digest.prompt.length > 0) {
+    parts.push(formatWordCount(digest.prompt.length));
+  }
+  parts.push(formatNewsScopeSummary(digest.prompt.newsScope, digest.prompt.locationText));
+  return parts.filter(Boolean).join(' · ') || null;
 }
 
 function scheduleSummary(digest: DigestListItem): string {

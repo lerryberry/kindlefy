@@ -15,13 +15,24 @@ const promptSchema = new mongoose.Schema(
       index: true,
     },
     length: {
-      type: String,
-      required: [true, 'A prompt must have a length'],
-      enum: ['short', 'medium', 'long'],
+      type: Number,
+      required: [true, 'A prompt must have a target word count'],
+      min: [500, 'Word count must be at least 500'],
+      max: [5000, 'Word count must be at most 5000'],
     },
     topics: {
       type: [String],
       default: [],
+    },
+    newsScope: {
+      type: String,
+      enum: ['global', 'country', 'local'],
+      default: 'global',
+    },
+    locationText: {
+      type: String,
+      default: '',
+      maxlength: [500, 'Address must be 500 characters or less'],
     },
     isArchived: {
       type: Boolean,

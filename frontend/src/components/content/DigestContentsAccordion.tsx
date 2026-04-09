@@ -7,7 +7,11 @@ import { useGetDigestContentsQuery, useReorderDigestContentsMutation } from '../
 import type { DigestContentItem } from '../../types/digest';
 import ContentItemForm from './ContentItemForm';
 import DraggableAccordionList from '../util/DraggableAccordionList';
-import type { PromptLength } from '../../types/prompt';
+import {
+  DEFAULT_NEWS_SCOPE,
+  type NewsScope,
+} from '../../constants/newsScope';
+import { DEFAULT_WORD_COUNT, formatWordCount } from '../../utils/promptLength';
 
 const HeaderRow = styled.div`
   display: flex;
@@ -82,8 +86,7 @@ function topicSummary(topics: string[]) {
 
 function contentSummaryHeader(content: DigestContentItem) {
   const topic = topicSummary(content.topics || []);
-  // content.length is already one of: 'short' | 'medium' | 'long'
-  return <SummaryText>{`${topic} · ${content.length}`}</SummaryText>;
+  return <SummaryText>{`${topic} · ${formatWordCount(content.length)}`}</SummaryText>;
 }
 
 interface DigestContentsAccordionProps {
@@ -105,13 +108,28 @@ export default function DigestContentsAccordion({ digestId, onCreatedDigest }: D
 
   const [isAdding, setIsAdding] = useState(false);
   const [draftOpen, setDraftOpen] = useState(true);
-  const [draftSummary, setDraftSummary] = useState<{ length: PromptLength; topics: string[] }>({
-    length: 'medium',
+  const [draftSummary, setDraftSummary] = useState<{
+    length: number;
+    topics: string[];
+    newsScope: NewsScope;
+    locationText: string;
+  }>({
+    length: DEFAULT_WORD_COUNT,
     topics: [],
+    newsScope: DEFAULT_NEWS_SCOPE,
+    locationText: '',
   });
-  const handleDraftChange = useCallback((draft: { length: PromptLength; topics: string[] }) => {
-    setDraftSummary(draft);
-  }, []);
+  const handleDraftChange = useCallback(
+    (draft: {
+      length: number;
+      topics: string[];
+      newsScope: NewsScope;
+      locationText: string;
+    }) => {
+      setDraftSummary(draft);
+    },
+    []
+  );
 
   useEffect(() => {
     if (initialCloseAppliedRef.current) return;
@@ -239,7 +257,9 @@ export default function DigestContentsAccordion({ digestId, onCreatedDigest }: D
             }}
           >
             <HeaderRow>
-              <SummaryText>{`${topicSummary(draftSummary.topics)} · ${draftSummary.length}`}</SummaryText>
+              <SummaryText>
+                {`${topicSummary(draftSummary.topics)} · ${formatWordCount(draftSummary.length)}`}
+              </SummaryText>
             </HeaderRow>
             <DraftChevron $isOpen={draftOpen}>{'⌃'}</DraftChevron>
           </DraftHeader>

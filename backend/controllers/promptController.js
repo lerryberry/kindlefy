@@ -5,7 +5,7 @@ const AppError = require('../utils/appError');
 const { normalizePromptTopics } = require('../utils/normalizePromptTopics');
 
 const promptScope = req => ({ user: req.userId, isArchived: { $ne: true } });
-const ALLOWED_LENGTHS = ['short', 'medium', 'long'];
+const { parseWordCount } = require('../utils/wordCount');
 
 exports.getAllPrompts = catchAsync(async (req, res) => {
   const filter = promptScope(req);
@@ -35,15 +35,16 @@ exports.getAllPrompts = catchAsync(async (req, res) => {
 exports.createPrompt = catchAsync(async (req, res, next) => {
   const { topics, length } = req.body || {};
 
-  if (!length || typeof length !== 'string' || !ALLOWED_LENGTHS.includes(length)) {
-    return next(new AppError('length must be short, medium, or long', 400));
+  const wordCount = parseWordCount(length);
+  if (wordCount === null) {
+    return next(new AppError('length must be an integer word count between 500 and 5000', 400));
   }
 
   const normalizedTopics = normalizePromptTopics(topics ?? [], { minSelected: 1 });
 
   const data = await Prompt.create({
     user: req.userId,
-    length,
+    length: wordCount,
     topics: normalizedTopics,
   });
 
@@ -69,9 +70,11 @@ exports.updatePrompt = catchAsync(async (req, res, next) => {
   }
 
   if (patch.length !== undefined) {
-    if (typeof patch.length !== 'string' || !ALLOWED_LENGTHS.includes(patch.length)) {
-      return next(new AppError('length must be short, medium, or long', 400));
+    const wordCount = parseWordCount(patch.length);
+    if (wordCount === null) {
+      return next(new AppError('length must be an integer word count between 500 and 5000', 400));
     }
+    patch.length = wordCount;
   }
 
   const data = await Prompt.findOneAndUpdate(

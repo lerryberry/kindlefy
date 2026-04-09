@@ -2,17 +2,21 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthenticatedAxios } from '../api/services/useAuthenticatedAxios';
 import type { DigestContentItem, DigestListItem, DigestTimingListItem } from '../types/digest';
 import type { Target } from '../types/target';
-import type { PromptLength } from '../types/prompt';
 import type { Schedule } from '../types/timing';
+import type { NewsScope } from '../constants/newsScope';
 
 export interface CreateDigestContentBody {
-  length: PromptLength;
+  length: number;
   topics: string[];
+  newsScope: NewsScope;
+  locationText: string;
 }
 
 export interface UpdateDigestContentBody {
-  length?: PromptLength;
+  length?: number;
   topics?: string[];
+  newsScope?: NewsScope;
+  locationText?: string;
 }
 
 export interface CreateDigestTimingBody {
@@ -64,7 +68,7 @@ interface CreateDigestAndFirstContentResponse {
   data: {
     digestId: string;
     contentId: string;
-    prompt: { length: PromptLength; topics: string[] };
+    prompt: { length: number; topics: string[]; newsScope: NewsScope; locationText: string };
   };
 }
 
@@ -120,6 +124,8 @@ export function useCreateDigestAndFirstContentItemMutation() {
         order: 0,
         length: prompt.length,
         topics: prompt.topics,
+        newsScope: prompt.newsScope,
+        locationText: prompt.locationText ?? '',
       };
       return { digestId, contentId, content };
     },

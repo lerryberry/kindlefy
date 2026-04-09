@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             domain="https://dev-itmdwxuj71eew7hh.us.auth0.com"
             clientId="eUMhUBuJl8brZ6LDgD2cXrXPb65d7G90"
             authorizationParams={{
-                redirect_uri: 'https://kindlefy-b0b7da295fd7.herokuapp.com',
+                redirect_uri: window.location.origin,
                 audience: 'auth0-m2m-endpoint',
                 scope: 'openid profile email'
             }}

@@ -5,13 +5,17 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const { normalizePromptTopics } = require('../utils/normalizePromptTopics');
 const {
+  normalizeNewsScopeForCreate,
+  normalizeNewsScopeForUpdate,
+} = require('../utils/normalizeNewsScope');
+const {
   getDigestOwnedByUserOrThrow,
   assertPromptBelongsToDigest,
   assertTimingBelongsToDigest,
   assertTargetsOwned,
 } = require('../utils/digestOwnership');
 
-const ALLOWED_LENGTHS = ['short', 'medium', 'long'];
+const { parseWordCount } = require('../utils/wordCount');
 const notArchived = { isArchived: { $ne: true } };
 
 function sanitizeDigestSchedule(schedule) {
@@ -62,11 +66,16 @@ exports.getDigests = catchAsync(async (req, res) => {
   const data = digests.map((d) => ({
     _id: d._id,
     prompt: firstPromptByDigestId.get(String(d._id))
-      ? {
-          length: firstPromptByDigestId.get(String(d._id)).length,
-          topics: firstPromptByDigestId.get(String(d._id)).topics || [],
-        }
-      : { length: undefined, topics: [] },
+      ? (() => {
+          const fp = firstPromptByDigestId.get(String(d._id));
+          return {
+            length: fp.length,
+            topics: fp.topics || [],
+            newsScope: fp.newsScope || 'global',
+            locationText: fp.locationText || '',
+          };
+        })()
+      : { length: undefined, topics: [], newsScope: undefined, locationText: undefined },
     defaultTiming: firstTimingByDigestId.get(String(d._id)) || null,
   }));
 
@@ -80,18 +89,22 @@ exports.getDigests = catchAsync(async (req, res) => {
 exports.createDigestFromContent = catchAsync(async (req, res, next) => {
   const { length, topics } = req.body || {};
 
-  if (!length || typeof length !== 'string' || !ALLOWED_LENGTHS.includes(length)) {
-    return next(new AppError('length must be short, medium, or long', 400));
+  const wordCount = parseWordCount(length);
+  if (wordCount === null) {
+    return next(new AppError('length must be an integer word count between 500 and 5000', 400));
   }
 
   const normalizedTopics = normalizePromptTopics(topics ?? [], { minSelected: 1 });
+  const { newsScope, locationText } = normalizeNewsScopeForCreate(req.body || {});
 
   const digest = await Digest.create({ user: req.userId });
   const prompt = await Prompt.create({
     digest: digest._id,
     order: 0,
-    length,
+    length: wordCount,
     topics: normalizedTopics,
+    newsScope,
+    locationText,
   });
 
   res.status(201).json({
@@ -99,7 +112,12 @@ exports.createDigestFromContent = catchAsync(async (req, res, next) => {
     data: {
       digestId: digest._id,
       contentId: prompt._id,
-      prompt: { length: prompt.length, topics: prompt.topics || [] },
+      prompt: {
+        length: prompt.length,
+        topics: prompt.topics || [],
+        newsScope: prompt.newsScope,
+        locationText: prompt.locationText || '',
+      },
     },
   });
 });
@@ -118,6 +136,8 @@ exports.getDigestContents = catchAsync(async (req, res, next) => {
       order: p.order,
       length: p.length,
       topics: p.topics || [],
+      newsScope: p.newsScope || 'global',
+      locationText: p.locationText || '',
     })),
   });
 });
@@ -127,11 +147,13 @@ exports.createDigestContentItem = catchAsync(async (req, res, next) => {
   await getDigestOwnedByUserOrThrow(req.userId, digestId);
 
   const { length, topics } = req.body || {};
-  if (!length || typeof length !== 'string' || !ALLOWED_LENGTHS.includes(length)) {
-    return next(new AppError('length must be short, medium, or long', 400));
+  const wordCount = parseWordCount(length);
+  if (wordCount === null) {
+    return next(new AppError('length must be an integer word count between 500 and 5000', 400));
   }
 
   const normalizedTopics = normalizePromptTopics(topics ?? [], { minSelected: 1 });
+  const { newsScope, locationText } = normalizeNewsScopeForCreate(req.body || {});
 
   const maxPrompt = await Prompt.findOne({ digest: digestId, ...notArchived }).sort({ order: -1, createdAt: -1 }).lean();
   const order = maxPrompt ? maxPrompt.order + 1 : 0;
@@ -139,8 +161,10 @@ exports.createDigestContentItem = catchAsync(async (req, res, next) => {
   const prompt = await Prompt.create({
     digest: digestId,
     order,
-    length,
+    length: wordCount,
     topics: normalizedTopics,
+    newsScope,
+    locationText,
   });
 
   res.status(201).json({
@@ -150,6 +174,8 @@ exports.createDigestContentItem = catchAsync(async (req, res, next) => {
       order: prompt.order,
       length: prompt.length,
       topics: prompt.topics || [],
+      newsScope: prompt.newsScope,
+      locationText: prompt.locationText || '',
     },
   });
 });
@@ -160,20 +186,27 @@ exports.updateDigestContentItem = catchAsync(async (req, res, next) => {
   await getDigestOwnedByUserOrThrow(req.userId, digestId);
 
   // Will throw 404 if prompt does not exist / does not belong to digest / is archived
-  await assertPromptBelongsToDigest(digestId, contentId);
+  const existingPrompt = await assertPromptBelongsToDigest(digestId, contentId);
 
   const patch = {};
   const body = req.body || {};
 
   if (Object.prototype.hasOwnProperty.call(body, 'length')) {
-    if (!body.length || typeof body.length !== 'string' || !ALLOWED_LENGTHS.includes(body.length)) {
-      return next(new AppError('length must be short, medium, or long', 400));
+    const wordCount = parseWordCount(body.length);
+    if (wordCount === null) {
+      return next(new AppError('length must be an integer word count between 500 and 5000', 400));
     }
-    patch.length = body.length;
+    patch.length = wordCount;
   }
 
   if (Object.prototype.hasOwnProperty.call(body, 'topics')) {
     patch.topics = normalizePromptTopics(body.topics ?? [], { minSelected: 1 });
+  }
+
+  const newsPatch = normalizeNewsScopeForUpdate(body, existingPrompt);
+  if (newsPatch) {
+    patch.newsScope = newsPatch.newsScope;
+    patch.locationText = newsPatch.locationText;
   }
 
   if (Object.keys(patch).length === 0) {
@@ -193,6 +226,8 @@ exports.updateDigestContentItem = catchAsync(async (req, res, next) => {
       order: prompt.order,
       length: prompt.length,
       topics: prompt.topics || [],
+      newsScope: prompt.newsScope,
+      locationText: prompt.locationText || '',
     },
   });
 });
@@ -267,6 +302,8 @@ exports.reorderDigestContents = catchAsync(async (req, res, next) => {
       order: p.order,
       length: p.length,
       topics: p.topics || [],
+      newsScope: p.newsScope || 'global',
+      locationText: p.locationText || '',
     })),
   });
 });
