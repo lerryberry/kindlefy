@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import FormInput from '../util/FormInput';
 import { useAuthenticatedAxios } from '../../api/services/useAuthenticatedAxios';
 import { usePlacesEnabledQuery, type PlaceSuggestion } from '../../hooks/usePlaces';
+import type { LocationCoordinates } from '../../types/digest';
 
 const SearchWrap = styled.div`
   position: relative;
@@ -59,9 +60,19 @@ const SearchBlock = styled.div`
   width: 100%;
 `;
 
+export type ResolvedLocation = {
+  plainText: string;
+  coordinates: LocationCoordinates | null;
+  utcOffsetMinutes: number | null;
+};
+
+export type AddressLookupScope = 'geo' | 'country' | 'local';
+
 type LocationPlacesFieldProps = {
   locationText: string;
   onLocationTextChange: (value: string) => void;
+  onLocationResolved?: (resolved: ResolvedLocation) => void;
+  lookupScope?: AddressLookupScope;
   disabled?: boolean;
 };
 
@@ -84,6 +95,8 @@ function autocompleteInputFromLocationText(text: string) {
 export default function LocationPlacesField({
   locationText,
   onLocationTextChange,
+  onLocationResolved,
+  lookupScope = 'geo',
   disabled = false,
 }: LocationPlacesFieldProps) {
   const api = useAuthenticatedAxios();
@@ -138,6 +151,7 @@ export default function LocationPlacesField({
         const res = await api.post<{ data: { suggestions: PlaceSuggestion[] } }>('/places/autocomplete', {
           input,
           sessionToken: sessionTokenRef.current,
+          scope: lookupScope,
         });
         if (reqId !== autocompleteReqIdRef.current) return;
         setSuggestions(res.data.data.suggestions || []);
@@ -152,7 +166,7 @@ export default function LocationPlacesField({
         }
       }
     },
-    [api, canAutocomplete]
+    [api, canAutocomplete, lookupScope]
   );
 
   const acInput = autocompleteInputFromLocationText(locationText);
@@ -205,12 +219,13 @@ export default function LocationPlacesField({
     setLoading(true);
     suppressNextAutocompleteRef.current = true;
     try {
-      const res = await api.post<{ data: { plainText: string } }>('/places/resolve', {
+      const res = await api.post<{ data: ResolvedLocation }>('/places/resolve', {
         placeId: s.placeId,
         sessionToken: sessionTokenRef.current,
       });
       suppressNextAutocompleteRef.current = true;
       onLocationTextChange(res.data.data.plainText);
+      onLocationResolved?.(res.data.data);
       sessionTokenRef.current = newSessionToken();
     } catch {
       suppressNextAutocompleteRef.current = true;
@@ -279,8 +294,12 @@ export default function LocationPlacesField({
       : null;
 
   const placeholder = canAutocomplete
-    ? 'Type a town (e.g. Bristol)'
-    : 'Town, region, country';
+    ? lookupScope === 'country'
+      ? 'Type a country (e.g. United Kingdom)'
+      : 'Type a town (e.g. Bristol)'
+    : lookupScope === 'country'
+      ? 'Country'
+      : 'Town, region, country';
 
   return (
     <SearchBlock>

@@ -113,11 +113,13 @@ export default function DigestContentsAccordion({ digestId, onCreatedDigest }: D
     topics: string[];
     newsScope: NewsScope;
     locationText: string;
+    specialInterestText: string;
   }>({
     length: DEFAULT_WORD_COUNT,
     topics: [],
     newsScope: DEFAULT_NEWS_SCOPE,
     locationText: '',
+    specialInterestText: '',
   });
   const handleDraftChange = useCallback(
     (draft: {
@@ -125,6 +127,7 @@ export default function DigestContentsAccordion({ digestId, onCreatedDigest }: D
       topics: string[];
       newsScope: NewsScope;
       locationText: string;
+      specialInterestText: string;
     }) => {
       setDraftSummary(draft);
     },

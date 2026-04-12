@@ -9,6 +9,11 @@ export interface DigestPrompt {
   locationText: string;
 }
 
+export interface LocationCoordinates {
+  lat: number | null;
+  lng: number | null;
+}
+
 export interface DigestContentItem {
   contentId: string;
   order: number;
@@ -16,6 +21,8 @@ export interface DigestContentItem {
   topics: string[];
   newsScope: NewsScope;
   locationText: string;
+  locationCoordinates: LocationCoordinates;
+  locationTimezone: string;
 }
 
 export interface DigestListItem {

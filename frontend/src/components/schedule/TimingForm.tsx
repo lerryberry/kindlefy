@@ -9,6 +9,12 @@ import SetupFormSubmit from '../util/SetupFormSubmit';
 import { useDigestWizard } from '../../hooks/useDigestWizard';
 import { useCreateDigestTimingMutation, useDigestTimingsQuery, useUpdateDigestTimingScheduleMutation } from '../../hooks/useDigests';
 import type { Schedule } from '../../types/timing';
+import {
+  SCHEDULE_TIMEZONE_OPTIONS,
+  coerceScheduleTimezone,
+  detectBrowserTimezone,
+  detectPreferredScheduleTimezone,
+} from '../../constants/timezones';
 
 const SCHEDULE_FREQUENCY = 'daily' as const;
 
@@ -25,12 +31,47 @@ const FieldLabel = styled.span`
   color: var(--color-text-secondary);
 `;
 
-function defaultTimezone(): string {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
-  } catch {
-    return 'UTC';
+const FieldGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+`;
+
+const TimezoneSelect = styled.select`
+  padding: 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: var(--color-background-tertiary);
+  color: var(--color-text-primary);
+  transition: border-color 0.2s ease-in-out;
+
+  @media (max-width: 768px) {
+    font-size: 16px;
+    padding: 0.875rem;
   }
+
+  &:hover {
+    border-color: var(--color-border-secondary);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-brand-500);
+    box-shadow: 0 0 0 3px var(--color-brand-100);
+  }
+
+  &:disabled {
+    background-color: var(--color-background-secondary);
+    cursor: not-allowed;
+  }
+`;
+
+function defaultTimezone(): string {
+  return detectPreferredScheduleTimezone();
 }
 
 export default function TimingForm() {
@@ -44,6 +85,7 @@ export default function TimingForm() {
 
   const [timezone, setTimezone] = useState(defaultTimezone());
   const [timeOfDay, setTimeOfDay] = useState('09:00');
+  const browserTimezone = useMemo(() => detectBrowserTimezone(), []);
 
   const currentSchedule = useMemo(() => {
     if (!resolvedTimingId) return null;
@@ -58,7 +100,7 @@ export default function TimingForm() {
       setTimeOfDay('09:00');
       return;
     }
-    setTimezone(currentSchedule.timezone || defaultTimezone());
+    setTimezone(coerceScheduleTimezone(currentSchedule.timezone || defaultTimezone()));
     setTimeOfDay(currentSchedule.timeOfDay || '09:00');
   }, [digestId, resolvedTimingId, currentSchedule]);
 
@@ -76,7 +118,7 @@ export default function TimingForm() {
       return;
     }
     const schedule: Schedule = {
-      timezone: timezone.trim() || defaultTimezone(),
+      timezone: coerceScheduleTimezone(timezone),
       timeOfDay: timeOfDay.trim(),
       frequency: SCHEDULE_FREQUENCY,
     };
@@ -117,14 +159,28 @@ export default function TimingForm() {
   return (
     <Form onSubmit={handleSubmit}>
       <Row>
-        <FormInput
-          label="Timezone"
-          name="timezone"
-          value={timezone}
-          onChange={(e) => setTimezone(e.target.value)}
-          required
-          placeholder="e.g. America/New_York"
-        />
+        <FieldGroup>
+          <FieldLabel as="label" htmlFor="schedule-timezone">
+            Timezone
+          </FieldLabel>
+          <TimezoneSelect
+            id="schedule-timezone"
+            name="timezone"
+            value={timezone}
+            onChange={(e) => setTimezone(e.target.value)}
+            required
+            disabled={pending}
+          >
+            {SCHEDULE_TIMEZONE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </TimezoneSelect>
+          <FieldLabel style={{ fontWeight: 400 }}>
+            Detected from browser: {browserTimezone}
+          </FieldLabel>
+        </FieldGroup>
         <div>
           <FieldLabel>Frequency</FieldLabel>
           <div style={{ marginTop: '0.5rem' }}>

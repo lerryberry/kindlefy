@@ -5,6 +5,7 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const { normalizePromptTopics } = require('../utils/normalizePromptTopics');
 const {
+  buildLocalisationPromptText,
   normalizeNewsScopeForCreate,
   normalizeNewsScopeForUpdate,
 } = require('../utils/normalizeNewsScope');
@@ -17,6 +18,72 @@ const {
 
 const { parseWordCount } = require('../utils/wordCount');
 const notArchived = { isArchived: { $ne: true } };
+
+function normalizeExistingLocalisation(prompt) {
+  if (prompt?.localisation && typeof prompt.localisation === 'object') {
+    const scope = prompt.localisation.scope || 'global';
+    const text = prompt.localisation.text ?? null;
+    const promptText =
+      typeof prompt.localisation.promptText === 'string' && prompt.localisation.promptText.trim()
+        ? prompt.localisation.promptText.trim()
+        : buildLocalisationPromptText(scope, text);
+    return {
+      scope,
+      text,
+      coordinates: prompt.localisation.coordinates || { lat: null, lng: null },
+      timezone: prompt.localisation.timezone ?? null,
+      promptText,
+    };
+  }
+  const scope = prompt?.newsScope || 'global';
+  const text = prompt?.locationText || null;
+  return {
+    scope,
+    text,
+    coordinates: prompt?.locationCoordinates || { lat: null, lng: null },
+    timezone: prompt?.locationTimezone || null,
+    promptText: buildLocalisationPromptText(scope, text),
+  };
+}
+
+function serializeContentItem(prompt) {
+  const localisation = normalizeExistingLocalisation(prompt);
+  return {
+    contentId: prompt._id,
+    order: prompt.order,
+    length: prompt.length,
+    topics: prompt.topics || [],
+    newsScope: localisation.scope,
+    locationText: localisation.text || '',
+    locationCoordinates: localisation.coordinates || { lat: null, lng: null },
+    locationTimezone: localisation.timezone || '',
+    localisation,
+  };
+}
+
+function serializeDigestPrompt(prompt) {
+  if (!prompt) {
+    return {
+      length: undefined,
+      topics: [],
+      newsScope: undefined,
+      locationText: undefined,
+      locationCoordinates: undefined,
+      locationTimezone: undefined,
+      localisation: undefined,
+    };
+  }
+  const localisation = normalizeExistingLocalisation(prompt);
+  return {
+    length: prompt.length,
+    topics: prompt.topics || [],
+    newsScope: localisation.scope,
+    locationText: localisation.text || '',
+    locationCoordinates: localisation.coordinates || { lat: null, lng: null },
+    locationTimezone: localisation.timezone || '',
+    localisation,
+  };
+}
 
 function sanitizeDigestSchedule(schedule) {
   if (!schedule || typeof schedule !== 'object') return null;
@@ -65,17 +132,7 @@ exports.getDigests = catchAsync(async (req, res) => {
 
   const data = digests.map((d) => ({
     _id: d._id,
-    prompt: firstPromptByDigestId.get(String(d._id))
-      ? (() => {
-          const fp = firstPromptByDigestId.get(String(d._id));
-          return {
-            length: fp.length,
-            topics: fp.topics || [],
-            newsScope: fp.newsScope || 'global',
-            locationText: fp.locationText || '',
-          };
-        })()
-      : { length: undefined, topics: [], newsScope: undefined, locationText: undefined },
+    prompt: serializeDigestPrompt(firstPromptByDigestId.get(String(d._id))),
     defaultTiming: firstTimingByDigestId.get(String(d._id)) || null,
   }));
 
@@ -95,7 +152,7 @@ exports.createDigestFromContent = catchAsync(async (req, res, next) => {
   }
 
   const normalizedTopics = normalizePromptTopics(topics ?? [], { minSelected: 1 });
-  const { newsScope, locationText } = normalizeNewsScopeForCreate(req.body || {});
+  const { localisation } = normalizeNewsScopeForCreate(req.body || {});
 
   const digest = await Digest.create({ user: req.userId });
   const prompt = await Prompt.create({
@@ -103,8 +160,7 @@ exports.createDigestFromContent = catchAsync(async (req, res, next) => {
     order: 0,
     length: wordCount,
     topics: normalizedTopics,
-    newsScope,
-    locationText,
+    localisation,
   });
 
   res.status(201).json({
@@ -112,12 +168,7 @@ exports.createDigestFromContent = catchAsync(async (req, res, next) => {
     data: {
       digestId: digest._id,
       contentId: prompt._id,
-      prompt: {
-        length: prompt.length,
-        topics: prompt.topics || [],
-        newsScope: prompt.newsScope,
-        locationText: prompt.locationText || '',
-      },
+      prompt: serializeDigestPrompt(prompt),
     },
   });
 });
@@ -131,14 +182,7 @@ exports.getDigestContents = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     results: prompts.length,
-    data: prompts.map((p) => ({
-      contentId: p._id,
-      order: p.order,
-      length: p.length,
-      topics: p.topics || [],
-      newsScope: p.newsScope || 'global',
-      locationText: p.locationText || '',
-    })),
+    data: prompts.map((p) => serializeContentItem(p)),
   });
 });
 
@@ -153,7 +197,7 @@ exports.createDigestContentItem = catchAsync(async (req, res, next) => {
   }
 
   const normalizedTopics = normalizePromptTopics(topics ?? [], { minSelected: 1 });
-  const { newsScope, locationText } = normalizeNewsScopeForCreate(req.body || {});
+  const { localisation } = normalizeNewsScopeForCreate(req.body || {});
 
   const maxPrompt = await Prompt.findOne({ digest: digestId, ...notArchived }).sort({ order: -1, createdAt: -1 }).lean();
   const order = maxPrompt ? maxPrompt.order + 1 : 0;
@@ -163,20 +207,12 @@ exports.createDigestContentItem = catchAsync(async (req, res, next) => {
     order,
     length: wordCount,
     topics: normalizedTopics,
-    newsScope,
-    locationText,
+    localisation,
   });
 
   res.status(201).json({
     status: 'success',
-    data: {
-      contentId: prompt._id,
-      order: prompt.order,
-      length: prompt.length,
-      topics: prompt.topics || [],
-      newsScope: prompt.newsScope,
-      locationText: prompt.locationText || '',
-    },
+    data: serializeContentItem(prompt),
   });
 });
 
@@ -205,30 +241,27 @@ exports.updateDigestContentItem = catchAsync(async (req, res, next) => {
 
   const newsPatch = normalizeNewsScopeForUpdate(body, existingPrompt);
   if (newsPatch) {
-    patch.newsScope = newsPatch.newsScope;
-    patch.locationText = newsPatch.locationText;
+    patch.localisation = newsPatch.localisation;
   }
 
   if (Object.keys(patch).length === 0) {
     return next(new AppError('No valid fields provided', 400));
   }
 
+  const update = { $set: patch };
+  if (newsPatch) {
+    update.$unset = { newsScope: '', locationText: '', locationCoordinates: '', locationTimezone: '' };
+  }
+
   const prompt = await Prompt.findOneAndUpdate(
     { _id: contentId, digest: digestId, ...notArchived },
-    { $set: patch },
+    update,
     { new: true }
   );
 
   res.status(200).json({
     status: 'success',
-    data: {
-      contentId: prompt._id,
-      order: prompt.order,
-      length: prompt.length,
-      topics: prompt.topics || [],
-      newsScope: prompt.newsScope,
-      locationText: prompt.locationText || '',
-    },
+    data: serializeContentItem(prompt),
   });
 });
 
@@ -297,14 +330,7 @@ exports.reorderDigestContents = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     results: updated.length,
-    data: updated.map((p) => ({
-      contentId: p._id,
-      order: p.order,
-      length: p.length,
-      topics: p.topics || [],
-      newsScope: p.newsScope || 'global',
-      locationText: p.locationText || '',
-    })),
+    data: updated.map((p) => serializeContentItem(p)),
   });
 });
 

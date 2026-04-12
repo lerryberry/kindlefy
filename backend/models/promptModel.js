@@ -1,5 +1,33 @@
 const mongoose = require('mongoose');
 
+const localisationSchema = new mongoose.Schema(
+  {
+    scope: {
+      type: String,
+      enum: ['global', 'country', 'local', 'special'],
+      default: 'global',
+    },
+    text: {
+      type: String,
+      default: null,
+      maxlength: [500, 'Address must be 500 characters or less'],
+    },
+    coordinates: {
+      lat: { type: Number, default: null },
+      lng: { type: Number, default: null },
+    },
+    timezone: {
+      type: String,
+      default: null,
+    },
+    promptText: {
+      type: String,
+      default: 'globally',
+    },
+  },
+  { _id: false }
+);
+
 const promptSchema = new mongoose.Schema(
   {
     digest: {
@@ -24,15 +52,15 @@ const promptSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
-    newsScope: {
-      type: String,
-      enum: ['global', 'country', 'local'],
-      default: 'global',
-    },
-    locationText: {
-      type: String,
-      default: '',
-      maxlength: [500, 'Address must be 500 characters or less'],
+    localisation: {
+      type: localisationSchema,
+      default: () => ({
+        scope: 'global',
+        text: null,
+        coordinates: { lat: null, lng: null },
+        timezone: null,
+        promptText: 'globally',
+      }),
     },
     isArchived: {
       type: Boolean,

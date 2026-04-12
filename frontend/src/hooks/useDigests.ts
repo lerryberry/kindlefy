@@ -1,6 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthenticatedAxios } from '../api/services/useAuthenticatedAxios';
-import type { DigestContentItem, DigestListItem, DigestTimingListItem } from '../types/digest';
+import type {
+  DigestContentItem,
+  DigestListItem,
+  DigestTimingListItem,
+  LocationCoordinates,
+} from '../types/digest';
 import type { Target } from '../types/target';
 import type { Schedule } from '../types/timing';
 import type { NewsScope } from '../constants/newsScope';
@@ -10,6 +15,8 @@ export interface CreateDigestContentBody {
   topics: string[];
   newsScope: NewsScope;
   locationText: string;
+  locationCoordinates?: LocationCoordinates;
+  locationTimezone?: string;
 }
 
 export interface UpdateDigestContentBody {
@@ -17,6 +24,8 @@ export interface UpdateDigestContentBody {
   topics?: string[];
   newsScope?: NewsScope;
   locationText?: string;
+  locationCoordinates?: LocationCoordinates;
+  locationTimezone?: string;
 }
 
 export interface CreateDigestTimingBody {
@@ -68,7 +77,14 @@ interface CreateDigestAndFirstContentResponse {
   data: {
     digestId: string;
     contentId: string;
-    prompt: { length: number; topics: string[]; newsScope: NewsScope; locationText: string };
+    prompt: {
+      length: number;
+      topics: string[];
+      newsScope: NewsScope;
+      locationText: string;
+      locationCoordinates?: LocationCoordinates;
+      locationTimezone?: string;
+    };
   };
 }
 
@@ -126,6 +142,8 @@ export function useCreateDigestAndFirstContentItemMutation() {
         topics: prompt.topics,
         newsScope: prompt.newsScope,
         locationText: prompt.locationText ?? '',
+        locationCoordinates: prompt.locationCoordinates ?? { lat: null, lng: null },
+        locationTimezone: prompt.locationTimezone ?? '',
       };
       return { digestId, contentId, content };
     },

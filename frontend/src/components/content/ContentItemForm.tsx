@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import styled from 'styled-components';
 import Form from '../util/Form';
 import Button from '../util/Button';
+import FormInput from '../util/FormInput';
 import SegmentedControl from '../util/SegmentedControl';
 import WordCountSlider from './WordCountSlider';
 import LocationPlacesField from './LocationPlacesField';
@@ -19,7 +20,9 @@ import {
 } from '../../constants/newsScope';
 import { PROMPT_TOPIC_OPTIONS } from '../../constants/promptTopics';
 import { clampWordCount, DEFAULT_WORD_COUNT } from '../../utils/promptLength';
-import type { DigestContentItem } from '../../types/digest';
+import type { DigestContentItem, LocationCoordinates } from '../../types/digest';
+
+const MAX_SPECIAL_INTEREST_WORDS = 15;
 
 const Row = styled.div`
   display: flex;
@@ -142,7 +145,13 @@ function TrashIcon() {
   );
 }
 
-type DraftFields = { length: number; topics: string[]; newsScope: NewsScope; locationText: string };
+type DraftFields = {
+  length: number;
+  topics: string[];
+  newsScope: NewsScope;
+  locationText: string;
+  specialInterestText: string;
+};
 
 type EditModeProps = {
   mode: 'edit';
@@ -170,21 +179,55 @@ function validateTopics(topics: string[]) {
 }
 
 function validateLocationForScope(newsScope: NewsScope, locationText: string) {
-  if (newsScope === 'global') return true;
+  if (newsScope === 'global' || newsScope === 'special') return true;
   return locationText.trim().length >= 2;
+}
+
+function countWords(text: string) {
+  return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function isPresetTopic(topic: string) {
+  return (PROMPT_TOPIC_OPTIONS as readonly string[]).includes(topic);
+}
+
+function splitTopicsForForm(topics: string[]) {
+  const selected = new Set<string>();
+  let specialInterestText = '';
+  for (const topic of topics || []) {
+    if (isPresetTopic(topic)) {
+      selected.add(topic);
+    } else if (!specialInterestText) {
+      specialInterestText = topic;
+    }
+  }
+  return { selected, specialInterestText };
 }
 
 function buildContentPayload(
   wordCount: number,
   topics: string[],
   newsScope: NewsScope,
-  locationText: string
+  locationText: string,
+  locationCoordinates: LocationCoordinates,
+  locationTimezone: string,
+  specialInterestText: string
 ) {
+  const isGlobal = newsScope === 'global';
+  const normalizedSpecialInterest = specialInterestText.trim();
+  const baseTopics = newsScope === 'special' ? [] : topics;
+  const mergedTopics =
+    newsScope === 'special' && normalizedSpecialInterest
+      ? [normalizedSpecialInterest]
+      : baseTopics;
   return {
     length: wordCount,
-    topics,
+    topics: mergedTopics,
     newsScope,
-    locationText: newsScope === 'global' ? '' : locationText.trim(),
+    locationText: isGlobal || newsScope === 'special' ? '' : locationText.trim(),
+    locationCoordinates:
+      isGlobal || newsScope === 'special' ? { lat: null, lng: null } : locationCoordinates,
+    locationTimezone: isGlobal || newsScope === 'special' ? '' : locationTimezone,
   };
 }
 
@@ -201,6 +244,9 @@ export default function ContentItemForm(props: ContentItemFormProps) {
   const [wordCount, setWordCount] = useState(DEFAULT_WORD_COUNT);
   const [newsScope, setNewsScope] = useState<NewsScope>(DEFAULT_NEWS_SCOPE);
   const [locationText, setLocationText] = useState('');
+  const [locationCoordinates, setLocationCoordinates] = useState<LocationCoordinates>({ lat: null, lng: null });
+  const [locationTimezone, setLocationTimezone] = useState('');
+  const [specialInterestText, setSpecialInterestText] = useState('');
 
   const editContentId = isEdit ? props.content.contentId : null;
   const editContent = isEdit ? props.content : null;
@@ -226,10 +272,14 @@ export default function ContentItemForm(props: ContentItemFormProps) {
   // Hydrate edit mode fields when switching items (avoid resetting on unrelated parent re-renders).
   useEffect(() => {
     if (!isEdit || !editContent) return;
+    const { selected, specialInterestText: initialSpecialInterest } = splitTopicsForForm(editContent.topics || []);
     setWordCount(clampWordCount(editContent.length));
-    setSelectedTopics(new Set(editContent.topics || []));
+    setSelectedTopics(selected);
+    setSpecialInterestText(initialSpecialInterest);
     setNewsScope(editContent.newsScope ?? DEFAULT_NEWS_SCOPE);
     setLocationText(editContent.locationText ?? '');
+    setLocationCoordinates(editContent.locationCoordinates ?? { lat: null, lng: null });
+    setLocationTimezone(editContent.locationTimezone ?? '');
   }, [isEdit, editContentId]);
 
   // draft change callback (create mode only)
@@ -237,11 +287,15 @@ export default function ContentItemForm(props: ContentItemFormProps) {
     if (props.mode !== 'create') return;
     onCreateDraftChange?.({
       length: wordCount,
-      topics: buildTopicsFromSet(selectedTopics),
+      topics:
+        newsScope === 'special' && specialInterestText.trim()
+          ? [...buildTopicsFromSet(selectedTopics), specialInterestText.trim()]
+          : buildTopicsFromSet(selectedTopics),
       newsScope,
       locationText,
+      specialInterestText,
     });
-  }, [props.mode, onCreateDraftChange, wordCount, selectedTopics, newsScope, locationText]);
+  }, [props.mode, onCreateDraftChange, wordCount, selectedTopics, newsScope, locationText, specialInterestText]);
 
   const selectedTopicsArray = useMemo(() => buildTopicsFromSet(selectedTopics), [selectedTopics]);
   // NOTE: we intentionally do NOT persist edits on change.
@@ -258,17 +312,39 @@ export default function ContentItemForm(props: ContentItemFormProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const topics = selectedTopicsArray;
+    const topics =
+      newsScope === 'special' && specialInterestText.trim()
+        ? [...selectedTopicsArray, specialInterestText.trim()]
+        : selectedTopicsArray;
     if (!validateTopics(topics)) {
       toast.error('Select at least one topic');
       return;
+    }
+    if (newsScope === 'special') {
+      const words = countWords(specialInterestText);
+      if (words === 0) {
+        toast.error('Enter a special-interest topic');
+        return;
+      }
+      if (words > MAX_SPECIAL_INTEREST_WORDS) {
+        toast.error(`Special-interest topic must be ${MAX_SPECIAL_INTEREST_WORDS} words or fewer`);
+        return;
+      }
     }
     if (!validateLocationForScope(newsScope, locationText)) {
       toast.error('Enter your address down to at least town or city level');
       return;
     }
 
-    const payload = buildContentPayload(wordCount, topics, newsScope, locationText);
+    const payload = buildContentPayload(
+      wordCount,
+      selectedTopicsArray,
+      newsScope,
+      locationText,
+      locationCoordinates,
+      locationTimezone,
+      specialInterestText
+    );
 
     try {
       if (props.mode === 'create') {
@@ -325,14 +401,39 @@ export default function ContentItemForm(props: ContentItemFormProps) {
     if (!editContent || !onEditChange) return;
     onEditChange({
       ...editContent,
-      ...buildContentPayload(wordCount, nextTopics, newsScope, locationText),
+      ...buildContentPayload(
+        wordCount,
+        nextTopics,
+        newsScope,
+        locationText,
+        locationCoordinates,
+        locationTimezone,
+        specialInterestText
+      ),
     });
-  }, [isEdit, wordCount, selectedTopicsArray, newsScope, locationText]);
+  }, [
+    isEdit,
+    wordCount,
+    selectedTopicsArray,
+    newsScope,
+    locationText,
+    locationCoordinates,
+    locationTimezone,
+    specialInterestText,
+  ]);
 
   const showLocationField = newsScope === 'country' || newsScope === 'local';
 
   const canSubmit =
-    validateTopics(selectedTopicsArray) && validateLocationForScope(newsScope, locationText);
+    validateTopics(
+      newsScope === 'special' && specialInterestText.trim()
+        ? [...selectedTopicsArray, specialInterestText.trim()]
+        : selectedTopicsArray
+    ) &&
+    validateLocationForScope(newsScope, locationText) &&
+    (newsScope !== 'special' ||
+      (countWords(specialInterestText) > 0 &&
+        countWords(specialInterestText) <= MAX_SPECIAL_INTEREST_WORDS));
 
   return (
     <Form onSubmit={handleSubmit}>
@@ -344,13 +445,35 @@ export default function ContentItemForm(props: ContentItemFormProps) {
               options={NEWS_SCOPE_SEGMENT_OPTIONS}
               value={newsScope}
               onChange={(v) => {
-                setNewsScope(v as NewsScope);
-                if (v === 'global') setLocationText('');
+                const nextScope = v as NewsScope;
+                setNewsScope(nextScope);
+                if (nextScope === 'global' || nextScope === 'special') {
+                  setLocationText('');
+                  setLocationCoordinates({ lat: null, lng: null });
+                  setLocationTimezone('');
+                }
+                if (nextScope === 'special') {
+                  setSelectedTopics(new Set());
+                }
               }}
               disabled={isPending}
             />
           </NewsScopeSegmentWrap>
         </FieldBlock>
+
+        {newsScope === 'special' ? (
+          <FieldBlock>
+            <FormInput
+              label={`Special interest (up to ${MAX_SPECIAL_INTEREST_WORDS} words)`}
+              name="specialInterestText"
+              value={specialInterestText}
+              onChange={(e) => setSpecialInterestText(e.target.value)}
+              placeholder="e.g. UK startup funding trends in climate tech"
+              maxLength={300}
+              disabled={isPending}
+            />
+          </FieldBlock>
+        ) : null}
 
         {showLocationField ? (
           <FieldBlock>
@@ -360,6 +483,19 @@ export default function ContentItemForm(props: ContentItemFormProps) {
             <LocationPlacesField
               locationText={locationText}
               onLocationTextChange={setLocationText}
+              lookupScope={newsScope === 'country' ? 'country' : 'local'}
+              onLocationResolved={(resolved) => {
+                setLocationCoordinates(resolved.coordinates ?? { lat: null, lng: null });
+                const offsetMins = resolved.utcOffsetMinutes;
+                if (offsetMins !== null) {
+                  const sign = offsetMins >= 0 ? '+' : '-';
+                  const h = Math.floor(Math.abs(offsetMins) / 60);
+                  const m = Math.abs(offsetMins) % 60;
+                  setLocationTimezone(`UTC${sign}${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+                } else {
+                  setLocationTimezone('');
+                }
+              }}
               disabled={isPending}
             />
           </FieldBlock>
@@ -377,27 +513,29 @@ export default function ContentItemForm(props: ContentItemFormProps) {
           />
         </FieldBlock>
 
-        <FieldBlock>
-          <FieldCaption>Topics</FieldCaption>
-          <ChipGrid role="group" aria-label="Topics">
-            {PROMPT_TOPIC_OPTIONS.map((topic) => {
-              const selected = selectedTopics.has(topic);
-              return (
-                <TopicChip
-                  key={topic}
-                  type="button"
-                  $selected={selected}
-                  disabled={isPending}
-                  aria-pressed={selected}
-                  onClick={() => toggleTopic(topic)}
-                >
-                  {selected ? <span aria-hidden="true">✓</span> : null}
-                  {topic}
-                </TopicChip>
-              );
-            })}
-          </ChipGrid>
-        </FieldBlock>
+        {newsScope !== 'special' ? (
+          <FieldBlock>
+            <FieldCaption>Topics</FieldCaption>
+            <ChipGrid role="group" aria-label="Topics">
+              {PROMPT_TOPIC_OPTIONS.map((topic) => {
+                const selected = selectedTopics.has(topic);
+                return (
+                  <TopicChip
+                    key={topic}
+                    type="button"
+                    $selected={selected}
+                    disabled={isPending}
+                    aria-pressed={selected}
+                    onClick={() => toggleTopic(topic)}
+                  >
+                    {selected ? <span aria-hidden="true">✓</span> : null}
+                    {topic}
+                  </TopicChip>
+                );
+              })}
+            </ChipGrid>
+          </FieldBlock>
+        ) : null}
 
         <FooterRow>
           <Button

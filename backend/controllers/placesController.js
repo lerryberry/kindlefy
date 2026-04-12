@@ -11,6 +11,21 @@ const GEO_PRIMARY_TYPES = [
   'administrative_area_level_1',
   'country',
 ];
+const COUNTRY_PRIMARY_TYPES = ['country'];
+const LOCAL_PRIMARY_TYPES = ['locality', 'administrative_area_level_2', 'administrative_area_level_1'];
+
+function parseLookupScope(rawScope) {
+  if (rawScope === 'country' || rawScope === 'local' || rawScope === 'geo') {
+    return rawScope;
+  }
+  return 'geo';
+}
+
+function getPrimaryTypesForScope(scope) {
+  if (scope === 'country') return COUNTRY_PRIMARY_TYPES;
+  if (scope === 'local') return LOCAL_PRIMARY_TYPES;
+  return GEO_PRIMARY_TYPES;
+}
 
 function getApiKey() {
   return process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_PLACES_API_KEY || '';
@@ -30,6 +45,7 @@ exports.autocomplete = catchAsync(async (req, res, next) => {
   }
 
   const rawInput = req.body?.input;
+  const scope = parseLookupScope(req.body?.scope);
   const sessionToken = typeof req.body?.sessionToken === 'string' ? req.body.sessionToken.trim() : '';
   const input = typeof rawInput === 'string' ? rawInput.trim() : '';
 
@@ -45,7 +61,7 @@ exports.autocomplete = catchAsync(async (req, res, next) => {
       AUTOCOMPLETE_URL,
       {
         input,
-        includedPrimaryTypes: GEO_PRIMARY_TYPES,
+        includedPrimaryTypes: getPrimaryTypesForScope(scope),
         languageCode: 'en',
         ...(sessionToken ? { sessionToken } : {}),
       },
@@ -104,7 +120,7 @@ exports.resolvePlace = catchAsync(async (req, res, next) => {
     const { data } = await axios.get(url, {
       headers: {
         'X-Goog-Api-Key': key,
-        'X-Goog-FieldMask': 'addressComponents,displayName',
+        'X-Goog-FieldMask': 'addressComponents,displayName,location,utcOffsetMinutes',
       },
       params: sessionToken ? { sessionToken } : {},
       timeout: 10000,
@@ -117,9 +133,17 @@ exports.resolvePlace = catchAsync(async (req, res, next) => {
       );
     }
 
+    const coordinates =
+      data.location && typeof data.location.latitude === 'number' && typeof data.location.longitude === 'number'
+        ? { lat: data.location.latitude, lng: data.location.longitude }
+        : null;
+
+    const utcOffsetMinutes =
+      typeof data.utcOffsetMinutes === 'number' ? data.utcOffsetMinutes : null;
+
     res.status(200).json({
       status: 'success',
-      data: { plainText },
+      data: { plainText, coordinates, utcOffsetMinutes },
     });
   } catch (err) {
     const status = err.response?.status;
