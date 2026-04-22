@@ -132,6 +132,7 @@ exports.getDigests = catchAsync(async (req, res) => {
 
   const data = digests.map((d) => ({
     _id: d._id,
+    enabled: d.enabled !== false,
     prompt: serializeDigestPrompt(firstPromptByDigestId.get(String(d._id))),
     defaultTiming: firstTimingByDigestId.get(String(d._id)) || null,
   }));
@@ -466,5 +467,32 @@ exports.deleteDigest = catchAsync(async (req, res, next) => {
   );
 
   res.status(204).json({ status: 'success' });
+});
+
+exports.updateDigestEnabled = catchAsync(async (req, res, next) => {
+  const { digestId } = req.params;
+  await getDigestOwnedByUserOrThrow(req.userId, digestId);
+
+  if (!Object.prototype.hasOwnProperty.call(req.body || {}, 'enabled')) {
+    return next(new AppError('enabled is required', 400));
+  }
+
+  if (typeof req.body.enabled !== 'boolean') {
+    return next(new AppError('enabled must be a boolean', 400));
+  }
+
+  const digest = await Digest.findOneAndUpdate(
+    { _id: digestId, user: req.userId, ...notArchived },
+    { $set: { enabled: req.body.enabled } },
+    { new: true }
+  ).lean();
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      digestId: digest._id,
+      enabled: digest.enabled !== false,
+    },
+  });
 });
 

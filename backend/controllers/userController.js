@@ -19,8 +19,24 @@ exports.getCurrentUser = catchAsync(async (req, res, next) => {
 });
 
 const createUser = async (externalId) => {
-    //build user object from Auth0
     const userObject = await auth0.buildUserFromAuth0(externalId);
+
+    // Relink by email if a user already exists with this email but a different
+    // externalId (e.g. Auth0 sub rotated, tenant reset, or connection merge).
+    const existingByEmail = await User.findOne({ email: userObject.email });
+    if (existingByEmail) {
+        if (existingByEmail.isArchived) {
+            throw new AppError('This account has been deactivated', 403);
+        }
+        if (existingByEmail.externalId !== externalId) {
+            existingByEmail.externalId = externalId;
+        }
+        if (userObject.name && existingByEmail.name !== userObject.name) {
+            existingByEmail.name = userObject.name;
+        }
+        await existingByEmail.save();
+        return existingByEmail;
+    }
 
     const newUser = await User.create(userObject);
 

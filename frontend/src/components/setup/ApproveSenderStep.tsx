@@ -92,7 +92,7 @@ export default function ApproveSenderStep() {
           Add this address to the list as an approved sender:
           <EmailRow>
             <EmailMono>{APPROVED_SENDER_EMAIL}</EmailMono>
-            <Button type="button" text="Copy" size="small" onClick={() => void copyEmail()} />
+            <Button type="button" text="Copy" size="small" variant="ghost" onClick={() => void copyEmail()} />
           </EmailRow>
         </li>
       </Steps>

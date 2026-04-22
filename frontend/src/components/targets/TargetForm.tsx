@@ -131,6 +131,7 @@ const TargetActions = styled.div`
   display: flex;
   align-items: center;
   padding: 0.5rem 0.625rem 0.5rem 0;
+  background-color: var(--color-background-tertiary);
 `;
 
 const DeleteTargetButton = styled.button`

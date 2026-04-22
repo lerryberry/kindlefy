@@ -2,7 +2,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import Stepper from '../util/Stepper';
 import { useDigestWizard } from '../../hooks/useDigestWizard';
-import { useDigestTimingsQuery } from '../../hooks/useDigests';
+import { useDigestsQuery, useDigestTimingsQuery } from '../../hooks/useDigests';
 
 const Wrap = styled.div`
   padding: 1rem;
@@ -27,16 +27,20 @@ export default function SetupLayout() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { digestId, selectedTimingId } = useDigestWizard();
+  const { data: digests } = useDigestsQuery();
   const { data: timings } = useDigestTimingsQuery(digestId);
 
   const resolvedTimingId = selectedTimingId || (timings?.[0]?.timingId ?? null);
   const selectedTiming = resolvedTimingId ? timings?.find((t) => t.timingId === resolvedTimingId) : null;
+  const currentDigest = digestId ? (digests || []).find((d) => d._id === digestId) : null;
+  const digestEnabled = currentDigest ? currentDigest.enabled !== false : false;
 
   const stepContentComplete = !!digestId;
   const stepScheduleComplete = !!digestId && (timings?.length ?? 0) > 0;
   const stepTargetsComplete = !!digestId && !!selectedTiming && (selectedTiming.targetsCount ?? 0) > 0;
-  const stepApproveSenderComplete = stepTargetsComplete && pathname.endsWith('/confirm');
-  const stepConfirmComplete = stepTargetsComplete && pathname.endsWith('/confirm');
+  const isSetupReady = stepContentComplete && stepScheduleComplete && stepTargetsComplete;
+  const stepApproveSenderComplete = isSetupReady && digestEnabled;
+  const stepConfirmComplete = isSetupReady && digestEnabled;
 
   const go = (path: string) => () => navigate(path);
   const activeStepId = activeStepIdFromPath(pathname);
@@ -50,7 +54,7 @@ export default function SetupLayout() {
             steps={[
               {
                 id: 'content',
-                label: 'Content',
+                label: 'Sections',
                 isComplete: stepContentComplete,
                 onClick: digestId ? go(`/${digestId}/content`) : go('/new/content'),
               },
@@ -68,7 +72,7 @@ export default function SetupLayout() {
               },
               {
                 id: 'approve-sender',
-                label: 'Approve sender',
+                label: 'Approve',
                 isComplete: stepApproveSenderComplete,
                 onClick: digestId ? go(`/${digestId}/approve-sender`) : undefined,
               },

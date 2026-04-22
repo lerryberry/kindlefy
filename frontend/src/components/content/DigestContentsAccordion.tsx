@@ -9,15 +9,33 @@ import ContentItemForm from './ContentItemForm';
 import DraggableAccordionList from '../util/DraggableAccordionList';
 import {
   DEFAULT_NEWS_SCOPE,
+  formatNewsScopeSummary,
   type NewsScope,
 } from '../../constants/newsScope';
 import { DEFAULT_WORD_COUNT, formatWordCount } from '../../utils/promptLength';
 
 const HeaderRow = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
   min-width: 0;
+  flex: 1;
+`;
+
+const OrderChip = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.4rem;
+  border-radius: 9999px;
+  background: var(--color-background-tertiary);
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  flex-shrink: 0;
 `;
 
 const SummaryText = styled.span`
@@ -27,6 +45,7 @@ const SummaryText = styled.span`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
 `;
 
 const FooterRow = styled.div`
@@ -79,14 +98,45 @@ const DraftBodyInner = styled.div`
   padding: 1rem;
 `;
 
-function topicSummary(topics: string[]) {
-  const t0 = topics?.[0];
-  return t0 || 'Choose topics';
+function topicsLabel(topics: string[]): string {
+  return (topics || []).filter(Boolean).slice(0, 3).join(', ');
 }
 
-function contentSummaryHeader(content: DigestContentItem) {
-  const topic = topicSummary(content.topics || []);
-  return <SummaryText>{`${topic} · ${formatWordCount(content.length)}`}</SummaryText>;
+function truncate(text: string, max: number): string {
+  const t = (text || '').trim();
+  return t.length > max ? `${t.slice(0, max - 1)}…` : t;
+}
+
+function sectionTaglineText(
+  newsScope: NewsScope,
+  locationText: string,
+  topics: string[],
+  length: number,
+  specialInterestText?: string
+): string {
+  const scope = formatNewsScopeSummary(newsScope, locationText);
+  let subject = topicsLabel(topics);
+  if (newsScope === 'special' && !subject && specialInterestText) {
+    subject = truncate(specialInterestText, 40);
+  }
+  if (!subject) subject = 'Choose topics';
+  return `${scope} · ${subject} · ${formatWordCount(length)}`;
+}
+
+function sectionHeader(
+  index: number,
+  scope: NewsScope,
+  locationText: string,
+  topics: string[],
+  length: number,
+  specialInterestText?: string
+) {
+  return (
+    <HeaderRow>
+      <OrderChip>{index + 1}</OrderChip>
+      <SummaryText>{sectionTaglineText(scope, locationText, topics, length, specialInterestText)}</SummaryText>
+    </HeaderRow>
+  );
 }
 
 interface DigestContentsAccordionProps {
@@ -142,6 +192,7 @@ export default function DigestContentsAccordion({ digestId, onCreatedDigest }: D
     if (shouldCloseInitially) {
       manuallyClosedRef.current = true;
       initialCloseAppliedRef.current = true;
+      setIsAdding(false);
     }
   }, [location.state]);
 
@@ -180,7 +231,8 @@ export default function DigestContentsAccordion({ digestId, onCreatedDigest }: D
   }
 
   const headerRenderer = useMemo(() => {
-    return (content: DigestContentItem) => contentSummaryHeader(content);
+    return (content: DigestContentItem, index: number) =>
+      sectionHeader(index, content.newsScope, content.locationText, content.topics || [], content.length);
   }, []);
 
   function handleDeleted(contentId: string) {
@@ -201,13 +253,13 @@ export default function DigestContentsAccordion({ digestId, onCreatedDigest }: D
       const updated = await reorderMutation.mutateAsync(orderedIds);
       setContents(updated);
     } catch {
-      toast.error('Could not reorder contents');
+      toast.error('Could not reorder sections');
       // Fallback: re-sync on next query invalidation.
     }
   }
 
   if (isLoading && !serverContents) {
-    return <p style={{ margin: 0, color: 'var(--color-text-secondary)' }}>Loading contents…</p>;
+    return <p style={{ margin: 0, color: 'var(--color-text-secondary)' }}>Loading sections…</p>;
   }
 
   return (
@@ -217,7 +269,11 @@ export default function DigestContentsAccordion({ digestId, onCreatedDigest }: D
         openItemId={openItemId}
         onOpenChange={handleOpenChange}
         onReorder={(ordered) => handleReorder(ordered.map((o) => ({ ...o } as DigestContentItem)))}
-        renderHeader={(item) => headerRenderer(item as unknown as DigestContentItem)}
+        renderHeader={(item) => {
+          const content = item as unknown as DigestContentItem;
+          const idx = contents.findIndex((c) => c.contentId === content.contentId);
+          return headerRenderer(content, idx >= 0 ? idx : 0);
+        }}
         renderBody={(item) => {
           const content = contents.find((c) => c.contentId === item.id);
           if (!content) return null;
@@ -243,9 +299,9 @@ export default function DigestContentsAccordion({ digestId, onCreatedDigest }: D
         }}
       />
 
-      {contents.length === 0 ? (
+      {contents.length === 0 && !isAdding ? (
         <div style={{ marginTop: '1rem', color: 'var(--color-text-secondary)' }}>
-          No content yet. Add your first content item below.
+          No sections yet. Add your first section below.
         </div>
       ) : null}
 
@@ -259,11 +315,14 @@ export default function DigestContentsAccordion({ digestId, onCreatedDigest }: D
               if (e.key === 'Enter' || e.key === ' ') setDraftOpen((v) => !v);
             }}
           >
-            <HeaderRow>
-              <SummaryText>
-                {`${topicSummary(draftSummary.topics)} · ${formatWordCount(draftSummary.length)}`}
-              </SummaryText>
-            </HeaderRow>
+            {sectionHeader(
+              contents.length,
+              draftSummary.newsScope,
+              draftSummary.locationText,
+              draftSummary.topics,
+              draftSummary.length,
+              draftSummary.specialInterestText
+            )}
             <DraftChevron $isOpen={draftOpen}>{'⌃'}</DraftChevron>
           </DraftHeader>
           <DraftBody $isOpen={draftOpen}>
@@ -273,6 +332,7 @@ export default function DigestContentsAccordion({ digestId, onCreatedDigest }: D
                 digestId={digestId}
                 onCreated={(result: { digestId: string; content: DigestContentItem }) => {
                   if (!digestId) {
+                    setIsAdding(false);
                     onCreatedDigest?.(result.digestId);
                     return;
                   }
@@ -292,7 +352,7 @@ export default function DigestContentsAccordion({ digestId, onCreatedDigest }: D
       <FooterRow>
         <Button
           type="button"
-          text="Add content"
+          text="Add section"
           variant="ghost"
           onClick={handleStartAddContent}
           disabled={isAdding}

@@ -16,6 +16,10 @@ router
   .delete(digestController.deleteDigest);
 
 router
+  .route('/:digestId/enabled')
+  .put(sanitizeRequestBody, digestController.updateDigestEnabled);
+
+router
   .route('/content')
   .post(sanitizeRequestBody, digestController.createDigestFromContent);
 

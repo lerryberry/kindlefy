@@ -13,6 +13,11 @@ const digestSchema = new mongoose.Schema(
       default: false,
       index: true,
     },
+    enabled: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
   },
   { timestamps: true }
 );

@@ -40,6 +40,10 @@ export interface UpdateDigestTimingTargetsBody {
   targets: string[];
 }
 
+export interface UpdateDigestEnabledBody {
+  enabled: boolean;
+}
+
 interface DigestsListResponse {
   status: string;
   results: number;
@@ -103,6 +107,14 @@ interface UpdateDigestTimingScheduleResponse {
   data: DigestTimingListItem;
 }
 
+interface UpdateDigestEnabledResponse {
+  status: string;
+  data: {
+    digestId: string;
+    enabled: boolean;
+  };
+}
+
 export function useDigestsQuery() {
   const api = useAuthenticatedAxios();
   return useQuery({
@@ -121,6 +133,20 @@ export function useDeleteDigestMutation() {
     mutationFn: async (digestId: string) => {
       await api.delete(`/digests/${digestId}`);
       return digestId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['digests'] });
+    },
+  });
+}
+
+export function useUpdateDigestEnabledMutation() {
+  const api = useAuthenticatedAxios();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ digestId, body }: { digestId: string; body: UpdateDigestEnabledBody }) => {
+      const res = await api.put<UpdateDigestEnabledResponse>(`/digests/${digestId}/enabled`, body);
+      return res.data.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['digests'] });

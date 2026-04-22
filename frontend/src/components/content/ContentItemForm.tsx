@@ -159,7 +159,7 @@ type EditModeProps = {
   content: DigestContentItem;
   onChange: (next: DigestContentItem) => void;
   onSaved?: (saved: DigestContentItem) => void;
-  /** Close the accordion immediately when the user clicks "Save content". */
+  /** Close the accordion immediately when the user clicks "Save section". */
   onSavingStart?: () => void;
   onDelete: () => void;
 };
@@ -299,7 +299,7 @@ export default function ContentItemForm(props: ContentItemFormProps) {
 
   const selectedTopicsArray = useMemo(() => buildTopicsFromSet(selectedTopics), [selectedTopics]);
   // NOTE: we intentionally do NOT persist edits on change.
-  // Edits are saved only when the user presses the "Save content" button.
+  // Edits are saved only when the user presses the "Save section" button.
 
   function toggleTopic(topic: string) {
     setSelectedTopics((prev) => {
@@ -351,13 +351,13 @@ export default function ContentItemForm(props: ContentItemFormProps) {
         if (!props.digestId) {
           const created = await createDigestAndFirst(payload);
           props.onCreated({ digestId: created.digestId, content: created.content });
-          toast.success('Content saved');
+          toast.success('Section saved');
           return;
         }
 
         const created = await createContentItem(payload);
         props.onCreated({ digestId: props.digestId, content: created });
-        toast.success('Content saved');
+        toast.success('Section saved');
         return;
       }
 
@@ -367,14 +367,14 @@ export default function ContentItemForm(props: ContentItemFormProps) {
         .mutateAsync(payload)
         .then((saved) => {
           onEditSaved?.(saved);
-          toast.success('Content saved');
+          toast.success('Section saved');
         })
         .catch(() => {
-          toast.error('Could not save content');
+          toast.error('Could not save section');
         });
       return;
     } catch {
-      toast.error('Could not save content');
+      toast.error('Could not save section');
     }
   }
 
@@ -382,10 +382,10 @@ export default function ContentItemForm(props: ContentItemFormProps) {
     if (!isEdit) return;
     try {
       await deleteMutation.mutateAsync(props.content.contentId);
-      toast.success('Content removed');
+      toast.success('Section removed');
       props.onDelete();
     } catch {
-      toast.error('Could not remove content');
+      toast.error('Could not remove section');
     }
   }
 
@@ -543,7 +543,7 @@ export default function ContentItemForm(props: ContentItemFormProps) {
             size="medium"
             isResponsive={false}
             disabled={isPending || !canSubmit}
-            text={isPending ? 'Saving…' : 'Save content'}
+            text={isPending ? 'Saving…' : 'Save section'}
             style={{ padding: '0.5rem 0.875rem', fontSize: '0.875rem' }}
           />
           {isEdit ? (
@@ -555,8 +555,8 @@ export default function ContentItemForm(props: ContentItemFormProps) {
               type="button"
               onClick={handleDiscardDraft}
               disabled={isPending}
-              aria-label="Remove unsaved content"
-              title="Remove unsaved content"
+              aria-label="Remove unsaved section"
+              title="Remove unsaved section"
             >
               <TrashIcon />
             </RemoveCircleButton>

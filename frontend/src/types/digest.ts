@@ -27,6 +27,7 @@ export interface DigestContentItem {
 
 export interface DigestListItem {
   _id: string;
+  enabled: boolean;
   prompt: {
     length?: number;
     topics: string[];

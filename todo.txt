@@ -1,7 +1,41 @@
-Start the app
+#To do solicit
+- Branding
+    - Domain name
+    - SEO
+    - Logo
+- Hosting
+    - SSL cert
+    - Server
+- 3rd party services
+    - Login w/ gmail
+    - Posthog
+    - Sendgrid (for device validation)
+    
+#To do
+- check isenabled on n8n workflow
+- rename file in n8n
+- better prompt engineering for template
+
+#To do entice
+- Marketing site
+    - Copy
+    - Branding
+- Launch
+    - Reddit
+    - Adwords
+
+#Later
+- index data
+- restrict places API key to ip address
+- set spend limits and load alerts
+- restrict mongo ips
+- restict auth mongo user db accesses red/write only to tables it should
+- add GMT vs localtime
+
+# Start the app
 npm run pm2:dev
 
-How to push to github
+# How to push to github
 git status //handy
 1. git add -A
 2. git commit -m "message goes here"
@@ -11,7 +45,7 @@ git status //handy
 # lazy version 
 git add -A && git commit -m "fixed auth" && git push origin main && git push heroku main
 
-postman
+# postman
 - entered most credentials for the application (new SPA), but with audience 
 header value of the BE API from auth0
-- Otherwise add accetss_token value into postman bearer token field
+- Otherwise add access_token value into postman bearer token field

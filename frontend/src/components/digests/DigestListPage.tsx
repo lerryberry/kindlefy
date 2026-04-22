@@ -3,12 +3,12 @@ import styled from 'styled-components';
 import Loading from '../util/Loading';
 import Button from '../util/Button';
 import Dialog from '../util/Dialog';
+import Toggle from '../util/Toggle';
 import toast from 'react-hot-toast';
 import { useDigestsQuery } from '../../hooks/useDigests';
 import type { DigestListItem } from '../../types/digest';
 import { formatNewsScopeSummary } from '../../constants/newsScope';
-import { formatWordCount } from '../../utils/promptLength';
-import { useDeleteDigestMutation } from '../../hooks/useDigests';
+import { useDeleteDigestMutation, useUpdateDigestEnabledMutation } from '../../hooks/useDigests';
 import { useState } from 'react';
 
 const Page = styled.div`
@@ -75,8 +75,17 @@ const RowMain = styled.div`
 
 const RowActions = styled.div`
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem;
   padding: 0.75rem 0.75rem 0.75rem 0;
+`;
+
+const ToggleWrap = styled.div`
+  display: inline-flex;
+  align-items: center;
+  padding-right: 0.1rem;
 `;
 
 const DeleteButton = styled.button`
@@ -117,48 +126,52 @@ function DeleteIcon() {
   );
 }
 
-const RowTitle = styled.div`
-  font-weight: 600;
-  margin-bottom: 0.35rem;
-`;
-
-const Meta = styled.div`
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
+const Tagline = styled.div`
+  font-weight: 500;
+  line-height: 1.4;
 `;
 
 const ErrorText = styled.p`
   color: var(--color-error);
 `;
 
-function digestTitle(digest: DigestListItem): string {
-  const first = (digest.prompt.topics || []).find(Boolean);
-  if (first) return first.length > 48 ? `${first.slice(0, 45)}…` : first;
-  if (digest.prompt.length != null && digest.prompt.length > 0) return formatWordCount(digest.prompt.length);
-  return 'Digest';
-}
-
-function digestLengthLine(digest: DigestListItem): string | null {
-  const parts: string[] = [];
-  if (digest.prompt.length != null && digest.prompt.length > 0) {
-    parts.push(formatWordCount(digest.prompt.length));
-  }
-  parts.push(formatNewsScopeSummary(digest.prompt.newsScope, digest.prompt.locationText));
-  return parts.filter(Boolean).join(' · ') || null;
-}
-
-function scheduleSummary(digest: DigestListItem): string {
+function scheduleLabel(digest: DigestListItem): string {
   const s = digest.defaultTiming?.schedule;
   if (!s) return 'No schedule yet';
   const freq = s.frequency || 'daily';
-  return `${s.timeOfDay} · ${s.timezone} · ${freq}`;
+  const freqLabel = freq.charAt(0).toUpperCase() + freq.slice(1);
+  return `${freqLabel} at ${s.timeOfDay}`;
+}
+
+function topicsLabel(digest: DigestListItem): string {
+  const topics = (digest.prompt.topics || []).filter(Boolean).slice(0, 3);
+  return topics.join(', ');
+}
+
+function firstWord(text: string | undefined): string {
+  const trimmed = (text || '').trim();
+  if (!trimmed) return '';
+  return trimmed.split(/\s+/)[0] || '';
+}
+
+function digestTagline(digest: DigestListItem): string {
+  const locationLabel = firstWord(digest.prompt.locationText);
+  return [
+    scheduleLabel(digest),
+    formatNewsScopeSummary(digest.prompt.newsScope, locationLabel),
+    topicsLabel(digest),
+  ]
+    .filter(Boolean)
+    .join(' · ');
 }
 
 export default function DigestListPage() {
   const navigate = useNavigate();
   const { data: digests, isLoading, isError } = useDigestsQuery();
   const { mutateAsync: deleteDigest, isPending: isDeleting } = useDeleteDigestMutation();
+  const { mutateAsync: updateEnabled, isPending: isUpdatingEnabled } = useUpdateDigestEnabledMutation();
   const [pendingDeleteDigestId, setPendingDeleteDigestId] = useState<string | null>(null);
+  const [pendingEnabledDigestId, setPendingEnabledDigestId] = useState<string | null>(null);
 
   if (isLoading) return <Loading />;
 
@@ -192,17 +205,6 @@ export default function DigestListPage() {
         </HeaderRow>
         <List>
           {rows.map((digest) => {
-            const nTargets = digest.defaultTiming?.targetsCount ?? 0;
-            const lenLine = digestLengthLine(digest);
-            const metaLine = [
-              lenLine,
-              nTargets > 0
-                ? `${nTargets} Kindle destination${nTargets === 1 ? '' : 's'}`
-                : 'No targets yet',
-            ]
-              .filter(Boolean)
-              .join(' · ');
-
             return (
               <Row key={digest._id}>
                 <RowMain
@@ -213,11 +215,29 @@ export default function DigestListPage() {
                     if (e.key === 'Enter' || e.key === ' ') openDigest(digest);
                   }}
                 >
-                  <RowTitle>{digestTitle(digest)}</RowTitle>
-                  <Meta>{scheduleSummary(digest)}</Meta>
-                  <Meta>{metaLine}</Meta>
+                  <Tagline>{digestTagline(digest)}</Tagline>
                 </RowMain>
                 <RowActions>
+                  <ToggleWrap
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                  >
+                    <Toggle
+                      label="Enabled"
+                      checked={digest.enabled !== false}
+                      disabled={isUpdatingEnabled && pendingEnabledDigestId === digest._id}
+                      onChange={async (nextValue) => {
+                        setPendingEnabledDigestId(digest._id);
+                        try {
+                          await updateEnabled({ digestId: digest._id, body: { enabled: nextValue } });
+                        } catch {
+                          toast.error('Could not update digest status');
+                        } finally {
+                          setPendingEnabledDigestId(null);
+                        }
+                      }}
+                    />
+                  </ToggleWrap>
                   <DeleteButton
                     type="button"
                     onClick={(e) => {
