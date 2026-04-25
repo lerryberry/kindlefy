@@ -9,6 +9,7 @@ import TargetsStep from '../components/targets/TargetsStep';
 import ApproveSenderStep from '../components/setup/ApproveSenderStep';
 import ConfirmationStep from '../components/confirm/ConfirmationStep';
 import DigestListPage from '../components/digests/DigestListPage';
+import PlansPage from '../components/plans/PlansPage';
 
 const router = createBrowserRouter([
   {
@@ -32,6 +33,7 @@ const router = createBrowserRouter([
           { path: 'confirm', element: <ConfirmationStep /> },
         ],
       },
+      { path: 'plans', element: <PlansPage /> },
       { path: 'profile', element: <PageLayout title="Profile"><Profile /></PageLayout> },
       { path: '*', element: <PageLayout title="Page Not Found"><div>Page not found</div></PageLayout> },
     ],

@@ -4,7 +4,6 @@ import styled from 'styled-components';
 import Form from '../util/Form';
 import Button from '../util/Button';
 import FormInput from '../util/FormInput';
-import SegmentedControl from '../util/SegmentedControl';
 import WordCountSlider from './WordCountSlider';
 import LocationPlacesField from './LocationPlacesField';
 import {
@@ -12,7 +11,10 @@ import {
   useCreateDigestContentItemMutation,
   useUpdateDigestContentItemMutation,
   useDeleteDigestContentItemMutation,
+  useDigestsQuery,
+  useGetDigestContentsQuery,
 } from '../../hooks/useDigests';
+import { MustDisableDigestDialog, type MustDisableVariant } from '../digest/DigestPolicyDialogs';
 import {
   DEFAULT_NEWS_SCOPE,
   NEWS_SCOPE_SEGMENT_OPTIONS,
@@ -21,6 +23,10 @@ import {
 import { PROMPT_TOPIC_OPTIONS } from '../../constants/promptTopics';
 import { clampWordCount, DEFAULT_WORD_COUNT } from '../../utils/promptLength';
 import type { DigestContentItem, LocationCoordinates } from '../../types/digest';
+import {
+  MAX_CONTENT_SECTIONS_PER_DIGEST,
+  MAX_DIGESTS_PER_LOGIN,
+} from '../../constants/planLimits';
 
 const MAX_SPECIAL_INTEREST_WORDS = 15;
 
@@ -88,17 +94,6 @@ const TopicChip = styled.button<{ $selected: boolean }>`
   }
 `;
 
-/** Wraps segmented control so three labels fit on small screens. */
-const NewsScopeSegmentWrap = styled.div`
-  width: 100%;
-  & > div > button {
-    font-size: 0.8125rem;
-    padding: 0.6rem 0.45rem;
-    line-height: 1.25;
-    min-width: 0;
-  }
-`;
-
 const FooterRow = styled.div`
   display: flex;
   align-items: center;
@@ -106,23 +101,27 @@ const FooterRow = styled.div`
   gap: 0.75rem;
   width: 100%;
   margin-top: 0.25rem;
+  flex-wrap: wrap;
 `;
 
 const RemoveCircleButton = styled.button`
-  width: 36px;
-  height: 36px;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
   border-radius: 9999px;
-  border: 1px solid var(--color-error);
+  border: 1px solid var(--color-border-primary);
   background: transparent;
-  color: var(--color-error);
+  color: var(--color-text-secondary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 
   &:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--color-error) 10%, transparent);
+    background: var(--color-background-tertiary);
+    border-color: var(--color-border-secondary);
+    color: var(--color-text-primary);
   }
 
   &:disabled {
@@ -247,6 +246,10 @@ export default function ContentItemForm(props: ContentItemFormProps) {
   const [locationCoordinates, setLocationCoordinates] = useState<LocationCoordinates>({ lat: null, lng: null });
   const [locationTimezone, setLocationTimezone] = useState('');
   const [specialInterestText, setSpecialInterestText] = useState('');
+  const [mustDisableVariant, setMustDisableVariant] = useState<MustDisableVariant | null>(null);
+
+  const { data: digests, isLoading: digestsLoading } = useDigestsQuery();
+  const { data: allContents } = useGetDigestContentsQuery(isEdit ? props.digestId : null);
 
   const editContentId = isEdit ? props.content.contentId : null;
   const editContent = isEdit ? props.content : null;
@@ -349,12 +352,24 @@ export default function ContentItemForm(props: ContentItemFormProps) {
     try {
       if (props.mode === 'create') {
         if (!props.digestId) {
+          if (digestsLoading) {
+            toast.error('Still loading your digests—try again in a moment');
+            return;
+          }
+          if ((digests?.length ?? 0) >= MAX_DIGESTS_PER_LOGIN) {
+            toast.error(`You can have at most ${MAX_DIGESTS_PER_LOGIN} digests.`);
+            return;
+          }
           const created = await createDigestAndFirst(payload);
           props.onCreated({ digestId: created.digestId, content: created.content });
           toast.success('Section saved');
           return;
         }
 
+        if (Array.isArray(allContents) && allContents.length >= MAX_CONTENT_SECTIONS_PER_DIGEST) {
+          toast.error(`Each digest can have at most ${MAX_CONTENT_SECTIONS_PER_DIGEST} content sections.`);
+          return;
+        }
         const created = await createContentItem(payload);
         props.onCreated({ digestId: props.digestId, content: created });
         toast.success('Section saved');
@@ -380,6 +395,13 @@ export default function ContentItemForm(props: ContentItemFormProps) {
 
   async function handleDelete() {
     if (!isEdit) return;
+    const digest = digests?.find((d) => d._id === props.digestId);
+    const digestOn = digest ? digest.enabled !== false : false;
+    const sectionCount = allContents?.length ?? 0;
+    if (digestOn && sectionCount <= 1) {
+      setMustDisableVariant('last-content');
+      return;
+    }
     try {
       await deleteMutation.mutateAsync(props.content.contentId);
       toast.success('Section removed');
@@ -424,6 +446,16 @@ export default function ContentItemForm(props: ContentItemFormProps) {
 
   const showLocationField = newsScope === 'country' || newsScope === 'local';
 
+  const newDigestBlocked =
+    props.mode === 'create' &&
+    !props.digestId &&
+    (digestsLoading || (digests?.length ?? 0) >= MAX_DIGESTS_PER_LOGIN);
+  const newSectionBlocked =
+    props.mode === 'create' &&
+    Boolean(props.digestId) &&
+    Array.isArray(allContents) &&
+    allContents.length >= MAX_CONTENT_SECTIONS_PER_DIGEST;
+
   const canSubmit =
     validateTopics(
       newsScope === 'special' && specialInterestText.trim()
@@ -435,30 +467,52 @@ export default function ContentItemForm(props: ContentItemFormProps) {
       (countWords(specialInterestText) > 0 &&
         countWords(specialInterestText) <= MAX_SPECIAL_INTEREST_WORDS));
 
+  const planBlocked = newDigestBlocked || newSectionBlocked;
+
   return (
+    <>
+      {isEdit ? (
+        <MustDisableDigestDialog
+          isOpen={mustDisableVariant !== null}
+          onClose={() => setMustDisableVariant(null)}
+          digestId={props.digestId}
+          variant={mustDisableVariant}
+        />
+      ) : null}
     <Form onSubmit={handleSubmit}>
       <Row>
         <FieldBlock>
           <FieldCaption>News scope</FieldCaption>
-          <NewsScopeSegmentWrap>
-            <SegmentedControl
-              options={NEWS_SCOPE_SEGMENT_OPTIONS}
-              value={newsScope}
-              onChange={(v) => {
-                const nextScope = v as NewsScope;
-                setNewsScope(nextScope);
-                if (nextScope === 'global' || nextScope === 'special') {
-                  setLocationText('');
-                  setLocationCoordinates({ lat: null, lng: null });
-                  setLocationTimezone('');
-                }
-                if (nextScope === 'special') {
-                  setSelectedTopics(new Set());
-                }
-              }}
-              disabled={isPending}
-            />
-          </NewsScopeSegmentWrap>
+          <ChipGrid role="radiogroup" aria-label="News scope">
+            {NEWS_SCOPE_SEGMENT_OPTIONS.map((opt) => {
+              const selected = newsScope === opt.value;
+              return (
+                <TopicChip
+                  key={opt.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  $selected={selected}
+                  disabled={isPending}
+                  onClick={() => {
+                    const nextScope = opt.value;
+                    setNewsScope(nextScope);
+                    if (nextScope === 'global' || nextScope === 'special') {
+                      setLocationText('');
+                      setLocationCoordinates({ lat: null, lng: null });
+                      setLocationTimezone('');
+                    }
+                    if (nextScope === 'special') {
+                      setSelectedTopics(new Set());
+                    }
+                  }}
+                >
+                  {selected ? <span aria-hidden="true">✓</span> : null}
+                  {opt.label}
+                </TopicChip>
+              );
+            })}
+          </ChipGrid>
         </FieldBlock>
 
         {newsScope === 'special' ? (
@@ -542,12 +596,11 @@ export default function ContentItemForm(props: ContentItemFormProps) {
             type="submit"
             size="medium"
             isResponsive={false}
-            disabled={isPending || !canSubmit}
+            disabled={isPending || !canSubmit || planBlocked}
             text={isPending ? 'Saving…' : 'Save section'}
-            style={{ padding: '0.5rem 0.875rem', fontSize: '0.875rem' }}
           />
           {isEdit ? (
-            <RemoveCircleButton type="button" onClick={handleDelete} disabled={isPending}>
+            <RemoveCircleButton type="button" onClick={() => void handleDelete()} disabled={isPending}>
               <TrashIcon />
             </RemoveCircleButton>
           ) : props.onCancel ? (
@@ -564,6 +617,7 @@ export default function ContentItemForm(props: ContentItemFormProps) {
         </FooterRow>
       </Row>
     </Form>
+    </>
   );
 }
 

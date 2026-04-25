@@ -1,16 +1,19 @@
 import React from 'react';
 import styled from 'styled-components';
-import Button from './Button';
+import Button, { type ButtonVariant } from './Button';
 
 interface DialogProps {
     isOpen: boolean;
     onClose: () => void;
     title?: string;
-    description: string;
+    description: React.ReactNode;
     confirmText: string;
     onConfirm: () => void;
     confirmDisabled?: boolean;
     cancelDisabled?: boolean;
+    confirmVariant?: ButtonVariant;
+    /** When false, only the confirm action is shown (dismiss via overlay or ×). */
+    showCancel?: boolean;
 }
 
 const Overlay = styled.div`
@@ -19,7 +22,7 @@ const Overlay = styled.div`
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(28, 25, 23, 0.45);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -34,7 +37,7 @@ const DialogContainer = styled.div`
     width: 90%;
     max-height: 80vh;
     overflow-y: auto;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 10px 25px rgba(28, 25, 23, 0.12);
 `;
 
 const DialogHeader = styled.div`
@@ -82,9 +85,14 @@ const DialogContent = styled.div`
 
 const DialogFooter = styled.div`
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
   gap: 0.5rem;
   margin-top: 1.5rem;
+  align-items: stretch;
+
+  & > button {
+    width: 100%;
+  }
 `;
 
 const Dialog: React.FC<DialogProps> = ({
@@ -96,6 +104,8 @@ const Dialog: React.FC<DialogProps> = ({
     onConfirm,
     confirmDisabled = false,
     cancelDisabled = false,
+    confirmVariant = 'default',
+    showCancel = true,
 }) => {
     if (!isOpen) return null;
 
@@ -121,8 +131,22 @@ const Dialog: React.FC<DialogProps> = ({
                     {description}
                 </DialogContent>
                 <DialogFooter>
-                    <Button text="Cancel" onClick={onClose} size="small" disabled={cancelDisabled} />
-                    <Button text={confirmText} onClick={onConfirm} size="small" disabled={confirmDisabled} />
+                    {showCancel ? (
+                        <Button
+                            text="Cancel"
+                            variant="ghost"
+                            onClick={onClose}
+                            size="medium"
+                            disabled={cancelDisabled}
+                        />
+                    ) : null}
+                    <Button
+                        text={confirmText}
+                        variant={confirmVariant}
+                        onClick={onConfirm}
+                        size="medium"
+                        disabled={confirmDisabled}
+                    />
                 </DialogFooter>
             </DialogContainer>
         </Overlay>

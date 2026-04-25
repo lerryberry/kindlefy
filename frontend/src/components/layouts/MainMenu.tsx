@@ -53,6 +53,9 @@ export default function MainMenu({ onClose }: MainMenuProps) {
                 <MenuLink to="/" onClick={onClose}>Digests</MenuLink>
             </MenuItem>
             <MenuItem>
+                <MenuLink to="/plans" onClick={onClose}>Plans</MenuLink>
+            </MenuItem>
+            <MenuItem>
                 <MenuLink to="/profile" onClick={onClose}>Profile</MenuLink>
             </MenuItem>
             <MenuItem>

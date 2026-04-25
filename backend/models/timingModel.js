@@ -7,7 +7,7 @@ const scheduleSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Schedule timeOfDay is required'],
       trim: true,
-      match: [/^([01]\d|2[0-3]):[0-5]\d$/, 'timeOfDay must be in HH:mm (24h) format'],
+      match: [/^([01]\d|2[0-3]):(00|30)$/, 'timeOfDay must be in HH:mm with minutes 00 or 30'],
     },
     frequency: { type: String, default: 'daily', trim: true },
   },

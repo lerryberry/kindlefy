@@ -24,7 +24,7 @@ export default function SetupFormSubmit({
       <Button
         type="submit"
         size="large"
-        isResponsive
+        fullWidth
         disabled={Boolean(disabled || pending)}
         text={pending ? 'Saving…' : label}
         {...rest}

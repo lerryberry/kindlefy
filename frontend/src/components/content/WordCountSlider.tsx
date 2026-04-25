@@ -17,7 +17,7 @@ const ValueRow = styled.div`
 `;
 
 const ValueText = styled.span`
-  font-size: 1rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
@@ -25,6 +25,7 @@ const ValueText = styled.span`
 
 const Hint = styled.span`
   font-size: 0.8125rem;
+  font-weight: 500;
   color: var(--color-text-tertiary);
 `;
 

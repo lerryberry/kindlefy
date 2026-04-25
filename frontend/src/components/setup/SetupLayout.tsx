@@ -1,7 +1,7 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import Stepper from '../util/Stepper';
-import { useDigestWizard } from '../../hooks/useDigestWizard';
+import { readApproveSenderNextPressed, useDigestWizard } from '../../hooks/useDigestWizard';
 import { useDigestsQuery, useDigestTimingsQuery } from '../../hooks/useDigests';
 
 const Wrap = styled.div`
@@ -28,7 +28,8 @@ export default function SetupLayout() {
   const { pathname } = useLocation();
   const { digestId, selectedTimingId } = useDigestWizard();
   const { data: digests } = useDigestsQuery();
-  const { data: timings } = useDigestTimingsQuery(digestId);
+  const { data: timingsData } = useDigestTimingsQuery(digestId);
+  const timings = timingsData?.timings;
 
   const resolvedTimingId = selectedTimingId || (timings?.[0]?.timingId ?? null);
   const selectedTiming = resolvedTimingId ? timings?.find((t) => t.timingId === resolvedTimingId) : null;
@@ -39,7 +40,9 @@ export default function SetupLayout() {
   const stepScheduleComplete = !!digestId && (timings?.length ?? 0) > 0;
   const stepTargetsComplete = !!digestId && !!selectedTiming && (selectedTiming.targetsCount ?? 0) > 0;
   const isSetupReady = stepContentComplete && stepScheduleComplete && stepTargetsComplete;
-  const stepApproveSenderComplete = isSetupReady && digestEnabled;
+  const approveSenderNextPressed = readApproveSenderNextPressed(digestId);
+  // Do not gate on digestEnabled: digest stays disabled until Finish setup; tick = Next pressed on this step.
+  const stepApproveSenderComplete = isSetupReady && approveSenderNextPressed;
   const stepConfirmComplete = isSetupReady && digestEnabled;
 
   const go = (path: string) => () => navigate(path);
@@ -54,31 +57,31 @@ export default function SetupLayout() {
             steps={[
               {
                 id: 'content',
-                label: 'Sections',
+                label: 'Create digest',
                 isComplete: stepContentComplete,
                 onClick: digestId ? go(`/${digestId}/content`) : go('/new/content'),
               },
               {
                 id: 'schedule',
-                label: 'Schedule',
+                label: 'Set schedule',
                 isComplete: stepScheduleComplete,
                 onClick: digestId ? go(`/${digestId}/schedule`) : undefined,
               },
               {
                 id: 'targets',
-                label: 'Targets',
+                label: 'Add Kindle',
                 isComplete: stepTargetsComplete,
                 onClick: digestId ? go(`/${digestId}/targets`) : undefined,
               },
               {
                 id: 'approve-sender',
-                label: 'Approve',
+                label: 'Approve sender',
                 isComplete: stepApproveSenderComplete,
                 onClick: digestId ? go(`/${digestId}/approve-sender`) : undefined,
               },
               {
                 id: 'confirm',
-                label: 'Confirm',
+                label: 'Finish setup',
                 isComplete: stepConfirmComplete,
                 onClick: digestId ? go(`/${digestId}/confirm`) : undefined,
               },

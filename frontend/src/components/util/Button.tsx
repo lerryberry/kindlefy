@@ -8,7 +8,7 @@ type ButtonSize = "small" | "medium" | "large";
 type ButtonType = "button" | "submit" | "reset";
 
 // Button variant type
-type ButtonVariant = "default" | "ghost";
+export type ButtonVariant = "default" | "ghost";
 
 // Main button props interface
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -18,6 +18,8 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   size?: ButtonSize;
   variant?: ButtonVariant;
   isResponsive?: boolean;
+  /** Full width at all breakpoints (wizard footers, dialogs) */
+  fullWidth?: boolean;
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   children?: React.ReactNode;
 }
@@ -39,17 +41,27 @@ const sizeStyles: Record<ButtonSize, ReturnType<typeof css>> = {
 };
 
 // Styled button component with proper typing
-const StyledButton = styled.button<{ size?: ButtonSize; variant?: ButtonVariant; isResponsive?: boolean }>`
+const StyledButton = styled.button<{
+  size?: ButtonSize;
+  variant?: ButtonVariant;
+  isResponsive?: boolean;
+  $fullWidth?: boolean;
+}>`
   background: ${props => props.variant === 'ghost' ? 'transparent' : 'var(--color-brand-500)'};
   color: ${props => props.variant === 'ghost' ? 'var(--color-brand-500)' : 'var(--color-text-inverse)'};
   border: ${props => props.variant === 'ghost' ? '1px solid var(--color-brand-500)' : 'none'};
   border-radius: 9999px;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
-  width: auto;
-  min-width: fit-content;
-  
-  ${props => props.isResponsive && `
+  width: ${(p) => (p.$fullWidth ? '100%' : 'auto')};
+  min-width: ${(p) => (p.$fullWidth ? '0' : 'fit-content')};
+  box-sizing: border-box;
+
+  ${(props) =>
+    props.$fullWidth
+      ? ''
+      : props.isResponsive &&
+        `
     width: 100%;
     
     @media (min-width: 768px) {
@@ -86,6 +98,7 @@ const Button: React.FC<ButtonProps> = ({
   size = "medium",
   variant = "default",
   isResponsive = false,
+  fullWidth = false,
   onClick,
   children,
   ...rest
@@ -95,7 +108,8 @@ const Button: React.FC<ButtonProps> = ({
     disabled={disabled}
     size={size}
     variant={variant}
-    isResponsive={isResponsive}
+    isResponsive={fullWidth ? false : isResponsive}
+    $fullWidth={fullWidth}
     onClick={onClick}
     {...rest}
   >

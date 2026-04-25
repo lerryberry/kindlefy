@@ -27,63 +27,40 @@ const StepperContainer = styled.div`
 `;
 
 const StepBlock = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  gap: 0.75rem;
-  min-width: 0;
-`;
-
-const TrackCol = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 28px;
-  flex-shrink: 0;
-  align-self: stretch;
-`;
-
-const IndicatorWrap = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  padding-top: 0;
-`;
-
-const TrackLine = styled.div`
-  flex: 1;
-  width: 2px;
-  min-height: 0.5rem;
-  margin-top: 4px;
-  background-color: var(--color-border-primary);
-  border-radius: 1px;
-`;
-
-const BodyCol = styled.div`
-  display: flex;
-  flex-direction: column;
-  flex: 1;
   min-width: 0;
   padding-bottom: 1.25rem;
 `;
 
-const StepHeader = styled.div<{ $clickable: boolean }>`
+const StepHeaderRow = styled.div<{ $clickable: boolean }>`
+  position: relative;
   display: flex;
+  flex-direction: row;
   align-items: center;
-  padding: 0;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
   min-height: 1.75rem;
   cursor: ${(p) => (p.$clickable ? 'pointer' : 'default')};
   user-select: none;
 `;
 
 const StepLabel = styled.div`
+  flex: 1;
+  min-width: 0;
   color: var(--color-text-primary);
   font-size: 1.6rem;
   font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.01em;
-  margin-top: -0.34em;
+  margin-top: -0.12em;
+`;
+
+const CompleteSlot = styled.div`
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
 `;
 
 const ScreenReaderOnly = styled.span`
@@ -98,10 +75,33 @@ const ScreenReaderOnly = styled.span`
   border: 0;
 `;
 
+const StepHeadingDivider = styled.hr`
+  border: none;
+  border-top: 1px solid var(--color-border-primary);
+  margin: 0.4rem 0 0.3rem;
+  width: 100%;
+`;
+
+const StepHeadingEllipsis = styled.p`
+  margin: 0 0 0.45rem;
+  padding: 0;
+  font-size: 1.2rem;
+  line-height: 1.2;
+  letter-spacing: 0.12em;
+  color: var(--color-text-tertiary);
+  user-select: none;
+  pointer-events: none;
+`;
+
+function StepHeadingPlaceholder() {
+  return (
+    <StepHeadingEllipsis aria-hidden="true">...</StepHeadingEllipsis>
+  );
+}
+
 const NestedForm = styled.div`
-  padding-left: 0;
-  padding-top: 0.25rem;
   min-width: 0;
+  padding-top: 0.25rem;
 `;
 
 const Stepper: React.FC<StepperProps> = ({ steps, activeStepId, children, className }) => {
@@ -113,42 +113,41 @@ const Stepper: React.FC<StepperProps> = ({ steps, activeStepId, children, classN
 
   return (
     <StepperContainer className={className} role="navigation" aria-label="Setup steps">
-      {steps.map((step, index) => {
+      {steps.map((step) => {
         const clickable = Boolean(step.onClick);
         const isActive = activeStepId === step.id;
         const hideHeaderLabel = Boolean(isActive && step.hideLabelWhenActive);
-        const showLine = index < steps.length - 1;
 
         return (
           <StepBlock key={step.id}>
-            <TrackCol>
-              <IndicatorWrap>
-                <StatusIndicator isComplete={step.isComplete} size="large" />
-              </IndicatorWrap>
-              {showLine ? <TrackLine aria-hidden /> : null}
-            </TrackCol>
-            <BodyCol>
-              <StepHeader
-                $clickable={clickable}
-                onClick={() => handleStepClick(step)}
-                onKeyDown={(e) => {
-                  if (clickable && (e.key === 'Enter' || e.key === ' ')) {
-                    e.preventDefault();
-                    handleStepClick(step);
-                  }
-                }}
-                tabIndex={clickable ? 0 : undefined}
-                role={clickable ? 'button' : undefined}
-                aria-current={isActive ? 'step' : undefined}
-              >
-                {hideHeaderLabel ? (
-                  <ScreenReaderOnly aria-current={isActive ? 'step' : undefined}>{step.label}</ScreenReaderOnly>
-                ) : (
-                  <StepLabel>{step.label}</StepLabel>
-                )}
-              </StepHeader>
-              {isActive ? <NestedForm>{children}</NestedForm> : null}
-            </BodyCol>
+            <StepHeaderRow
+              $clickable={clickable}
+              onClick={() => handleStepClick(step)}
+              onKeyDown={(e) => {
+                if (clickable && (e.key === 'Enter' || e.key === ' ')) {
+                  e.preventDefault();
+                  handleStepClick(step);
+                }
+              }}
+              tabIndex={clickable ? 0 : undefined}
+              role={clickable ? 'button' : undefined}
+              aria-current={isActive ? 'step' : undefined}
+              aria-label={hideHeaderLabel ? step.label : undefined}
+            >
+              {hideHeaderLabel ? (
+                <ScreenReaderOnly aria-current={isActive ? 'step' : undefined}>{step.label}</ScreenReaderOnly>
+              ) : (
+                <StepLabel as="span">{step.label}</StepLabel>
+              )}
+              {step.isComplete ? (
+                <CompleteSlot aria-hidden="true">
+                  <StatusIndicator isComplete size="large" />
+                </CompleteSlot>
+              ) : null}
+            </StepHeaderRow>
+            <StepHeadingDivider aria-hidden="true" />
+            {!isActive ? <StepHeadingPlaceholder /> : null}
+            {isActive ? <NestedForm>{children}</NestedForm> : null}
           </StepBlock>
         );
       })}

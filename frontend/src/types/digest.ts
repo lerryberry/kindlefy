@@ -28,6 +28,8 @@ export interface DigestContentItem {
 export interface DigestListItem {
   _id: string;
   enabled: boolean;
+  /** Active content sections (from list API). */
+  contentCount?: number;
   prompt: {
     length?: number;
     topics: string[];

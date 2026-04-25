@@ -13,6 +13,7 @@ import {
   type NewsScope,
 } from '../../constants/newsScope';
 import { DEFAULT_WORD_COUNT, formatWordCount } from '../../utils/promptLength';
+import { MAX_CONTENT_SECTIONS_PER_DIGEST } from '../../constants/planLimits';
 
 const HeaderRow = styled.div`
   display: flex;
@@ -51,9 +52,9 @@ const SummaryText = styled.span`
 const FooterRow = styled.div`
   margin-top: 1rem;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
   width: 100%;
 `;
 
@@ -305,6 +306,12 @@ export default function DigestContentsAccordion({ digestId, onCreatedDigest }: D
         </div>
       ) : null}
 
+      {digestId && contents.length >= MAX_CONTENT_SECTIONS_PER_DIGEST && !isAdding ? (
+        <p style={{ margin: '0.75rem 0 0', fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>
+          This digest already has the maximum of {MAX_CONTENT_SECTIONS_PER_DIGEST} content sections.
+        </p>
+      ) : null}
+
       {isAdding ? (
         <DraftAccordion>
           <DraftHeader
@@ -354,12 +361,19 @@ export default function DigestContentsAccordion({ digestId, onCreatedDigest }: D
           type="button"
           text="Add section"
           variant="ghost"
+          size="large"
+          fullWidth
           onClick={handleStartAddContent}
-          disabled={isAdding}
+          disabled={
+            isAdding ||
+            Boolean(digestId && contents.length >= MAX_CONTENT_SECTIONS_PER_DIGEST)
+          }
         />
         <Button
           type="button"
           text="Next"
+          size="large"
+          fullWidth
           onClick={() => {
             if (!digestId) return;
             navigate(`/${digestId}/schedule`);

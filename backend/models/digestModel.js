@@ -15,7 +15,7 @@ const digestSchema = new mongoose.Schema(
     },
     enabled: {
       type: Boolean,
-      default: true,
+      default: false,
       index: true,
     },
   },

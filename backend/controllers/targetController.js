@@ -1,13 +1,28 @@
 const Target = require('../models/targetModel');
 const Timing = require('../models/timingModel');
+const Digest = require('../models/digestModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const { assertDigestLinkedDevicesWithinCap } = require('../utils/planLimits');
 
 const notArchived = { isArchived: { $ne: true } };
 const targetScope = req => ({ user: req.userId, isArchived: { $ne: true } });
 
-const timingOwnedAndActive = (userId, timingId) =>
-  Timing.exists({ _id: timingId, user: userId, ...notArchived });
+async function findTimingOwnedByUser(userId, timingId, populateOpts) {
+  let q = Timing.findOne({ _id: timingId, ...notArchived });
+  if (populateOpts) {
+    q = q.populate(populateOpts);
+  }
+  const timing = await q.lean();
+  if (!timing) {
+    throw new AppError('Timing not found', 404);
+  }
+  const owned = await Digest.exists({ _id: timing.digest, user: userId, ...notArchived });
+  if (!owned) {
+    throw new AppError('Timing not found', 404);
+  }
+  return timing;
+}
 
 const timingIncludesTarget = (timing, targetId) =>
   (timing.targets || []).some(id => String(id) === String(targetId));
@@ -96,6 +111,30 @@ exports.deleteTarget = catchAsync(async (req, res, next) => {
   const existing = await Target.findOne({ _id: req.params.id, ...targetScope(req) });
   if (!existing) return next(new AppError('Target not found', 404));
 
+  const digestIds = await Timing.distinct('digest', {
+    user: req.userId,
+    ...notArchived,
+    targets: existing._id,
+  });
+
+  for (const digestId of digestIds) {
+    const digest = await Digest.findOne({ _id: digestId, user: req.userId, ...notArchived }).lean();
+    if (!digest || digest.enabled === false) continue;
+
+    const timings = await Timing.find({ digest: digestId, ...notArchived }).lean();
+    for (const t of timings) {
+      const ids = (t.targets || []).map((id) => String(id)).filter(Boolean);
+      if (ids.length === 1 && ids[0] === String(existing._id)) {
+        return next(
+          new AppError(
+            'Turn this digest off before removing its only Kindle on a schedule. You can delete the device after the digest is off.',
+            400
+          )
+        );
+      }
+    }
+  }
+
   const data = await Target.findOneAndUpdate(
     { _id: req.params.id, ...targetScope(req) },
     { $set: { isArchived: true } },
@@ -112,16 +151,10 @@ exports.deleteTarget = catchAsync(async (req, res, next) => {
 });
 
 exports.getTargetsForTiming = catchAsync(async (req, res, next) => {
-  const ok = await timingOwnedAndActive(req.userId, req.params.timingId);
-  if (!ok) return next(new AppError('Timing not found', 404));
-
-  const timing = await Timing.findOne({
-    _id: req.params.timingId,
-    user: req.userId,
-    ...notArchived,
-  })
-    .populate({ path: 'targets', match: notArchived })
-    .lean();
+  const timing = await findTimingOwnedByUser(req.userId, req.params.timingId, {
+    path: 'targets',
+    match: notArchived,
+  });
 
   const data = (timing.targets || []).filter(Boolean);
 
@@ -135,8 +168,7 @@ exports.getTargetsForTiming = catchAsync(async (req, res, next) => {
 exports.linkTargetToTiming = catchAsync(async (req, res, next) => {
   const { targetId, kindleEmail, label } = req.body || {};
 
-  const ok = await timingOwnedAndActive(req.userId, req.params.timingId);
-  if (!ok) return next(new AppError('Timing not found', 404));
+  const timing = await findTimingOwnedByUser(req.userId, req.params.timingId);
 
   let tid = targetId;
   if (tid) {
@@ -153,8 +185,17 @@ exports.linkTargetToTiming = catchAsync(async (req, res, next) => {
     return next(new AppError('targetId or kindleEmail is required', 400));
   }
 
+  const current = (timing.targets || []).filter(Boolean).map(String);
+  const tidStr = String(tid);
+  if (!current.includes(tidStr)) {
+    await assertDigestLinkedDevicesWithinCap(timing.digest, {
+      replaceTimingId: timing._id,
+      replaceWithIds: [...current, tidStr],
+    });
+  }
+
   const linkResult = await Timing.updateOne(
-    { _id: req.params.timingId, user: req.userId, ...notArchived },
+    { _id: req.params.timingId, ...notArchived },
     { $addToSet: { targets: tid } }
   );
   if (linkResult.matchedCount === 0) {
@@ -166,12 +207,7 @@ exports.linkTargetToTiming = catchAsync(async (req, res, next) => {
 });
 
 exports.getTargetForTiming = catchAsync(async (req, res, next) => {
-  const timing = await Timing.findOne({
-    _id: req.params.timingId,
-    user: req.userId,
-    ...notArchived,
-  }).lean();
-  if (!timing) return next(new AppError('Timing not found', 404));
+  const timing = await findTimingOwnedByUser(req.userId, req.params.timingId);
   if (!timingIncludesTarget(timing, req.params.targetId)) {
     return next(new AppError('Target not found', 404));
   }
@@ -185,12 +221,7 @@ exports.getTargetForTiming = catchAsync(async (req, res, next) => {
 exports.updateTargetForTiming = catchAsync(async (req, res, next) => {
   const patch = targetUpdatePatchFromBody(req.body);
 
-  const timing = await Timing.findOne({
-    _id: req.params.timingId,
-    user: req.userId,
-    ...notArchived,
-  }).lean();
-  if (!timing) return next(new AppError('Timing not found', 404));
+  const timing = await findTimingOwnedByUser(req.userId, req.params.timingId);
   if (!timingIncludesTarget(timing, req.params.targetId)) {
     return next(new AppError('Target not found', 404));
   }
@@ -208,12 +239,7 @@ exports.updateTargetForTiming = catchAsync(async (req, res, next) => {
 });
 
 exports.unlinkTargetFromTiming = catchAsync(async (req, res, next) => {
-  const timing = await Timing.findOne({
-    _id: req.params.timingId,
-    user: req.userId,
-    ...notArchived,
-  }).lean();
-  if (!timing) return next(new AppError('Timing not found', 404));
+  const timing = await findTimingOwnedByUser(req.userId, req.params.timingId);
   if (!timingIncludesTarget(timing, req.params.targetId)) {
     return next(new AppError('Target not found', 404));
   }

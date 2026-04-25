@@ -2,7 +2,8 @@ import { useState } from 'react';
 import styled from 'styled-components';
 import { Outlet, useNavigate } from 'react-router-dom';
 import MainMenu from './MainMenu';
-import logo from '../../assets/logo.svg';
+import LogoMark from './LogoMark';
+import { getActiveClientPlan } from '../../constants/clientPlan';
 
 const TopBarContainer = styled.div`
   width: 100%;
@@ -24,9 +25,53 @@ const Logo = styled.div`
   align-items: center;
 `;
 
-const LogoImage = styled.img`
-  height: 2rem;
-  width: auto;
+const LogoMarkWrap = styled.div`
+  height: 2.75rem;
+  width: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+
+  svg {
+    display: block;
+    height: 100%;
+    width: auto;
+  }
+`;
+
+const RightCluster = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+`;
+
+const PlansChip = styled.button`
+  appearance: none;
+  border: 1px solid var(--color-border-primary);
+  background: var(--color-background-tertiary);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    border-color: var(--color-brand-500);
+    color: var(--color-brand-600);
+    background: var(--color-background-secondary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
 `;
 
 const BurgerMenu = styled.div`
@@ -75,6 +120,7 @@ const Overlay = styled.div<{ isOpen: boolean }>`
 export default function TopBar() {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const planChip = getActiveClientPlan().chipLabel;
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -88,17 +134,43 @@ export default function TopBar() {
     navigate('/');
   };
 
+  const goPlans = () => {
+    navigate('/plans');
+  };
+
   return (
     <>
       <TopBarContainer>
-        <Logo onClick={handleLogoClick}>
-          <LogoImage src={logo} alt="Kindle-ify" />
+        <Logo
+          data-brand-logo="true"
+          onClick={handleLogoClick}
+          role="button"
+          aria-label="Kindle-ify home"
+        >
+          <LogoMarkWrap>
+            <LogoMark size={44} />
+          </LogoMarkWrap>
         </Logo>
-        <BurgerMenu onClick={toggleMenu}>
-          <BurgerLine />
-          <BurgerLine />
-          <BurgerLine />
-        </BurgerMenu>
+        <RightCluster>
+          <PlansChip
+            type="button"
+            onClick={goPlans}
+            aria-label={`Plans: ${planChip}`}
+            title="View plans"
+          >
+            {planChip}
+          </PlansChip>
+          <BurgerMenu onClick={toggleMenu} role="button" tabIndex={0} aria-label="Open menu" onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggleMenu();
+            }
+          }}>
+            <BurgerLine />
+            <BurgerLine />
+            <BurgerLine />
+          </BurgerMenu>
+        </RightCluster>
       </TopBarContainer>
 
 

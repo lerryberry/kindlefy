@@ -7,9 +7,12 @@ import Toggle from '../util/Toggle';
 import toast from 'react-hot-toast';
 import { useDigestsQuery } from '../../hooks/useDigests';
 import type { DigestListItem } from '../../types/digest';
-import { formatNewsScopeSummary } from '../../constants/newsScope';
+import { digestTagline } from '../../utils/digestTagline';
 import { useDeleteDigestMutation, useUpdateDigestEnabledMutation } from '../../hooks/useDigests';
 import { useState } from 'react';
+import { missingEnableRequirements, type EnableRequirement } from '../../utils/digestEligibility';
+import { CannotEnableDigestDialog } from '../digest/DigestPolicyDialogs';
+import { MAX_DIGESTS_PER_LOGIN } from '../../constants/planLimits';
 
 const Page = styled.div`
   padding: 1rem;
@@ -48,9 +51,6 @@ const Row = styled.li`
   padding: 0;
   background: var(--color-background-secondary);
   transition: border-color 0.15s ease;
-  display: flex;
-  align-items: stretch;
-  gap: 0;
   min-width: 0;
 
   &:hover {
@@ -58,37 +58,48 @@ const Row = styled.li`
   }
 `;
 
-const RowMain = styled.div`
+const RowInner = styled.div`
+  padding: 0.75rem 1rem 1rem;
+  min-width: 0;
+`;
+
+const RowTop = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  min-width: 0;
+`;
+
+const TaglineArea = styled.div`
   flex: 1;
   min-width: 0;
   text-align: left;
-  padding: 1rem;
+  padding: 0.25rem 0 0;
   cursor: pointer;
   color: inherit;
   font: inherit;
 
   &:focus-visible {
     outline: 2px solid var(--color-brand-500);
-    outline-offset: -2px;
+    outline-offset: 2px;
+    border-radius: 0.25rem;
   }
 `;
 
-const RowActions = styled.div`
+const ToggleRow = styled.div`
+  margin-top: 0.65rem;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.75rem 0.75rem 0.75rem 0;
+  align-items: center;
 `;
 
 const ToggleWrap = styled.div`
   display: inline-flex;
   align-items: center;
-  padding-right: 0.1rem;
 `;
 
 const DeleteButton = styled.button`
+  flex-shrink: 0;
   width: 40px;
   height: 40px;
   border-radius: 9999px;
@@ -135,36 +146,6 @@ const ErrorText = styled.p`
   color: var(--color-error);
 `;
 
-function scheduleLabel(digest: DigestListItem): string {
-  const s = digest.defaultTiming?.schedule;
-  if (!s) return 'No schedule yet';
-  const freq = s.frequency || 'daily';
-  const freqLabel = freq.charAt(0).toUpperCase() + freq.slice(1);
-  return `${freqLabel} at ${s.timeOfDay}`;
-}
-
-function topicsLabel(digest: DigestListItem): string {
-  const topics = (digest.prompt.topics || []).filter(Boolean).slice(0, 3);
-  return topics.join(', ');
-}
-
-function firstWord(text: string | undefined): string {
-  const trimmed = (text || '').trim();
-  if (!trimmed) return '';
-  return trimmed.split(/\s+/)[0] || '';
-}
-
-function digestTagline(digest: DigestListItem): string {
-  const locationLabel = firstWord(digest.prompt.locationText);
-  return [
-    scheduleLabel(digest),
-    formatNewsScopeSummary(digest.prompt.newsScope, locationLabel),
-    topicsLabel(digest),
-  ]
-    .filter(Boolean)
-    .join(' · ');
-}
-
 export default function DigestListPage() {
   const navigate = useNavigate();
   const { data: digests, isLoading, isError } = useDigestsQuery();
@@ -172,6 +153,7 @@ export default function DigestListPage() {
   const { mutateAsync: updateEnabled, isPending: isUpdatingEnabled } = useUpdateDigestEnabledMutation();
   const [pendingDeleteDigestId, setPendingDeleteDigestId] = useState<string | null>(null);
   const [pendingEnabledDigestId, setPendingEnabledDigestId] = useState<string | null>(null);
+  const [cannotEnableMissing, setCannotEnableMissing] = useState<EnableRequirement[] | null>(null);
 
   if (isLoading) return <Loading />;
 
@@ -201,66 +183,95 @@ export default function DigestListPage() {
       <div className="container-content">
         <HeaderRow>
           <Title>Your digests</Title>
-          <Button type="button" text="New digest" variant="ghost" onClick={() => navigate('/new/content')} />
+          <Button
+            type="button"
+            text="New digest"
+            onClick={() => navigate('/new/content')}
+            disabled={rows.length >= MAX_DIGESTS_PER_LOGIN}
+            title={
+              rows.length >= MAX_DIGESTS_PER_LOGIN
+                ? `You can have at most ${MAX_DIGESTS_PER_LOGIN} digests`
+                : undefined
+            }
+          />
         </HeaderRow>
         <List>
           {rows.map((digest) => {
             return (
               <Row key={digest._id}>
-                <RowMain
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => openDigest(digest)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') openDigest(digest);
-                  }}
-                >
-                  <Tagline>{digestTagline(digest)}</Tagline>
-                </RowMain>
-                <RowActions>
-                  <ToggleWrap
+                <RowInner>
+                  <RowTop>
+                    <TaglineArea
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => openDigest(digest)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') openDigest(digest);
+                      }}
+                    >
+                      <Tagline>{digestTagline(digest)}</Tagline>
+                    </TaglineArea>
+                    <DeleteButton
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPendingDeleteDigestId(digest._id);
+                      }}
+                      disabled={isDeleting}
+                      aria-label="Delete digest"
+                      title="Delete digest"
+                    >
+                      <DeleteIcon />
+                    </DeleteButton>
+                  </RowTop>
+                  <ToggleRow
                     onClick={(e) => e.stopPropagation()}
                     onKeyDown={(e) => e.stopPropagation()}
                   >
-                    <Toggle
-                      label="Enabled"
-                      checked={digest.enabled !== false}
-                      disabled={isUpdatingEnabled && pendingEnabledDigestId === digest._id}
-                      onChange={async (nextValue) => {
-                        setPendingEnabledDigestId(digest._id);
-                        try {
-                          await updateEnabled({ digestId: digest._id, body: { enabled: nextValue } });
-                        } catch {
-                          toast.error('Could not update digest status');
-                        } finally {
-                          setPendingEnabledDigestId(null);
-                        }
-                      }}
-                    />
-                  </ToggleWrap>
-                  <DeleteButton
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPendingDeleteDigestId(digest._id);
-                    }}
-                    disabled={isDeleting}
-                    aria-label="Delete digest"
-                    title="Delete digest"
-                  >
-                    <DeleteIcon />
-                  </DeleteButton>
-                </RowActions>
+                    <ToggleWrap>
+                      <Toggle
+                        aria-label="Digest enabled"
+                        checked={digest.enabled !== false}
+                        disabled={isUpdatingEnabled && pendingEnabledDigestId === digest._id}
+                        onChange={async (nextValue) => {
+                          if (nextValue) {
+                            const missing = missingEnableRequirements(digest);
+                            if (missing.length > 0) {
+                              setCannotEnableMissing(missing);
+                              return;
+                            }
+                          }
+                          setPendingEnabledDigestId(digest._id);
+                          try {
+                            await updateEnabled({ digestId: digest._id, body: { enabled: nextValue } });
+                            toast.success(nextValue ? 'Digest enabled' : 'Digest disabled');
+                          } catch {
+                            toast.error('Could not update digest status');
+                          } finally {
+                            setPendingEnabledDigestId(null);
+                          }
+                        }}
+                      />
+                    </ToggleWrap>
+                  </ToggleRow>
+                </RowInner>
               </Row>
             );
           })}
         </List>
+        <CannotEnableDigestDialog
+          isOpen={cannotEnableMissing !== null}
+          onClose={() => setCannotEnableMissing(null)}
+          missing={cannotEnableMissing ?? []}
+        />
         <Dialog
           isOpen={pendingDeleteDigestId !== null}
           onClose={() => setPendingDeleteDigestId(null)}
           title="Delete digest"
           description="This will permanently remove the digest from your account."
           confirmText="Delete"
+          confirmVariant="ghost"
+          showCancel={false}
           confirmDisabled={isDeleting}
           onConfirm={async () => {
             const id = pendingDeleteDigestId;
@@ -278,4 +289,3 @@ export default function DigestListPage() {
     </Page>
   );
 }
-

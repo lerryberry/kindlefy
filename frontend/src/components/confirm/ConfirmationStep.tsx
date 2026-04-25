@@ -4,12 +4,17 @@ import { useDigestWizard } from '../../hooks/useDigestWizard';
 import {
   useDigestsQuery,
   useDigestTimingsQuery,
+  useDigestTimingTargetsQuery,
   useGetDigestContentsQuery,
   useUpdateDigestEnabledMutation,
 } from '../../hooks/useDigests';
 import styled from 'styled-components';
 import toast from 'react-hot-toast';
-import { formatNewsScopeSummary } from '../../constants/newsScope';
+import { digestTagline } from '../../utils/digestTagline';
+import type { DigestListItem } from '../../types/digest';
+import { canEnableDigest, missingEnableRequirements } from '../../utils/digestEligibility';
+import type { EnableRequirement } from '../../utils/digestEligibility';
+import { CannotEnableDigestDialog } from '../digest/DigestPolicyDialogs';
 import Button from '../util/Button';
 import Toggle from '../util/Toggle';
 
@@ -19,51 +24,32 @@ const Wrap = styled.div`
   gap: 1rem;
 `;
 
-const Title = styled.h2`
-  margin: 0;
-  font-size: 2rem;
-  font-weight: 600;
-  line-height: 1;
-`;
-
 const Summary = styled.p`
   margin: 0;
   color: var(--color-text-primary);
-  line-height: 1.5;
+  line-height: 1.55;
+  white-space: pre-line;
 `;
 
 export default function ConfirmationStep() {
   const navigate = useNavigate();
   const { digestId, selectedTimingId } = useDigestWizard();
   const { data: digests, isLoading: digestsLoading } = useDigestsQuery();
-  const { data: timings, isLoading: timingsLoading } = useDigestTimingsQuery(digestId);
+  const { data: timingsData, isLoading: timingsLoading } = useDigestTimingsQuery(digestId);
+  const timings = timingsData?.timings;
   const { mutateAsync: updateEnabled, isPending: isUpdatingEnabled } = useUpdateDigestEnabledMutation();
-  const [enabled, setEnabled] = useState(true);
+  const [enabled, setEnabled] = useState(false);
+  const [cannotEnableMissing, setCannotEnableMissing] = useState<EnableRequirement[] | null>(null);
 
   const resolvedTimingId = useMemo(() => {
     return selectedTimingId || timings?.[0]?.timingId || null;
   }, [selectedTimingId, timings]);
 
-  const selectedTiming = useMemo(() => {
-    if (!resolvedTimingId || !timings) return null;
-    return timings.find((t) => t.timingId === resolvedTimingId) ?? null;
-  }, [resolvedTimingId, timings]);
-
+  const { data: timingTargets, isLoading: targetsLoading } = useDigestTimingTargetsQuery(
+    digestId,
+    resolvedTimingId
+  );
   const { data: contents, isLoading: contentsLoading } = useGetDigestContentsQuery(digestId);
-
-  const topics = useMemo(() => {
-    const out: string[] = [];
-    const seen = new Set<string>();
-    for (const c of contents || []) {
-      for (const t of c.topics || []) {
-        if (!seen.has(t)) {
-          seen.add(t);
-          out.push(t);
-        }
-      }
-    }
-    return out;
-  }, [contents]);
 
   const currentDigest = useMemo(() => {
     if (!digestId) return null;
@@ -75,42 +61,53 @@ export default function ConfirmationStep() {
     setEnabled(currentDigest.enabled !== false);
   }, [currentDigest]);
 
-  if (timingsLoading || contentsLoading || digestsLoading || !digestId) {
+  const digestForEnableCheck = useMemo((): DigestListItem | null => {
+    if (!currentDigest) return null;
+    const cc = currentDigest.contentCount ?? contents?.length ?? 0;
+    return { ...currentDigest, contentCount: cc };
+  }, [currentDigest, contents]);
+
+  const summaryText = useMemo(() => {
+    const lines: string[] = [];
+    if (currentDigest) lines.push(digestTagline(currentDigest));
+    const emails = (timingTargets || []).map((t) => t.kindleEmail).filter(Boolean);
+    emails.forEach((e) => lines.push(e));
+    return lines.join('\n');
+  }, [currentDigest, timingTargets]);
+
+  const pageLoading =
+    timingsLoading ||
+    digestsLoading ||
+    contentsLoading ||
+    !digestId ||
+    (Boolean(resolvedTimingId) && targetsLoading);
+
+  if (pageLoading) {
     return <Wrap />;
   }
 
-  const schedule = selectedTiming?.schedule;
-  const cadence = schedule?.frequency || 'daily';
-  const time = schedule ? `${schedule.timeOfDay} ${schedule.timezone}` : 'your preferred time';
-  const destinationCount = selectedTiming?.targetsCount ?? 0;
-  const topicsText = topics.length > 0 ? topics.join(', ') : 'your chosen topics';
-  const sectionSummary = (contents || [])
-    .map((section, index) => {
-      const scopeLabel = formatNewsScopeSummary(section.newsScope, section.locationText);
-      const sectionTopics = (section.topics || []).filter(Boolean).slice(0, 3).join(', ') || 'no topics';
-      return `Section ${index + 1}: ${scopeLabel}, ${sectionTopics}, ${section.length} words`;
-    })
-    .join('; ');
-  const summaryText = [
-    `Plan: ${contents?.length ?? 0} sections.`,
-    sectionSummary || 'No section details yet.',
-    `Delivery: ${cadence} at ${time} to ${destinationCount} destination${destinationCount === 1 ? '' : 's'}.`,
-    `Overall topics: ${topicsText}.`,
-  ].join(' ');
-
   return (
     <Wrap>
-      <Title aria-hidden="true">{'\u{1F44D}'}</Title>
-      <Summary>{summaryText}</Summary>
+      <CannotEnableDigestDialog
+        isOpen={cannotEnableMissing !== null}
+        onClose={() => setCannotEnableMissing(null)}
+        missing={cannotEnableMissing ?? []}
+      />
+      {summaryText.trim() ? <Summary>{summaryText}</Summary> : null}
       <Toggle
-        label="Enabled"
+        aria-label="Digest enabled"
         checked={enabled}
         disabled={isUpdatingEnabled}
         onChange={async (nextValue) => {
+          if (nextValue && digestForEnableCheck && !canEnableDigest(digestForEnableCheck)) {
+            setCannotEnableMissing(missingEnableRequirements(digestForEnableCheck));
+            return;
+          }
           const prev = enabled;
           setEnabled(nextValue);
           try {
-            await updateEnabled({ digestId, body: { enabled: nextValue } });
+            await updateEnabled({ digestId: digestId!, body: { enabled: nextValue } });
+            toast.success(nextValue ? 'Digest enabled' : 'Digest disabled');
           } catch {
             setEnabled(prev);
             toast.error('Could not update digest status');
@@ -120,11 +117,10 @@ export default function ConfirmationStep() {
       <Button
         type="button"
         text="Back to digests"
-        size="medium"
-        isResponsive
+        size="large"
+        fullWidth
         onClick={() => navigate('/')}
       />
     </Wrap>
   );
 }
-

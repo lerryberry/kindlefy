@@ -1,10 +1,15 @@
+const path = require('path');
 const secrets = require('./ecosystem.secrets.js');
+
+/** PM2 cwd must be repo root so ./backend/server.js and requires resolve reliably. */
+const repoRoot = __dirname;
 
 module.exports = {
     apps: [
         {
             name: "kindelfy-backend-dev",
-            script: "./backend/server.js",
+            cwd: repoRoot,
+            script: path.join('backend', 'server.js'),
             watch: true,
             env: {
                 NODE_ENV: "development",
@@ -17,7 +22,8 @@ module.exports = {
         },
         {
             name: "kindelfy-backend-prod",
-            script: "./backend/server.js",
+            cwd: repoRoot,
+            script: path.join('backend', 'server.js'),
             watch: false,
             env: {
                 NODE_ENV: "production",

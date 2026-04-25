@@ -25,7 +25,8 @@ const StyledStatusIndicator = styled.div<{ isComplete: boolean; size: 'small' | 
         }
     }};
     border-radius: 50%;
-    background-color: ${props => props.isComplete ? 'var(--color-success)' : 'var(--color-error)'};
+    background-color: ${(props) =>
+        props.isComplete ? 'var(--color-gray-700)' : 'var(--color-gray-300)'};
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -38,7 +39,7 @@ const StyledStatusIndicator = styled.div<{ isComplete: boolean; size: 'small' | 
         }
     }};
     font-weight: bold;
-    color: var(--color-text-primary);
+    color: ${(props) => (props.isComplete ? '#e8e6e1' : '#1c1917')};
     margin-right: ${props => props.showMargin ? '0.5rem' : '0'};
     flex-shrink: 0;
     transition: background-color 0.2s ease;

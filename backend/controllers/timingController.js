@@ -3,6 +3,7 @@ const Target = require('../models/targetModel');
 const Prompt = require('../models/promptModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const { assertDigestLinkedDevicesWithinCap } = require('../utils/planLimits');
 
 const notArchived = { isArchived: { $ne: true } };
 const timingScope = req => ({ user: req.userId, isArchived: { $ne: true } });
@@ -68,8 +69,8 @@ exports.createTiming = catchAsync(async (req, res, next) => {
     return next(new AppError('schedule is required', 400));
   }
 
-  const promptExists = await Prompt.exists({ _id: prompt, user: req.userId, ...notArchived });
-  if (!promptExists) return next(new AppError('prompt not found', 404));
+  const promptDoc = await Prompt.findOne({ _id: prompt, ...notArchived }).lean();
+  if (!promptDoc) return next(new AppError('prompt not found', 404));
 
   const targetList = targets === undefined || targets === null ? [] : targets;
   if (!Array.isArray(targetList)) {
@@ -78,6 +79,10 @@ exports.createTiming = catchAsync(async (req, res, next) => {
   if (targetList.length > 0) {
     const ok = await assertTargetsOwned(req.userId, targetList);
     if (!ok) return next(new AppError('one or more targets not found', 404));
+  }
+
+  if (promptDoc.digest) {
+    await assertDigestLinkedDevicesWithinCap(promptDoc.digest, { extraTimingTargetIds: targetList });
   }
 
   const data = await Timing.create({
@@ -125,6 +130,14 @@ exports.updateTiming = catchAsync(async (req, res, next) => {
       const ok = await assertTargetsOwned(req.userId, targetList);
       if (!ok) return next(new AppError('one or more targets not found', 404));
     }
+  }
+
+  const existingTiming = await Timing.findOne({ _id: req.params.id, ...notArchived }).lean();
+  if (existingTiming?.digest && patch.targets !== undefined) {
+    await assertDigestLinkedDevicesWithinCap(existingTiming.digest, {
+      replaceTimingId: existingTiming._id,
+      replaceWithIds: patch.targets,
+    });
   }
 
   const data = await Timing.findOneAndUpdate(

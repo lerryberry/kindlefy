@@ -1,19 +1,12 @@
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { useDigestWizard } from '../../hooks/useDigestWizard';
+import { markApproveSenderNextPressed, useDigestWizard } from '../../hooks/useDigestWizard';
 import Button from '../util/Button';
 
 const APPROVED_SENDER_EMAIL = 'eschapple.projects@gmail.com';
 const AMAZON_APPROVED_SENDERS_URL =
   'https://www.amazon.com.au/hz/mycd/preferences/myx#/home/settings/payment';
-
-const Intro = styled.p`
-  color: var(--color-text-secondary);
-  font-size: 0.9rem;
-  margin: 0 0 1rem 0;
-  max-width: 600px;
-`;
 
 const Steps = styled.ol`
   margin: 0 0 1.25rem 0;
@@ -54,6 +47,10 @@ const EmailMono = styled.code`
 
 const NextRow = styled.div`
   margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: stretch;
 `;
 
 export default function ApproveSenderStep() {
@@ -71,10 +68,6 @@ export default function ApproveSenderStep() {
 
   return (
     <>
-      <Intro>
-        Kindle only accepts documents from approved senders. Add our address to your Amazon
-        account so digests can be delivered.
-      </Intro>
       <Steps>
         <li>
           Open your{' '}
@@ -100,10 +93,13 @@ export default function ApproveSenderStep() {
         <Button
           type="button"
           text="Next"
-          size="medium"
-          isResponsive
+          size="large"
+          fullWidth
           disabled={!digestId}
-          onClick={() => navigate(`/${digestId}/confirm`)}
+          onClick={() => {
+            if (digestId) markApproveSenderNextPressed(digestId);
+            navigate(`/${digestId}/confirm`);
+          }}
         />
       </NextRow>
     </>

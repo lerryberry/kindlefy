@@ -59,8 +59,14 @@ interface DigestContentsListResponse {
 interface DigestTimingsListResponse {
   status: string;
   results: number;
+  digestLinkedTargetIds: string[];
   data: DigestTimingListItem[];
 }
+
+export type DigestTimingsQueryData = {
+  timings: DigestTimingListItem[];
+  digestLinkedTargetIds: string[];
+};
 
 interface DigestTargetsResponse {
   status: string;
@@ -276,9 +282,12 @@ export function useDigestTimingsQuery(digestId: string | null) {
   return useQuery({
     queryKey: ['digestTimings', digestId],
     enabled: Boolean(digestId),
-    queryFn: async () => {
+    queryFn: async (): Promise<DigestTimingsQueryData> => {
       const res = await api.get<DigestTimingsListResponse>(`/digests/${digestId}/timings`);
-      return res.data.data;
+      return {
+        timings: res.data.data,
+        digestLinkedTargetIds: res.data.digestLinkedTargetIds ?? [],
+      };
     },
   });
 }

@@ -7,11 +7,15 @@ import Button from '../util/Button';
 import { useCreateTargetMutation, useDeleteTargetMutation, useTargetsQuery } from '../../hooks/useTargets';
 import { useDigestWizard } from '../../hooks/useDigestWizard';
 import {
+  useDigestsQuery,
   useDigestTimingTargetsQuery,
   useDigestTimingsQuery,
   useUpdateDigestTimingTargetsMutation,
 } from '../../hooks/useDigests';
+import { MustDisableDigestDialog, type MustDisableVariant } from '../digest/DigestPolicyDialogs';
 import type { Target } from '../../types/target';
+import { MAX_KINDLE_DEVICES_PER_DIGEST } from '../../constants/planLimits';
+import { wouldExceedDigestKindleCap } from '../../utils/digestKindleLimit';
 
 const Row = styled.div`
   display: flex;
@@ -189,7 +193,10 @@ function targetSecondaryLine(t: Target): string | null {
 
 export default function TargetForm() {
   const { digestId, selectedTimingId, setSelectedTimingId } = useDigestWizard();
-  const { data: timings, isLoading: timingsLoading } = useDigestTimingsQuery(digestId);
+  const { data: digests } = useDigestsQuery();
+  const { data: timingsData, isLoading: timingsLoading } = useDigestTimingsQuery(digestId);
+  const timings = timingsData?.timings;
+  const digestLinkedTargetIds = timingsData?.digestLinkedTargetIds ?? [];
   const resolvedTimingId = selectedTimingId || timings?.[0]?.timingId || null;
 
   const { data: timingTargets, isLoading: timingTargetsLoading } = useDigestTimingTargetsQuery(digestId, resolvedTimingId);
@@ -201,7 +208,11 @@ export default function TargetForm() {
 
   const [kindleEmail, setKindleEmail] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [mustDisableVariant, setMustDisableVariant] = useState<MustDisableVariant | null>(null);
   const didInitModeRef = useRef(false);
+
+  const digest = digestId ? digests?.find((d) => d._id === digestId) : null;
+  const digestOn = digest ? digest.enabled !== false : false;
 
   // Ensure selection is stable when arriving on `/.../targets` with no persisted timing selection.
   useEffect(() => {
@@ -236,6 +247,19 @@ export default function TargetForm() {
     if (!resolvedTimingId) return;
     const current = (timingTargets || []).map((t) => t._id);
     const next = checked ? [...new Set([...current, targetId])] : current.filter((id) => id !== targetId);
+    if (
+      checked &&
+      wouldExceedDigestKindleCap(digestLinkedTargetIds, current, next)
+    ) {
+      toast.error(
+        `Each digest can use at most ${MAX_KINDLE_DEVICES_PER_DIGEST} Kindle devices across all schedules.`
+      );
+      return;
+    }
+    if (!checked && digestOn && current.length === 1) {
+      setMustDisableVariant('last-kindle-unlink');
+      return;
+    }
     try {
       await updateDigestTargets({ targets: next });
       toast.success(checked ? 'Added to this schedule' : 'Removed from this schedule');
@@ -269,7 +293,14 @@ export default function TargetForm() {
         if (current.includes(targetId)) {
           toast.success('That address is already linked to this schedule');
         } else {
-          await updateDigestTargets({ targets: [...current, targetId] });
+          const next = [...new Set([...current, targetId])];
+          if (wouldExceedDigestKindleCap(digestLinkedTargetIds, current, next)) {
+            toast.error(
+              `Each digest can use at most ${MAX_KINDLE_DEVICES_PER_DIGEST} Kindle devices across all schedules.`
+            );
+            return;
+          }
+          await updateDigestTargets({ targets: next });
           toast.success(match ? 'Saved address linked to this schedule' : 'Target added and linked');
         }
       }
@@ -282,6 +313,11 @@ export default function TargetForm() {
   }
 
   async function handleDeleteTarget(targetId: string) {
+    const linkedIds = (timingTargets || []).map((t) => t._id);
+    if (digestOn && linkedIds.length === 1 && linkedIds[0] === targetId) {
+      setMustDisableVariant('last-kindle-delete');
+      return;
+    }
     try {
       await deleteTarget(targetId);
       toast.success('Target deleted');
@@ -294,6 +330,14 @@ export default function TargetForm() {
 
   return (
     <>
+      {digestId ? (
+        <MustDisableDigestDialog
+          isOpen={mustDisableVariant !== null}
+          onClose={() => setMustDisableVariant(null)}
+          digestId={digestId}
+          variant={mustDisableVariant}
+        />
+      ) : null}
       {showAddForm ? (
         <>
           <Hint style={{ marginBottom: '1rem' }}>
@@ -350,7 +394,7 @@ export default function TargetForm() {
         <>
           <Hint style={{ marginBottom: '1rem' }}>
             {resolvedTimingId
-              ? 'Choose saved Kindle addresses for this digest. You can link several destinations.'
+              ? `Choose saved Kindle addresses for this digest (up to ${MAX_KINDLE_DEVICES_PER_DIGEST} devices per digest across all schedules).`
               : 'Manage your saved Kindle devices. Add or delete devices now, then link them after saving a schedule.'}
           </Hint>
 
@@ -360,13 +404,18 @@ export default function TargetForm() {
               {sortedTargets.map((t) => {
                 const checked = linkedIdSet.has(t._id);
                 const secondary = targetSecondaryLine(t);
+                const currentIds = (timingTargets || []).map((x) => x._id);
+                const cannotCheck =
+                  !checked &&
+                  Boolean(resolvedTimingId) &&
+                  wouldExceedDigestKindleCap(digestLinkedTargetIds, currentIds, [...currentIds, t._id]);
                 return (
                   <TargetRow key={t._id}>
                     <TargetLabel $disabled={busy}>
                       <Checkbox
                         type="checkbox"
                         checked={checked}
-                        disabled={busy || !resolvedTimingId}
+                        disabled={Boolean(busy || !resolvedTimingId || cannotCheck)}
                         onChange={(e) => {
                           if (!resolvedTimingId) {
                             toast.error('Save a schedule to link devices');
@@ -399,7 +448,7 @@ export default function TargetForm() {
 
           {sortedTargets.length > 0 ? (
             <AddOptionButton type="button" onClick={() => setShowAddForm(true)}>
-              Add new address
+              Add new Kindle
             </AddOptionButton>
           ) : null}
         </>

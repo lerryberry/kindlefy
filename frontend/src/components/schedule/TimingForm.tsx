@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import toast from 'react-hot-toast';
 import Form from '../util/Form';
-import FormInput from '../util/FormInput';
 import SegmentedControl from '../util/SegmentedControl';
 import SetupFormSubmit from '../util/SetupFormSubmit';
 import { useDigestWizard } from '../../hooks/useDigestWizard';
@@ -70,6 +69,42 @@ const TimezoneSelect = styled.select`
   }
 `;
 
+const TimePickersRow = styled.div`
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+  width: 100%;
+`;
+
+const TimePickerField = styled.div`
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+const MINUTE_OPTIONS = ['00', '30'] as const;
+
+/** Snap legacy or odd values to the nearest half-hour (00 / 30). */
+function snapTimeOfDayToHalfHour(raw: string): string {
+  const m = /^([01]\d|2[0-3]):([0-5]\d)$/.exec((raw || '').trim());
+  if (!m) return '09:00';
+  let h = parseInt(m[1], 10);
+  const mn = parseInt(m[2], 10);
+  if (mn < 15) return `${String(h).padStart(2, '0')}:00`;
+  if (mn < 45) return `${String(h).padStart(2, '0')}:30`;
+  h = (h + 1) % 24;
+  return `${String(h).padStart(2, '0')}:00`;
+}
+
+function parseTimeOfDay(hhmm: string): { hour: string; minute: string } {
+  const normalized = snapTimeOfDayToHalfHour(hhmm);
+  const [h, mm] = normalized.split(':');
+  return { hour: h, minute: mm };
+}
+
 function defaultTimezone(): string {
   return detectPreferredScheduleTimezone();
 }
@@ -77,7 +112,8 @@ function defaultTimezone(): string {
 export default function TimingForm() {
   const navigate = useNavigate();
   const { digestId, selectedTimingId, setSelectedTimingId } = useDigestWizard();
-  const { data: timings, isLoading } = useDigestTimingsQuery(digestId);
+  const { data: timingsData, isLoading } = useDigestTimingsQuery(digestId);
+  const timings = timingsData?.timings;
   const resolvedTimingId = selectedTimingId || timings?.[0]?.timingId || null;
 
   const { mutateAsync: createTiming, isPending: isCreating } = useCreateDigestTimingMutation(digestId);
@@ -101,7 +137,7 @@ export default function TimingForm() {
       return;
     }
     setTimezone(coerceScheduleTimezone(currentSchedule.timezone || defaultTimezone()));
-    setTimeOfDay(currentSchedule.timeOfDay || '09:00');
+    setTimeOfDay(snapTimeOfDayToHalfHour(currentSchedule.timeOfDay || '09:00'));
   }, [digestId, resolvedTimingId, currentSchedule]);
 
   useEffect(() => {
@@ -122,12 +158,8 @@ export default function TimingForm() {
       timeOfDay: timeOfDay.trim(),
       frequency: SCHEDULE_FREQUENCY,
     };
-    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(schedule.timeOfDay)) {
-      toast.error('Time must be HH:mm (24h)');
-      return;
-    }
     if (!/^([01]\d|2[0-3]):(00|30)$/.test(schedule.timeOfDay)) {
-      toast.error('Time must be in 30-minute intervals');
+      toast.error('Time must be HH:mm with minutes 00 or 30');
       return;
     }
     try {
@@ -155,6 +187,7 @@ export default function TimingForm() {
   }
 
   const pending = isCreating || isUpdating;
+  const { hour: timeHour, minute: timeMinute } = parseTimeOfDay(timeOfDay);
 
   return (
     <Form onSubmit={handleSubmit}>
@@ -194,15 +227,49 @@ export default function TimingForm() {
             />
           </div>
         </div>
-        <FormInput
-          label="Time of day"
-          name="timeOfDay"
-          type="time"
-          value={timeOfDay}
-          onChange={(e) => setTimeOfDay(e.target.value)}
-          step={1800}
-          required
-        />
+        <FieldGroup>
+          <FieldLabel as="span" id="schedule-time-of-day-label">
+            Time of day
+          </FieldLabel>
+          <TimePickersRow aria-labelledby="schedule-time-of-day-label">
+            <TimePickerField>
+              <FieldLabel as="label" htmlFor="schedule-time-hour" style={{ fontWeight: 400 }}>
+                Hour
+              </FieldLabel>
+              <TimezoneSelect
+                id="schedule-time-hour"
+                value={timeHour}
+                onChange={(e) => setTimeOfDay(`${e.target.value}:${timeMinute}`)}
+                required
+                disabled={pending}
+              >
+                {HOUR_OPTIONS.map((h) => (
+                  <option key={h} value={h}>
+                    {h}
+                  </option>
+                ))}
+              </TimezoneSelect>
+            </TimePickerField>
+            <TimePickerField>
+              <FieldLabel as="label" htmlFor="schedule-time-minute" style={{ fontWeight: 400 }}>
+                Minute
+              </FieldLabel>
+              <TimezoneSelect
+                id="schedule-time-minute"
+                value={timeMinute}
+                onChange={(e) => setTimeOfDay(`${timeHour}:${e.target.value}`)}
+                required
+                disabled={pending}
+              >
+                {MINUTE_OPTIONS.map((mm) => (
+                  <option key={mm} value={mm}>
+                    {mm}
+                  </option>
+                ))}
+              </TimezoneSelect>
+            </TimePickerField>
+          </TimePickersRow>
+        </FieldGroup>
         <SetupFormSubmit pending={pending} label="Save schedule" />
       </Row>
     </Form>

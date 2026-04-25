@@ -17,6 +17,11 @@ const {
 } = require('../utils/digestOwnership');
 
 const { parseWordCount } = require('../utils/wordCount');
+const {
+  assertDigestCountUnderLoginCap,
+  assertDigestHasRoomForAnotherContentSection,
+  assertDigestLinkedDevicesWithinCap,
+} = require('../utils/planLimits');
 const notArchived = { isArchived: { $ne: true } };
 
 function normalizeExistingLocalisation(prompt) {
@@ -91,9 +96,11 @@ function sanitizeDigestSchedule(schedule) {
   const timeOfDay = schedule.timeOfDay;
   const frequency = schedule.frequency;
   if (typeof timezone !== 'string' || typeof timeOfDay !== 'string') return null;
+  const t = timeOfDay.trim();
+  if (!/^([01]\d|2[0-3]):(00|30)$/.test(t)) return null;
   return {
     timezone: timezone.trim(),
-    timeOfDay: timeOfDay.trim(),
+    timeOfDay: t,
     frequency: typeof frequency === 'string' ? frequency.trim() : undefined,
   };
 }
@@ -107,8 +114,10 @@ exports.getDigests = catchAsync(async (req, res) => {
     .lean();
 
   const firstPromptByDigestId = new Map();
+  const contentCountByDigestId = new Map();
   for (const p of prompts) {
     const did = String(p.digest);
+    contentCountByDigestId.set(did, (contentCountByDigestId.get(did) || 0) + 1);
     if (!firstPromptByDigestId.has(did)) {
       firstPromptByDigestId.set(did, p);
     }
@@ -133,6 +142,7 @@ exports.getDigests = catchAsync(async (req, res) => {
   const data = digests.map((d) => ({
     _id: d._id,
     enabled: d.enabled !== false,
+    contentCount: contentCountByDigestId.get(String(d._id)) || 0,
     prompt: serializeDigestPrompt(firstPromptByDigestId.get(String(d._id))),
     defaultTiming: firstTimingByDigestId.get(String(d._id)) || null,
   }));
@@ -154,6 +164,8 @@ exports.createDigestFromContent = catchAsync(async (req, res, next) => {
 
   const normalizedTopics = normalizePromptTopics(topics ?? [], { minSelected: 1 });
   const { localisation } = normalizeNewsScopeForCreate(req.body || {});
+
+  await assertDigestCountUnderLoginCap(req.userId);
 
   const digest = await Digest.create({ user: req.userId });
   const prompt = await Prompt.create({
@@ -196,6 +208,8 @@ exports.createDigestContentItem = catchAsync(async (req, res, next) => {
   if (wordCount === null) {
     return next(new AppError('length must be an integer word count between 500 and 5000', 400));
   }
+
+  await assertDigestHasRoomForAnotherContentSection(digestId);
 
   const normalizedTopics = normalizePromptTopics(topics ?? [], { minSelected: 1 });
   const { localisation } = normalizeNewsScopeForCreate(req.body || {});
@@ -273,6 +287,16 @@ exports.deleteDigestContentItem = catchAsync(async (req, res, next) => {
   // Throws if not found / not owned / archived
   await assertPromptBelongsToDigest(digestId, contentId);
 
+  const activeCount = await Prompt.countDocuments({ digest: digestId, ...notArchived });
+  if (activeCount === 1) {
+    const digest = await Digest.findOne({ _id: digestId, user: req.userId, ...notArchived }).lean();
+    if (digest && digest.enabled !== false) {
+      return next(
+        new AppError('Turn this digest off before removing its last content section.', 400)
+      );
+    }
+  }
+
   await Prompt.updateOne({ _id: contentId, digest: digestId, ...notArchived }, { $set: { isArchived: true } });
 
   // Resequence remaining active content items
@@ -343,9 +367,17 @@ exports.getDigestTimings = catchAsync(async (req, res, next) => {
     .sort({ createdAt: -1 })
     .lean();
 
+  const linkedSet = new Set();
+  for (const t of timings) {
+    for (const id of (t.targets || []).filter(Boolean)) {
+      linkedSet.add(String(id));
+    }
+  }
+
   res.status(200).json({
     status: 'success',
     results: timings.length,
+    digestLinkedTargetIds: [...linkedSet],
     data: timings.map((t) => ({
       timingId: t._id,
       schedule: t.schedule,
@@ -437,6 +469,20 @@ exports.updateDigestTimingTargets = catchAsync(async (req, res, next) => {
 
   const uniqueIds = [...new Set(ids.map((id) => String(id)))];
 
+  await assertDigestLinkedDevicesWithinCap(digestId, {
+    replaceTimingId: timingId,
+    replaceWithIds: uniqueIds,
+  });
+
+  if (uniqueIds.length === 0) {
+    const digest = await Digest.findOne({ _id: digestId, user: req.userId, ...notArchived }).lean();
+    if (digest && digest.enabled !== false) {
+      return next(
+        new AppError('Turn this digest off before removing the last Kindle from this schedule.', 400)
+      );
+    }
+  }
+
   await Timing.updateOne(
     { _id: timingId, digest: digestId, ...notArchived },
     { $set: { targets: uniqueIds } }
@@ -479,6 +525,27 @@ exports.updateDigestEnabled = catchAsync(async (req, res, next) => {
 
   if (typeof req.body.enabled !== 'boolean') {
     return next(new AppError('enabled must be a boolean', 400));
+  }
+
+  if (req.body.enabled === true) {
+    const hasContent = await Prompt.exists({ digest: digestId, ...notArchived });
+    if (!hasContent) {
+      return next(new AppError('Add at least one content section before turning this digest on.', 400));
+    }
+    const timings = await Timing.find({ digest: digestId, ...notArchived }).lean();
+    const canSend = timings.some(
+      (t) =>
+        sanitizeDigestSchedule(t.schedule) &&
+        (t.targets || []).filter(Boolean).length > 0
+    );
+    if (!canSend) {
+      return next(
+        new AppError(
+          'Save a schedule with a send time and link at least one Kindle before turning this digest on.',
+          400
+        )
+      );
+    }
   }
 
   const digest = await Digest.findOneAndUpdate(
