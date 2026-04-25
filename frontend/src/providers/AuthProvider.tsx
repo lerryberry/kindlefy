@@ -43,9 +43,23 @@ export function RouteProtectProvider({ children }: { children: React.ReactNode }
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const auth0Domain = import.meta.env.VITE_AUTH0_DOMAIN || "https://auth.kindleify.ai";
-    const auth0ClientId = import.meta.env.VITE_AUTH0_CLIENT_ID || "eUMhUBuJl8brZ6LDgD2cXrXPb65d7G90";
-    const auth0Audience = import.meta.env.VITE_AUTH0_AUDIENCE || "auth0-m2m-endpoint";
+    const isProduction = import.meta.env.PROD;
+
+    const defaultDomain = isProduction
+        ? "https://auth.kindleify.ai"
+        : "https://dev-itmdwxuj71eew7hh.us.auth0.com";
+    const auth0Domain = import.meta.env.VITE_AUTH0_DOMAIN || defaultDomain;
+
+    // Allow dedicated prod/dev values while preserving single-value overrides.
+    const defaultClientId = "eUMhUBuJl8brZ6LDgD2cXrXPb65d7G90";
+    const auth0ClientId = isProduction
+        ? (import.meta.env.VITE_AUTH0_CLIENT_ID_PROD || import.meta.env.VITE_AUTH0_CLIENT_ID || defaultClientId)
+        : (import.meta.env.VITE_AUTH0_CLIENT_ID_DEV || import.meta.env.VITE_AUTH0_CLIENT_ID || defaultClientId);
+
+    const defaultAudience = "auth0-m2m-endpoint";
+    const auth0Audience = isProduction
+        ? (import.meta.env.VITE_AUTH0_AUDIENCE_PROD || import.meta.env.VITE_AUTH0_AUDIENCE || defaultAudience)
+        : (import.meta.env.VITE_AUTH0_AUDIENCE_DEV || import.meta.env.VITE_AUTH0_AUDIENCE || defaultAudience);
 
     return (
         <Auth0Provider
