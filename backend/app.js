@@ -79,17 +79,35 @@ if (process.env.NODE_ENV === 'production') {
     });
 }
 
-// Auth0 configuration - support multiple Auth0 domains
-// Parse multiple domains from environment variable (comma-separated)
-const auth0Domains = process.env.AUTH0_DOMAIN
-    ? process.env.AUTH0_DOMAIN.split(',').map(domain => domain.trim())
-    : [process.env.AUTH0_DOMAIN];
+// Auth0 configuration - supports custom domains + optional fallback tenant domains.
+const normalizeUrlOrigin = (value) => {
+    if (!value || typeof value !== 'string') return null;
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    try {
+        return new URL(withScheme).origin;
+    } catch (_) {
+        return null;
+    }
+};
+
+const auth0Domains = [
+    ...(process.env.AUTH0_CUSTOM_DOMAIN || '').split(','),
+    ...(process.env.AUTH0_DOMAIN || '').split(','),
+]
+    .map((domain) => normalizeUrlOrigin(domain))
+    .filter(Boolean);
+
+if (!auth0Domains.length) {
+    throw new Error('AUTH0_CUSTOM_DOMAIN or AUTH0_DOMAIN must be configured');
+}
 
 // Use the first domain as the primary issuer, but validate against all
 // express-oauth2-jwt-bearer validates the issuer claim against issuerBaseURL
 const jwtCheck = auth({
     audience: process.env.AUTH0_AUDIENCE,
-    issuerBaseURL: auth0Domains[0] || process.env.AUTH0_DOMAIN,
+    issuerBaseURL: auth0Domains[0],
     tokenSigningAlg: 'RS256',
 });
 

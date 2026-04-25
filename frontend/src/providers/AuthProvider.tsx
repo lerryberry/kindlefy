@@ -43,13 +43,17 @@ export function RouteProtectProvider({ children }: { children: React.ReactNode }
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+    const auth0Domain = import.meta.env.VITE_AUTH0_DOMAIN || "https://auth.kindleify.ai";
+    const auth0ClientId = import.meta.env.VITE_AUTH0_CLIENT_ID || "eUMhUBuJl8brZ6LDgD2cXrXPb65d7G90";
+    const auth0Audience = import.meta.env.VITE_AUTH0_AUDIENCE || "auth0-m2m-endpoint";
+
     return (
         <Auth0Provider
-            domain="https://dev-itmdwxuj71eew7hh.us.auth0.com"
-            clientId="eUMhUBuJl8brZ6LDgD2cXrXPb65d7G90"
+            domain={auth0Domain}
+            clientId={auth0ClientId}
             authorizationParams={{
                 redirect_uri: window.location.origin,
-                audience: 'auth0-m2m-endpoint',
+                audience: auth0Audience,
                 scope: 'openid profile email'
             }}
             cacheLocation="localstorage"

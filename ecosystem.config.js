@@ -30,6 +30,7 @@ module.exports = {
                 PORT: 3000,
                 CORS_ORIGIN: "https://app.kindleify.ai,https://kindlefy-b0b7da295fd7.herokuapp.com",
                 AUTH0_AUDIENCE: "auth0-m2m-endpoint",
+                AUTH0_CUSTOM_DOMAIN: "https://auth.kindleify.ai",
                 AUTH0_DOMAIN: "https://dev-itmdwxuj71eew7hh.us.auth0.com",
                 ...secrets.backendProd
             }
