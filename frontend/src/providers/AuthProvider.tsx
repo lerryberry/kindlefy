@@ -1,5 +1,6 @@
 import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
 import { useEffect } from "react";
+import { auth0DomainHost, getAuth0RedirectUri } from "../config/auth0";
 import { consoleLogger } from "../utils/consoleLogger";
 import { usePostHog } from "../hooks/usePostHog";
 
@@ -13,7 +14,8 @@ export function RouteProtectProvider({ children }: { children: React.ReactNode }
         if (!isLoading && !isAuthenticated) {
             consoleLogger.auth.event('Redirecting to login');
             loginWithRedirect({
-                appState: { returnTo: window.location.pathname }
+                appState: { returnTo: window.location.pathname },
+                authorizationParams: { redirect_uri: getAuth0RedirectUri() },
             });
         }
     }, [isLoading, isAuthenticated, loginWithRedirect]);
@@ -45,10 +47,12 @@ export function RouteProtectProvider({ children }: { children: React.ReactNode }
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const isProduction = import.meta.env.PROD;
 
-    const defaultDomain = isProduction
+    const defaultDomainRaw = isProduction
         ? "https://auth.kindleify.ai"
         : "https://dev-itmdwxuj71eew7hh.us.auth0.com";
-    const auth0Domain = import.meta.env.VITE_AUTH0_DOMAIN || defaultDomain;
+    const auth0Domain = auth0DomainHost(
+        import.meta.env.VITE_AUTH0_DOMAIN || defaultDomainRaw
+    );
 
     // Allow dedicated prod/dev values while preserving single-value overrides.
     const defaultClientId = "eUMhUBuJl8brZ6LDgD2cXrXPb65d7G90";
@@ -66,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             domain={auth0Domain}
             clientId={auth0ClientId}
             authorizationParams={{
-                redirect_uri: window.location.origin,
+                redirect_uri: getAuth0RedirectUri(),
                 audience: auth0Audience,
                 scope: 'openid profile email'
             }}

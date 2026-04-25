@@ -1,5 +1,6 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { useMemo } from 'react';
+import { getAuth0RedirectUri } from '../../config/auth0';
 import { createApiClient } from './apiClient';
 import { type AxiosInstance } from 'axios';
 
@@ -11,7 +12,7 @@ export function useAuthenticatedAxios(): AxiosInstance {
         onUnauthorized: () =>
           logout({
             logoutParams: {
-              returnTo: `${window.location.origin}${window.location.pathname}`,
+              returnTo: `${getAuth0RedirectUri()}${window.location.pathname}`,
             },
           }),
       }),

@@ -1,5 +1,6 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import styled from 'styled-components';
+import { getAuth0RedirectUri } from "../../config/auth0";
 
 const LogoutLink = styled.button`
     text-decoration: none;
@@ -27,7 +28,7 @@ const LogoutButton = () => {
     const { logout } = useAuth0();
 
     const handleLogout = () => {
-        logout({ logoutParams: { returnTo: window.location.origin } });
+        logout({ logoutParams: { returnTo: getAuth0RedirectUri() } });
     };
 
     return (
