@@ -1,7 +1,7 @@
 /** Keep in sync with `repo/backend/utils/planLimits.js`. */
 export const MAX_DIGESTS_PER_LOGIN = 10;
 export const MAX_CONTENT_SECTIONS_PER_DIGEST = 5;
-export const MAX_KINDLE_DEVICES_PER_DIGEST = 3;
+export const MAX_KINDLE_DEVICES_PER_DIGEST = 1;
 
 /** Human-readable limits shown on marketing / plans UI. */
 export const PLAN_LIMIT_BULLETS: string[] = [

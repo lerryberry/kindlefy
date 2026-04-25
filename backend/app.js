@@ -27,14 +27,41 @@ const app = express();
 // Trust proxy for x-forwarded-proto header (important for Heroku and other proxies)
 app.set('trust proxy', 1);
 
-// Enable CORS for frontend - must be before auth middleware
-// Support multiple origins (comma-separated string or array)
-const corsOrigins = process.env.CORS_ORIGIN
-    ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-    : process.env.CORS_ORIGIN;
+// Enable CORS for frontend - must be before auth middleware.
+// Normalizes URLs so entries with trailing slashes still match.
+const normalizeOrigin = (value) => {
+    if (!value || typeof value !== 'string') return null;
+    try {
+        return new URL(value.trim()).origin;
+    } catch (_) {
+        return null;
+    }
+};
+
+const corsAllowedOrigins = new Set(
+    [
+        ...(process.env.CORS_ORIGIN || '')
+            .split(',')
+            .map((origin) => normalizeOrigin(origin))
+            .filter(Boolean),
+        normalizeOrigin('https://app.kindleify.ai')
+    ].filter(Boolean)
+);
 
 app.use(cors({
-    origin: corsOrigins,
+    origin: (origin, callback) => {
+        // Allow server-to-server calls and same-origin browser requests with no Origin header.
+        if (!origin) {
+            return callback(null, true);
+        }
+
+        const normalized = normalizeOrigin(origin);
+        if (normalized && corsAllowedOrigins.has(normalized)) {
+            return callback(null, true);
+        }
+
+        return callback(new Error('CORS origin not allowed'));
+    },
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']

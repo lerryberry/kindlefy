@@ -4,7 +4,6 @@
  */
 export const PROMPT_TOPIC_OPTIONS = [
   'Science',
-  'Astronomy',
   'Technology',
   'Business & Finance',
   'Sports',

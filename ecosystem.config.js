@@ -28,9 +28,9 @@ module.exports = {
             env: {
                 NODE_ENV: "production",
                 PORT: 3000,
-                CORS_ORIGIN: "https://kindlefy-b0b7da295fd7.herokuapp.com/",
+                CORS_ORIGIN: "https://app.kindleify.ai,https://kindlefy-b0b7da295fd7.herokuapp.com",
                 AUTH0_AUDIENCE: "auth0-m2m-endpoint",
-                AUTH0_DOMAIN: "dev-itmdwxuj71eew7hh.us.auth0.com",
+                AUTH0_DOMAIN: "https://dev-itmdwxuj71eew7hh.us.auth0.com",
                 ...secrets.backendProd
             }
         }

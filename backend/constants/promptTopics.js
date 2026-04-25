@@ -4,7 +4,6 @@
  */
 module.exports = [
   'Science',
-  'Astronomy',
   'Technology',
   'Business & Finance',
   'Sports',

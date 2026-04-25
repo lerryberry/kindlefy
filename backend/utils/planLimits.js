@@ -7,7 +7,7 @@ const notArchived = { isArchived: { $ne: true } };
 
 const MAX_DIGESTS_PER_LOGIN = 10;
 const MAX_CONTENT_SECTIONS_PER_DIGEST = 5;
-const MAX_KINDLE_DEVICES_PER_DIGEST = 3;
+const MAX_KINDLE_DEVICES_PER_DIGEST = 1;
 
 /**
  * Unique target ids linked on any non-archived timing for this digest.
