@@ -11,6 +11,8 @@ interface ImportMetaEnv {
   readonly VITE_AUTH0_REDIRECT_URI?: string;
   readonly VITE_AUTH0_REDIRECT_URI_PROD?: string;
   readonly VITE_AUTH0_REDIRECT_URI_DEV?: string;
+  /** ID token `iss` must match this when set (useful if `iss` is still the tenant URL with a custom login domain). */
+  readonly VITE_AUTH0_ISSUER?: string;
 }
 
 interface ImportMeta {

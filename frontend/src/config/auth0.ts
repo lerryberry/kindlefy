@@ -3,6 +3,18 @@
  * redirect_uri must exactly match an entry in Auth0 Application "Allowed Callback URLs".
  */
 
+/** Same idea as @auth0/auth0-react `hasAuthParams` — avoids starting a new login while handling the callback. */
+const CODE_RE = /[?&]code=[^&]+/;
+const STATE_RE = /[?&]state=[^&]+/;
+const ERROR_RE = /[?&]error=[^&]+/;
+
+export function hasOAuthAuthorizationParams(
+  search: string = typeof window !== 'undefined' ? window.location.search : ''
+): boolean {
+  if (!search) return false;
+  return (CODE_RE.test(search) || ERROR_RE.test(search)) && STATE_RE.test(search);
+}
+
 function canonicalOrigin(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return '';
