@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { markApproveSenderNextPressed, useDigestWizard } from '../../hooks/useDigestWizard';
 import Button from '../util/Button';
 
-const APPROVED_SENDER_EMAIL = 'eschapple.projects@gmail.com';
+const APPROVED_SENDER_EMAIL = 'author@kindleify.ai';
 const AMAZON_APPROVED_SENDERS_URL =
   'https://www.amazon.com.au/hz/mycd/preferences/myx#/home/settings/payment';
 
