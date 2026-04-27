@@ -111,8 +111,9 @@ exports.deleteTarget = catchAsync(async (req, res, next) => {
   const existing = await Target.findOne({ _id: req.params.id, ...targetScope(req) });
   if (!existing) return next(new AppError('Target not found', 404));
 
+  const ownedDigestIds = await Digest.distinct('_id', { user: req.userId, ...notArchived });
   const digestIds = await Timing.distinct('digest', {
-    user: req.userId,
+    digest: { $in: ownedDigestIds },
     ...notArchived,
     targets: existing._id,
   });
@@ -143,7 +144,7 @@ exports.deleteTarget = catchAsync(async (req, res, next) => {
   if (!data) return next(new AppError('Target not found', 404));
 
   await Timing.updateMany(
-    { user: req.userId, isArchived: { $ne: true }, targets: data._id },
+    { digest: { $in: ownedDigestIds }, isArchived: { $ne: true }, targets: data._id },
     { $pull: { targets: data._id } }
   );
 

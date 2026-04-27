@@ -275,8 +275,15 @@ export default function TargetForm() {
       toast.error('Kindle email is required');
       return;
     }
+    const existingMatch = allTargets.find((t) => t.kindleEmail === email);
+    if (allTargets.length >= 1 && !existingMatch) {
+      toast.error(
+        `You can have at most ${MAX_KINDLE_DEVICES_PER_DIGEST} Kindle device for now.`
+      );
+      return;
+    }
     try {
-      const match = allTargets.find((t) => t.kindleEmail === email);
+      const match = existingMatch;
       let targetId: string;
       if (match) {
         targetId = match._id;
@@ -446,11 +453,13 @@ export default function TargetForm() {
             </TargetList>
           </Section>
 
-          {sortedTargets.length > 0 ? (
+          {sortedTargets.length < MAX_KINDLE_DEVICES_PER_DIGEST ? (
             <AddOptionButton type="button" onClick={() => setShowAddForm(true)}>
               Add new Kindle
             </AddOptionButton>
-          ) : null}
+          ) : (
+            <Hint>{`You can add up to ${MAX_KINDLE_DEVICES_PER_DIGEST} Kindle device for now.`}</Hint>
+          )}
         </>
       )}
     </>

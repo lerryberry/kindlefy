@@ -253,6 +253,7 @@ export default function DigestContentsAccordion({ digestId, onCreatedDigest }: D
       const orderedIds = next.map((c) => c.contentId);
       const updated = await reorderMutation.mutateAsync(orderedIds);
       setContents(updated);
+      toast.success('Sections reordered');
     } catch {
       toast.error('Could not reorder sections');
       // Fallback: re-sync on next query invalidation.

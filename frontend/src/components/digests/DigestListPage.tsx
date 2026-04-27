@@ -52,6 +52,7 @@ const Row = styled.li`
   background: var(--color-background-secondary);
   transition: border-color 0.15s ease;
   min-width: 0;
+  cursor: pointer;
 
   &:hover {
     border-color: var(--color-brand-500);
@@ -76,7 +77,6 @@ const TaglineArea = styled.div`
   min-width: 0;
   text-align: left;
   padding: 0.25rem 0 0;
-  cursor: pointer;
   color: inherit;
   font: inherit;
 
@@ -198,17 +198,21 @@ export default function DigestListPage() {
         <List>
           {rows.map((digest) => {
             return (
-              <Row key={digest._id}>
+              <Row
+                key={digest._id}
+                role="button"
+                tabIndex={0}
+                onClick={() => openDigest(digest)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openDigest(digest);
+                  }
+                }}
+              >
                 <RowInner>
                   <RowTop>
-                    <TaglineArea
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => openDigest(digest)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') openDigest(digest);
-                      }}
-                    >
+                    <TaglineArea>
                       <Tagline>{digestTagline(digest)}</Tagline>
                     </TaglineArea>
                     <DeleteButton

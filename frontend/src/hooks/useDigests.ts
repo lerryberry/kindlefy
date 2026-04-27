@@ -303,6 +303,7 @@ export function useCreateDigestTimingMutation(digestId: string | null) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['digestTimings', digestId] });
+      queryClient.invalidateQueries({ queryKey: ['digests'] });
     },
   });
 }
@@ -321,6 +322,7 @@ export function useUpdateDigestTimingScheduleMutation(digestId: string | null) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['digestTimings', digestId] });
+      queryClient.invalidateQueries({ queryKey: ['digests'] });
     },
   });
 }
@@ -354,6 +356,7 @@ export function useUpdateDigestTimingTargetsMutation(digestId: string | null, ti
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['digestTimingTargets', digestId, timingId] });
       queryClient.invalidateQueries({ queryKey: ['digestTimings', digestId] });
+      queryClient.invalidateQueries({ queryKey: ['digests'] });
     },
   });
 }
