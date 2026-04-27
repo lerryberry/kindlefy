@@ -162,7 +162,7 @@ exports.createDigestFromContent = catchAsync(async (req, res, next) => {
     return next(new AppError('length must be an integer word count between 500 and 5000', 400));
   }
 
-  const normalizedTopics = normalizePromptTopics(topics ?? [], { minSelected: 1 });
+  const normalizedTopics = normalizePromptTopics(topics ?? [], { minSelected: 1, appendNewsToPreset: true });
   const { localisation } = normalizeNewsScopeForCreate(req.body || {});
 
   await assertDigestCountUnderLoginCap(req.userId);
@@ -211,7 +211,7 @@ exports.createDigestContentItem = catchAsync(async (req, res, next) => {
 
   await assertDigestHasRoomForAnotherContentSection(digestId);
 
-  const normalizedTopics = normalizePromptTopics(topics ?? [], { minSelected: 1 });
+  const normalizedTopics = normalizePromptTopics(topics ?? [], { minSelected: 1, appendNewsToPreset: true });
   const { localisation } = normalizeNewsScopeForCreate(req.body || {});
 
   const maxPrompt = await Prompt.findOne({ digest: digestId, ...notArchived }).sort({ order: -1, createdAt: -1 }).lean();
@@ -251,7 +251,7 @@ exports.updateDigestContentItem = catchAsync(async (req, res, next) => {
   }
 
   if (Object.prototype.hasOwnProperty.call(body, 'topics')) {
-    patch.topics = normalizePromptTopics(body.topics ?? [], { minSelected: 1 });
+    patch.topics = normalizePromptTopics(body.topics ?? [], { minSelected: 1, appendNewsToPreset: true });
   }
 
   const newsPatch = normalizeNewsScopeForUpdate(body, existingPrompt);
