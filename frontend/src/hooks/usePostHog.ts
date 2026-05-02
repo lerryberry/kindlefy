@@ -6,7 +6,7 @@ export function usePostHog() {
         // Ensure PostHog is loaded
         if (typeof window !== 'undefined' && !posthog.__loaded) {
             posthog.init('phc_Ju4K4bBXyI79wej0tzGRdMnJTYovgalsSVigfm0clOJ', {
-                api_host: 'https://app.posthog.com',
+                api_host: 'https://us.i.posthog.com',
             });
         }
     }, []);
